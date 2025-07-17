@@ -1,5 +1,4 @@
 
-
 namespace Airbnb.DependencyInjection.ApplicationDI
 {
     public static class ApplicationServicesRegistration

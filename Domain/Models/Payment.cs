@@ -14,6 +14,7 @@ namespace Domain.Models
         public DateTime PaymentDate { get; set; }
         public string Status { get; set; }
 
+        public bool IsDeleted { get; set; }
         [ForeignKey(nameof(Booking))]
         public int BookingId{ get; set; }
         public Booking Booking { get; set; }

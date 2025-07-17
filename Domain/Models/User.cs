@@ -15,14 +15,19 @@ namespace Domain.Models
         public DateTime CreateAt { get; set; }
         public DateTime UpdatedAt{ get; set; }
         public string ProfilePictureURL { get; set; }
+        public bool IsDeleted { get; set; }
 
         public ICollection<Wishlist>? Wishlist { get; set; }
-
+        public ICollection<Property>? WishlistedProps { get; set; }
+        
         
         public ICollection<Property>? OwnedProps{ get; set; }
         public ICollection<Property>? ReservedProps{ get; set; }
         public ICollection<Booking>? Bookings{ get; set; }
         public ICollection<Review>? Reviews{ get; set; }
+
+
+        public ICollection<Payment>? Payments{ get; set; }
 
 
     }

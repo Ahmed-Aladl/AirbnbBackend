@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Models
 {
@@ -18,9 +19,13 @@ namespace Domain.Models
         public string City { get; set; }
         public string Country { get; set; }
         public string State { get; set; }
+
+        [Precision(9,6)]
         public decimal Latitude { get; set; }
+        [Precision(9,6)]
         public decimal Longitude { get; set; }
 
+        [Precision(18,2)]
         public decimal PricePerNight { get; set; }
 
         public int MaxGuests { get; set; }
@@ -32,6 +37,8 @@ namespace Domain.Models
         public int ReviewCount { get; set; }
         
         public bool IsActive { get; set; }
+        public bool IsDeleted{ get; set; }
+        
 
         [ForeignKey(nameof(PropertyType))]
         public int PropertyTypeId {  get; set; }

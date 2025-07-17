@@ -16,5 +16,7 @@ namespace Domain.Models
         public bool IsCover{ get; set; }
 
         public Property Property { get; set; }
+
+        public bool IsDeleted { get; set; }
     }
 }
