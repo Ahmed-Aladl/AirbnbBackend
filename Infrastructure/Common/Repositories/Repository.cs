@@ -25,6 +25,7 @@ namespace Infrastructure.Common.Repositories
         public TEntity GetById(TKey id)
         {
             return Db.Set<TEntity>().Find(id);
+
         }
 
         public void Add(TEntity entity)

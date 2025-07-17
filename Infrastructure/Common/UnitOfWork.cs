@@ -21,6 +21,8 @@ namespace Infrastructure.Common
         //public IRepository Repo =>
         //    _repo ??= new Repository(_context);
 
+        private IBookingRepo _bookingRepo;
+
 
         public UnitOfWork(AirbnbContext _context) 
         {
@@ -28,6 +30,15 @@ namespace Infrastructure.Common
         }
         public AirbnbContext Context { get; }
 
+        public IBookingRepo Bookings
+        {
+            get
+            {
+                if (_bookingRepo != null) return _bookingRepo;
+                _bookingRepo = new BookingRepository(Context);
+                return _bookingRepo;
+            }
+        }
         public IPropertyRepository PropertyRepo => 
                 _propertyRepo ?? new PropertyRepository(Context);
 
