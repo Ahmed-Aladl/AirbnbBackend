@@ -11,15 +11,19 @@ namespace Domain.Models
     {
         public int Id { get; set; }
         public string Comment { get; set; }
+        public int Rating { get; set; }
 
         [ForeignKey(nameof(User))]
         public string UserId { get; set; }
-        public int BookingId { get; set; }
+
         [ForeignKey(nameof(Property))]
         public int PropertyId { get; set; }
-        public int Rating { get; set; }
+        
+        [ForeignKey(nameof(Booking))]
+        public int BookingId { get; set; }
         
         public User User { get; set; }
         public Property Property { get; set; }
+        public Booking Booking{ get; set; }
     }
 }

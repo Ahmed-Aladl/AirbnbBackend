@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -32,8 +33,18 @@ namespace Domain.Models
         
         public bool IsActive { get; set; }
 
-        public int PropTypeId {  get; set; }
+        [ForeignKey(nameof(PropertyType))]
+        public int PropertyTypeId {  get; set; }
+        [ForeignKey(nameof(Host))]
         public string HostId{ get; set; }
+
+        public PropertyType PropertyType { get; set; }
+        public User Host{ get; set; }
+
+
+        public ICollection<Amenity> Amenities { get; set; }
+        public ICollection<PropertyAmenity> PropertyAmenities{ get; set; }
+
 
     }
 }
