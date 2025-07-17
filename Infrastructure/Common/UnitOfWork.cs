@@ -15,17 +15,19 @@ namespace Infrastructure.Common
 {
     public class UnitOfWork : IUnitOfWork
     {
+
+        private IPropertyRepository _propertyRepo;
         //private IRepository _repo;
         //public IRepository Repo =>
         //    _repo ??= new Repository(_context);
 
         private IBookingRepo _bookingRepo;
 
+
         public UnitOfWork(AirbnbContext _context) 
         {
             Context = _context;
         }
-
         public AirbnbContext Context { get; }
 
         public IBookingRepo Bookings
@@ -37,6 +39,12 @@ namespace Infrastructure.Common
                 return _bookingRepo;
             }
         }
+        public IPropertyRepository PropertyRepo => 
+                _propertyRepo ?? new PropertyRepository(Context);
+
+
+
+
 
 
         public int SaveChanges()

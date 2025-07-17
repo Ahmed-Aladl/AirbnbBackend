@@ -11,6 +11,7 @@ namespace Application.Interfaces
     {
         IBookingRepo Bookings { get; }
 
+        IPropertyRepository PropertyRepo { get; }
         Task<int> SaveChangesAsync();
         int SaveChanges();
     }
