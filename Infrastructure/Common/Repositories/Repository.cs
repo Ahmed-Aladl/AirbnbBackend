@@ -35,7 +35,7 @@ namespace Infrastructure.Common.Repositories
         {
             Db.Entry<TEntity>(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         }
-        public void Delete(TEntity entity)
+        public virtual void Delete(TEntity entity)
         {
             Db.Set<TEntity>().Remove(entity);
         }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
+using Infrastructure.Common.Repositories;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,15 +15,26 @@ namespace Infrastructure.Common
 {
     public class UnitOfWork : IUnitOfWork
     {
+
+        private IPropertyRepository _propertyRepo;
         //private IRepository _repo;
         //public IRepository Repo =>
         //    _repo ??= new Repository(_context);
+
+
         public UnitOfWork(AirbnbContext _context) 
         {
             Context = _context;
         }
-
         public AirbnbContext Context { get; }
+
+        public IPropertyRepository PropertyRepo => 
+                _propertyRepo ?? new PropertyRepository(Context);
+
+
+
+
+
 
         public int SaveChanges()
         {
