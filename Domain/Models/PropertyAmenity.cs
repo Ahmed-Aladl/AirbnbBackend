@@ -11,8 +11,13 @@ namespace Domain.Models
     {
         [ForeignKey(nameof(Property))]
         public int PropertyId { get; set; }
+        [ForeignKey(nameof(Amenity))]
         public int AmenityId { get; set; }
 
         public Property Property { get; set; }
+        public Amenity Amenity { get; set; }
+
+
+
     }
 }

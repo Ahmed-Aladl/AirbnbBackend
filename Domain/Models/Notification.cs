@@ -9,18 +9,15 @@ namespace Domain.Models
 {
     public  class Notification
     {
-        public int NotificationID { get; set; }
-
-        //[ForeignKey(nameof())]
-
-        public string UserID  { get; set; } 
-
+        public int Id { get; set; }        
         public string Message { get; set; } 
-
         public bool isRead { get; set; } 
-
         public DateTime CreatedAt { get; set; }
 
+
+        [ForeignKey(nameof(User))]
+        public string UserId { get; set; }
+        public User User { get; set; }
 
     }
 }

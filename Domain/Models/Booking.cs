@@ -10,25 +10,31 @@ namespace Domain.Models
 {
     public class Booking
     {
-        public int BookingID { get; set; }
+        public int Id { get; set; }
 
-
-        //[ForeignKey(nameof(Properties ))]
-        public int PropertyID { get; set; }
-
-
-
-        //[ForeignKey(nameof(Properties))]
-        public int GuestID { get; set; } 
         public DateTime CheckInDate { get; set; }
 
         public DateTime CheckOutDate { get; set; }
-         
-        public int NumberOfGuests { get; set; } 
 
-        public decimal TotalPrice { get; set; } 
+        public int NumberOfGuests { get; set; }
 
-        public string BookingStatus { get; set; } 
+        public decimal TotalPrice { get; set; }
+
+        public string BookingStatus { get; set; }
+
+
+
+        [ForeignKey(nameof(Property))]
+        public int PropertyId { get; set; }
+
+
+
+
+        [ForeignKey(nameof(User))]
+        public int UserId { get; set; } 
+        
+        public User User{ get; set; }
+        public Property Property { get; set; }
 
 
 
