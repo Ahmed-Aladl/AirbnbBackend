@@ -10,7 +10,6 @@
     <Folder Include="DbConfigs\" />
     <Folder Include="Contexts\" />
     <Folder Include="DbSeeders\" />
-    <Folder Include="Models\" />
   </ItemGroup>
 
   <ItemGroup>
