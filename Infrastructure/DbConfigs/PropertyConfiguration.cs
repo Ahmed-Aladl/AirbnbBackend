@@ -1,0 +1,22 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Domain.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Infrastructure.DbConfigs
+{
+    public class PropertyConfiguration : IEntityTypeConfiguration<Property>
+    {
+        public void Configure(EntityTypeBuilder<Property> builder)
+        {
+            builder.HasMany<Review>()
+                .WithOne(r => r.Property)
+                .HasForeignKey(r=> r.PropertyId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}
