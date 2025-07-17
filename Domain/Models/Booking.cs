@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Enums.Booking;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
@@ -22,7 +23,7 @@ namespace Domain.Models
         [Precision(18,6)]
         public decimal TotalPrice { get; set; }
 
-        public string BookingStatus { get; set; }
+        public BookingStatus BookingStatus { get; set; }
         public bool IsDeleted { get; set; } 
 
 
