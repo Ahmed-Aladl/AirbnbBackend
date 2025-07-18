@@ -532,7 +532,11 @@ namespace Infrastructure.Data
                     {
                         UserId = guest.Id,
                         PropertyId = property.Id,
-                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
+                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30)),
+                        Name = $"Wishlist for {guest.FirstName}",
+                        Notes = "Auto-generated"
+
+
                     });
                 }
             }
