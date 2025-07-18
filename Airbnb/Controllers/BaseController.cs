@@ -9,6 +9,12 @@ namespace Airbnb.Controllers
     [Route("api/[controller]")]
     public class BaseController : ControllerBase
     {
+        protected IActionResult ToActionResult<T>(Result<T> result) 
+        {
+            return result.IsSuccess ?
+                            Success(result.Data, result.Message, result.StatusCode ?? 200) :
+                            Fail(result.Message, result.StatusCode ?? 400);
+        }
         protected IActionResult Success<T>(T data, string message = "", int statusCode = 200)
         {
             return StatusCode(statusCode, Result<T>.Success(data, statusCode, message));
@@ -49,5 +55,6 @@ namespace Airbnb.Controllers
                 return NotFound();
             return StatusCode(result.StatusCode ?? 400, result);
         }
+
     }
 }
