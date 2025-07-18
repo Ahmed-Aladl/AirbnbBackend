@@ -5,10 +5,13 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Application.DTOs.PropertyDTOS;
+using Application.DTOs.PropertyImageDTOs;
 using Application.Interfaces;
 
 using Application.Result;
 using AutoMapper;
+using AutoMapper.Features;
+using AutoMapper.Internal;
 using Domain.Models;
 using static Application.Result.Result<Application.DTOs.PropertyDTOS.PropertyDisplayDTO>;
 
@@ -23,6 +26,11 @@ namespace Application.Services
 
         public IUnitOfWork UnitOfWork { get; }
         public IMapper Mapper { get; }
+
+        //private User UserExists(string id)
+        //{
+        //    UnitOfWork.
+        //}
 
         public Result<List<PropertyDisplayDTO>> GetAll()
         {
@@ -50,7 +58,7 @@ namespace Application.Services
                             .GetById(id);
 
             if(property == null)
-                    Fail("Property not found!",(int)HttpStatusCode.NotFound);
+                    return Fail("Property not found!",(int)HttpStatusCode.NotFound);
 
 
             var mapped = Mapper
@@ -89,6 +97,10 @@ namespace Application.Services
 
             if (prop == null)
                 return Fail("Property doesn't exist", (int) HttpStatusCode.NotFound);
+
+            if (propertyDTO.HostId != prop.HostId)
+                return Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
+
             Mapper.Map(propertyDTO, prop);
 
             try
@@ -134,6 +146,82 @@ namespace Application.Services
             catch
             {
                 return Fail("Couldn't delete this property", (int)HttpStatusCode.Conflict);
+            }
+        }
+
+
+        //public Result<PropertyImageDisplayDTO> AddImage(PropertyImageCreateDTO propImageCreateDTO)
+        //{
+        //    var property = UnitOfWork.PropertyRepo.GetById(propImageCreateDTO.PropertyId);
+        //    if (property == null)
+        //        return Result.Result<PropertyImageDisplayDTO>.Fail("Property not found",(int)HttpStatusCode.NotFound);
+
+        //    if (property.HostId != propImageCreateDTO.HostId)
+        //            Result<PropertyImageDisplayDTO>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
+
+        //    var propertyImage = Mapper.Map<PropertyImage>(propImageCreateDTO);
+        //    try
+        //    {
+        //        UnitOfWork.PropertyImageRepo.Add(propertyImage);
+        //        bool succed = UnitOfWork.SaveChanges() > 0;
+
+        //        if (succed)
+        //        {
+        //            var propDisDto = Mapper.Map<PropertyImageDisplayDTO>(propertyImage);
+        //            return Result<PropertyImageDisplayDTO>.Success(propDisDto, (int)HttpStatusCode.Created, "Image uploaded");
+        //        }
+
+
+        //        return Result<PropertyImageDisplayDTO>.Fail("Faild to uploaded", (int)HttpStatusCode.BadRequest);
+        //    }
+        //    catch
+        //    {
+        //        return Result<PropertyImageDisplayDTO>.Fail("Couldn't upload the image",(int)HttpStatusCode.InternalServerError);
+        //    }
+        //}
+        public Result<List<PropertyImageDisplayDTO>> AddImages(PropertyImagesCreateContainerDTO dto)
+        {
+            var property = UnitOfWork.PropertyRepo.GetById(dto.PropertyId);
+            if (property == null)
+                return Result<List<PropertyImageDisplayDTO>>.Fail("Property not found", (int)HttpStatusCode.NotFound);
+
+            if (property.HostId != dto.HostId)
+                return Result<List<PropertyImageDisplayDTO>>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
+
+            var imageEntities = new List<PropertyImage>();
+
+            foreach (var imageDto in dto.Images)
+            {
+                var image = new PropertyImage
+                {
+                    GroupName = imageDto.GroupName,
+                    PropertyId = dto.PropertyId,
+                    ImageUrl = imageDto.ImageUrl,
+                    IsCover = imageDto.IsCover
+                };
+
+                imageEntities.Add(image);
+                UnitOfWork.PropertyImageRepo.Add(image);
+            }
+
+            try
+            {
+                bool saved = UnitOfWork.SaveChanges() > 0;
+
+                if (saved)
+                {
+                    var result = imageEntities
+                        .Select(img => Mapper.Map<PropertyImageDisplayDTO>(img))
+                        .ToList();
+
+                    return Result<List<PropertyImageDisplayDTO>>.Success(result, (int)HttpStatusCode.Created, "Images uploaded");
+                }
+
+                return Result<List<PropertyImageDisplayDTO>>.Fail("Images not uploaded", (int)HttpStatusCode.BadRequest);
+            }
+            catch
+            {
+                return Result<List<PropertyImageDisplayDTO>>.Fail("Couldn't upload the images", (int)HttpStatusCode.InternalServerError);
             }
         }
 

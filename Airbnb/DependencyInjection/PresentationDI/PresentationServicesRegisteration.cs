@@ -1,6 +1,10 @@
 ﻿
+using Airbnb.Services;
+using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
+using Infrastructure.Services;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Airbnb.DependencyInjection.PresentationDI
 {
@@ -36,15 +40,21 @@ namespace Airbnb.DependencyInjection.PresentationDI
         {
 
             AddCors(services, configuration);
+            services.AddScoped<IFileService,FileService>();
+            services.AddSwaggerGen(c =>
+                          c.OperationFilter<FileUploadOperationFilter>()
+            );
+
+
 
             // Add AutoMapper
             services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
             services.AddAutoMapper(typeof(AmenityMappingProfile).Assembly);
 
+
             services.AddScoped<PropertyService>();
+            services.AddScoped<BookingService>();
             services.AddScoped<CalendarService>();
-
-
             services.AddScoped<AmenityService>();
             return services;
         }
@@ -52,9 +62,9 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app) 
         {
+
             app.MapOpenApi();
             app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
-
             return app;
         }
     }
