@@ -44,7 +44,9 @@ namespace Infrastructure.Common
                 _propertyRepo ?? new PropertyRepository(Context);
 
 
-
+        private IWishlistRepository _wishlistRepo;
+        public IWishlistRepository Wishlist =>
+            _wishlistRepo ??= new WishlistRepository(Context);
 
 
 

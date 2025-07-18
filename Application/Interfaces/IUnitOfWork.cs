@@ -13,7 +13,7 @@ namespace Application.Interfaces
         IBookingRepo Bookings { get; }
         IPropertyRepository PropertyRepo { get; }
         ICalendarAvailabilityRepo CalendarAvailabilities { get; }
-
+        IWishlistRepository Wishlist { get; }
         Task<int> SaveChangesAsync();
         int SaveChanges();
     }
