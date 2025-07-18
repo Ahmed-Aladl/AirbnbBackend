@@ -1,4 +1,7 @@
-﻿using Application.Services;
+﻿using Airbnb.Extensions;
+using Application.DTOs.PropertyDTOS;
+using Application.Result;
+using Application.Services;
 using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,34 +25,43 @@ namespace Airbnb.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Success(PropertyService.GetAll());
-            return Ok();
+            
+            return PropertyService.GetAll()
+                                  .ToActionResult();
 
         }
 
         // GET api/<PropertyController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IActionResult Get(int id)
         {
-            return "value";
+            return PropertyService.Get(id)
+                                  .ToActionResult();
         }
 
         // POST api/<PropertyController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        [HttpPost("{id}")]
+        public IActionResult Add(PropertyDisplayDTO propertyDTO, int id)
         {
+            return PropertyService.Add(propertyDTO)
+                                  .ToActionResult();
         }
 
         // PUT api/<PropertyController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public IActionResult Put(PropertyDisplayDTO propertyDTO,int id)
         {
+            return PropertyService.Update(propertyDTO)
+                                  .ToActionResult();
         }
 
         // DELETE api/<PropertyController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+
+            return PropertyService.Delete(id)
+                                  .ToActionResult();
         }
     }
 }
