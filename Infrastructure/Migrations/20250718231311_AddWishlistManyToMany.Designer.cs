@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AirbnbContext))]
-    [Migration("20250718221345_afterall")]
-    partial class afterall
+    [Migration("20250718231311_AddWishlistManyToMany")]
+    partial class AddWishlistManyToMany
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -518,21 +518,30 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PropertyId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Wishlists");
+                });
+
+            modelBuilder.Entity("Domain.Models.WishlistProperty", b =>
+                {
+                    b.Property<int>("WishlistId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("int");
+
+                    b.HasKey("WishlistId", "PropertyId");
+
                     b.HasIndex("PropertyId");
 
-                    b.HasIndex("UserId", "PropertyId")
-                        .IsUnique();
-
-                    b.ToTable("Wishlist");
+                    b.ToTable("WishlistProperties");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -829,21 +838,32 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Models.Wishlist", b =>
                 {
+                    b.HasOne("Domain.Models.User", "User")
+                        .WithMany("Wishlists")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Models.WishlistProperty", b =>
+                {
                     b.HasOne("Domain.Models.Property", "Property")
-                        .WithMany()
+                        .WithMany("WishlistProperties")
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Models.User", "User")
-                        .WithMany("Wishlist")
-                        .HasForeignKey("UserId")
+                    b.HasOne("Domain.Models.Wishlist", "Wishlist")
+                        .WithMany("WishlistProperties")
+                        .HasForeignKey("WishlistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Property");
 
-                    b.Navigation("User");
+                    b.Navigation("Wishlist");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -907,6 +927,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("CalendarAvailabilities");
 
                     b.Navigation("PropertyAmenities");
+
+                    b.Navigation("WishlistProperties");
                 });
 
             modelBuilder.Entity("Domain.Models.PropertyType", b =>
@@ -924,7 +946,12 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("Wishlist");
+                    b.Navigation("Wishlists");
+                });
+
+            modelBuilder.Entity("Domain.Models.Wishlist", b =>
+                {
+                    b.Navigation("WishlistProperties");
                 });
 #pragma warning restore 612, 618
         }

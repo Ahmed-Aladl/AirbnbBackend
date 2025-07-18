@@ -86,7 +86,7 @@ namespace Infrastructure.Data
                 await CreateReviews(context, users, properties, bookings);
 
             // Create wishlists
-            if (!await context.Wishlist.AnyAsync())
+            if (!await context.Wishlists.AnyAsync())
                 await CreateWishlists(context, users, properties);
 
             // Create notifications
@@ -520,46 +520,54 @@ namespace Infrastructure.Data
         {
             var guests = users.Where(u => u.Email.Contains("guest")).ToList();
             var wishlists = new List<Wishlist>();
+            var wishlistProperties = new List<WishlistProperty>();
+
+            var wishlistNames = new[]
+            {
+        "Dream Vacation Spots",
+        "Weekend Getaways",
+        "Family Trips",
+        "Romantic Escapes",
+        "Business Travel",
+        "Adventure Destinations"
+    };
+
+            var wishlistNotes = new[]
+            {
+        "Perfect for next vacation!",
+        "Great location and amenities",
+        "Bookmarked for future reference",
+        "Looks amazing in photos",
+        "Recommended by friends",
+        "Good value for money"
+    };
 
             foreach (var guest in guests)
             {
-                // Add 2-4 properties to each guest's wishlist
+                var wishlist = new Wishlist
+                {
+                    UserId = guest.Id,
+                    Name = wishlistNames[Random.Shared.Next(wishlistNames.Length)],
+                    Notes = wishlistNotes[Random.Shared.Next(wishlistNotes.Length)],
+                    CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30)),
+                    WishlistProperties = new List<WishlistProperty>()
+                };
+
                 var randomProperties = properties.OrderBy(x => Guid.NewGuid()).Take(Random.Shared.Next(2, 5)).ToList();
 
                 foreach (var property in randomProperties)
                 {
-                    var wishlistNames = new[]
+                    wishlist.WishlistProperties.Add(new WishlistProperty
                     {
-                        "Dream Vacation Spots",
-                        "Weekend Getaways",
-                        "Family Trips",
-                        "Romantic Escapes",
-                        "Business Travel",
-                        "Adventure Destinations"
-                    };
-
-                    var wishlistNotes = new[]
-                    {
-                        "Perfect for next vacation!",
-                        "Great location and amenities",
-                        "Bookmarked for future reference",
-                        "Looks amazing in photos",
-                        "Recommended by friends",
-                        "Good value for money"
-                    };
-
-                    wishlists.Add(new Wishlist
-                    {
-                        UserId = guest.Id,
-                        PropertyId = property.Id,
-                        Name = wishlistNames[Random.Shared.Next(wishlistNames.Length)],
-                        Notes = wishlistNotes[Random.Shared.Next(wishlistNotes.Length)],
-                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
+                        Wishlist = wishlist,
+                        Property = property
                     });
                 }
+
+                wishlists.Add(wishlist);
             }
 
-            context.Wishlist.AddRange(wishlists);
+            context.Wishlists.AddRange(wishlists);
             await context.SaveChangesAsync();
         }
 

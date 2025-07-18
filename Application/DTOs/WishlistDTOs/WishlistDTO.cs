@@ -15,4 +15,5 @@ namespace Application.DTOs.WishlistDTOs
         public string UserId { get; set; }
         public List<int> PropertyIds { get; set; }
     }
+
 }
