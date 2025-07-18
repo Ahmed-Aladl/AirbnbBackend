@@ -6,10 +6,37 @@ namespace Airbnb.DependencyInjection.PresentationDI
 {
     public static class InfrastructureServicesRegisteration
     {
-
-        public static IServiceCollection AddPresentation(this IServiceCollection services)
-
+        private static IServiceCollection AddCors(IServiceCollection services,IConfiguration configuration)
         {
+            return services.AddCors(options =>
+                    {
+                        options.AddPolicy("AllowAll", policy =>
+                        {
+                            policy
+                                .AllowAnyOrigin()
+                                .AllowAnyMethod()
+                                .AllowAnyHeader();
+                        });
+
+                        options.AddPolicy("AllowTrusted", policy =>
+                        {
+                            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+                            policy.WithOrigins(allowedOrigins)
+                                  .AllowAnyMethod()
+                                  .AllowAnyHeader()
+                                  .AllowCredentials() // For cookies
+                                  .WithHeaders("Authorization", "Content-Type", "X-Requested-With");
+                        });
+
+                    });
+
+        }
+        public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
+        {
+
+            AddCors(services, configuration);
+
             // Add AutoMapper
             services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
 

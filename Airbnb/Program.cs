@@ -37,34 +37,11 @@ namespace Airbnb
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
             builder.Services.AddDomain();
-
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll", policy =>
-                {
-                    policy
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                });
-
-                options.AddPolicy("AllowTrusted", policy =>
-                {
-                    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
-
-                    policy.WithOrigins(allowedOrigins)
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials() // For cookies
-                          .WithHeaders("Authorization", "Content-Type", "X-Requested-With");
-                });
-
-            });
-
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddApplication();
-            builder.Services.AddPresentation();
+            builder.Services.AddPresentation(builder.Configuration);
 
             
 
