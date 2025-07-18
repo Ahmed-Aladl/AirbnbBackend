@@ -17,10 +17,14 @@ namespace Airbnb.DependencyInjection.ApplicationDI
         {
             services.AddScoped<ICalendarAvailabilityRepo, CalendarAvailabilityRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>(); // <-- Register UnitOfWork in DI
-            
+
 
             // Add AutoMapper
-            services.AddAutoMapper(config=> config.AddProfile<PropertyProfile>(),typeof(PropertyProfile).Assembly);
+            services.AddAutoMapper(config =>
+            {
+                config.AddProfile<PropertyProfile>();
+                config.AddProfile<WishlistProfile>();
+            }, typeof(PropertyProfile).Assembly);
 
             services.AddIdentity<User, IdentityRole>()
             .AddEntityFrameworkStores<AirbnbContext>()
