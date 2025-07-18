@@ -1,4 +1,6 @@
 using Airbnb.DependencyInjection.InfrastructureDI;
+using Airbnb.DependencyInjection.PresentationDI;
+
 using Application.Interfaces.IRepositories;
 using Application.Mappings;
 using Application.Services;
@@ -32,8 +34,7 @@ namespace Airbnb
 
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
-                app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
+                app.AddPresentationDevelopmentDI();
             }
 
             app.UseHttpsRedirection();
