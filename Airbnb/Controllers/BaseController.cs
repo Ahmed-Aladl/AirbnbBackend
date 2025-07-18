@@ -1,5 +1,6 @@
-﻿
+
 using Application.Responses;
+using Application.Result; // Changed from Application.Responses
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,71 +12,43 @@ namespace Airbnb.Controllers
     {
         protected IActionResult Success<T>(T data, string message = "", int statusCode = 200)
         {
-            return StatusCode(statusCode, new ApiResponse<T>
-            {
-                IsSuccess = true,
-                Message = message,
-                StatusCode = statusCode,
-                Data = data
-            });
+            return StatusCode(statusCode, Result<T>.Success(data, statusCode, message));
         }
 
         protected IActionResult Fail(string message, int statusCode = 400)
         {
-            return StatusCode(statusCode, new ApiResponse<string>
-            {
-                IsSuccess = false,
-                Message = message,
-                StatusCode = statusCode,
-                Data = null
-            });
+            return StatusCode(statusCode, Result<string>.Fail(message, statusCode));
         }
 
         protected IActionResult NotFoundResponse(string message = "Not found")
         {
-            return StatusCode(404, new ApiResponse<string>
-            {
-                IsSuccess = false,
-                Message = message,
-                StatusCode = 404,
-                Data = null
-            });
+            return StatusCode(404, Result<string>.Fail(message, 404));
         }
 
         protected IActionResult InternalError(string message = "Internal server error")
         {
-            return StatusCode(500, new ApiResponse<string>
-            {
-                IsSuccess = false,
-                Message = message,
-                StatusCode = 500,
-                Data = null
-            });
+            return StatusCode(500, Result<string>.Fail(message, 500));
         }
 
         protected IActionResult UnauthorizedResponse(string message = "Unauthorized")
         {
-            return StatusCode(401, new ApiResponse<string>
-            {
-                IsSuccess = false,
-                Message = message,
-                StatusCode = 401,
-                Data = null
-            });
+            return StatusCode(401, Result<string>.Fail(message, 401));
         }
 
         protected IActionResult ForbiddenResponse(string message = "Forbidden")
         {
-            return StatusCode(403, new ApiResponse<string>
-            {
-                IsSuccess = false,
-                Message = message,
-                StatusCode = 403,
-                Data = null
-            });
+            return StatusCode(403, Result<string>.Fail(message, 403));
         }
 
-
-        //may also add CurrentUser
+        // Helper method to handle Result<T> returns
+        protected IActionResult HandleResult<T>(Result<T> result)
+        {
+            if (result == null) return NotFound();
+            if (result.IsSuccess && result.Data != null)
+                return StatusCode(result.StatusCode ?? 200, result);
+            if (result.IsSuccess && result.Data == null)
+                return NotFound();
+            return StatusCode(result.StatusCode ?? 400, result);
+        }
     }
 }

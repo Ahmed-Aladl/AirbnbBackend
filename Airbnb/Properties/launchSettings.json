@@ -2,14 +2,14 @@
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
+        "commandName": "Project",
+        "dotnetRunMessages": true,
         "launchBrowser": true,
-     "launchUrl": "swagger",
-      "applicationUrl": "http://localhost:5046",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+        "launchUrl": "swagger",
+        "applicationUrl": "https://localhost:7024;http://localhost:5046",
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development"
+        }
     },
     "https": {
       "commandName": "Project",
