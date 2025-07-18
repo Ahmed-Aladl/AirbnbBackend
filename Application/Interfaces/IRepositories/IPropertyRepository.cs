@@ -9,5 +9,7 @@ namespace Application.Interfaces.IRepositories
 {
     public interface IPropertyRepository:IRepository<Property,int>
     {
+        Task<Property> GetByIdAsync(int id);
+        Task<Property> GetByIdWithCalendarAsync(int id);
     }
 }
