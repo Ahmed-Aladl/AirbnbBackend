@@ -48,6 +48,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
 
             services.AddScoped<PropertyService>();
+            services.AddScoped<BookingService>();
             services.AddScoped<CalendarService>();
             return services;
         }
@@ -55,6 +56,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app) 
         {
+
             app.MapOpenApi();
             app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
             return app;
