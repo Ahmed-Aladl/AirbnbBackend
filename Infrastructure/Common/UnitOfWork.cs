@@ -66,5 +66,10 @@ namespace Infrastructure.Common
 
         public ICalendarAvailabilityRepo CalendarAvailabilities =>
             _calendarAvailabilityRepo ??= new CalendarAvailabilityRepository(Context);
+
+        // Amenities
+        private IAmenityRepo _amenityRepo;
+        public IAmenityRepo AmenitiesRepo =>
+            _amenityRepo ??= new AmenityRepo(Context);
     }
 }
