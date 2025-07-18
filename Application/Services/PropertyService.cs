@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Application.DTOs.PropertyDTOS;
 using Application.Interfaces;
-using Application.Responses;
+
+using Application.Result;
 using AutoMapper;
 using Domain.Models;
-using static Application.Responses.ApiResponse<Application.DTOs.PropertyDTOS.PropertyDisplayDTO>;
+using static Application.Result.Result<Application.DTOs.PropertyDTOS.PropertyDisplayDTO>;
 
 namespace Application.Services
 {
@@ -22,33 +24,33 @@ namespace Application.Services
         public IUnitOfWork UnitOfWork { get; }
         public IMapper Mapper { get; }
 
-        public ApiResponse<List<PropertyDisplayDTO>> GetAll()
+        public Result<List<PropertyDisplayDTO>> GetAll()
         {
 
             var props = UnitOfWork
                             .PropertyRepo
                             .GetAll();
             if (props == null)
-                return ApiResponse<List<PropertyDisplayDTO>>.Fail("No properties found");
+                return Result<List<PropertyDisplayDTO>>.Fail("No properties found",(int)HttpStatusCode.NotFound);
 
 
             var mapped = Mapper
                             .Map<List<PropertyDisplayDTO>>(props);
                     
-            return ApiResponse<List<PropertyDisplayDTO>>
+            return Result<List<PropertyDisplayDTO>>
                                                 .Success(mapped);
 
                 
         }
 
-        public ApiResponse<PropertyDisplayDTO> Get(int id) 
+        public Result<PropertyDisplayDTO> Get(int id) 
         {
             var property = UnitOfWork
                             .PropertyRepo
                             .GetById(id);
 
             if(property == null)
-                    Fail("Property not found!");
+                    Fail("Property not found!",(int)HttpStatusCode.NotFound);
 
 
             var mapped = Mapper
@@ -57,13 +59,36 @@ namespace Application.Services
             return Success(mapped);
         }
 
-        public ApiResponse<PropertyDisplayDTO> Update(PropertyDisplayDTO propertyDTO)
+        public Result<PropertyDisplayDTO> Add(PropertyDisplayDTO propertyDTO)
+        {
+            if (propertyDTO.Id == 0)
+                return Fail("Couldn't add new property", (int)HttpStatusCode.BadRequest);
+            
+
+            var prop = Mapper.Map<Property>(propertyDTO);
+
+            try
+            {
+
+                UnitOfWork.PropertyRepo.Add(prop);
+                var success = UnitOfWork.SaveChanges() > 0;
+
+                if (!success)
+                    return Fail("Couldn't add a new property", (int)HttpStatusCode.BadRequest);
+                return Success(propertyDTO);
+            }
+            catch
+            {
+                return Fail("Reference confliction", (int) HttpStatusCode.Conflict);
+            }
+        }
+        public Result<PropertyDisplayDTO> Update(PropertyDisplayDTO propertyDTO)
         {
             var prop =  UnitOfWork.PropertyRepo
                                   .GetById(propertyDTO.Id);
 
             if (prop == null)
-                return Fail("Property doesn't exist");
+                return Fail("Property doesn't exist", (int) HttpStatusCode.NotFound);
             Mapper.Map(propertyDTO, prop);
 
             try
@@ -73,23 +98,23 @@ namespace Application.Services
                 var success = UnitOfWork.SaveChanges() > 0;
 
                 if (!success)
-                    return Fail("Couldn't update this Property");
+                    return Fail("Couldn't update this Property", (int)HttpStatusCode.BadRequest);
                 return Success(propertyDTO);
             }
             catch
             {
-                return Fail("Reference confliction");
+                return Fail("Reference confliction", (int) HttpStatusCode.Conflict);
             }
         }
 
 
-        public ApiResponse<PropertyDisplayDTO> Delete(int id) 
+        public Result<PropertyDisplayDTO> Delete(int id) 
         {
             var property = UnitOfWork
                             .PropertyRepo
                             .GetById(id);
             if(property == null)
-                   return Fail("Property not found!");
+                   return Fail("Property not found!", (int)HttpStatusCode.NotFound);
 
 
             try
@@ -99,16 +124,16 @@ namespace Application.Services
                 var success = UnitOfWork.SaveChanges()> 0;
 
                 if (!success)
-                    Fail("Couldn't delete this property");
+                    Fail("Couldn't delete this property", (int)HttpStatusCode.BadRequest);
 
                 var mapped= Mapper
                                  .Map<PropertyDisplayDTO>(property);
 
-                return Success(mapped, "Successfuly deleted");
+                return Success(mapped);
             }
             catch
             {
-                return Fail("Couldn't delete this property");
+                return Fail("Couldn't delete this property", (int)HttpStatusCode.Conflict);
             }
         }
 

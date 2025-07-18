@@ -17,22 +17,22 @@ namespace Infrastructure.Common.Repositories
             Db = _db;
         }
 
-        public List<TEntity> GetAll()
+        public virtual List<TEntity> GetAll()
         {
             return Db.Set<TEntity>().ToList();
         }
 
-        public TEntity GetById(TKey id)
+        public virtual TEntity GetById(TKey id)
         {
             return Db.Set<TEntity>().Find(id);
 
         }
 
-        public void Add(TEntity entity)
+        public virtual void Add(TEntity entity)
         {
             Db.Set<TEntity>().Add(entity);
         }
-        public void Update(TEntity entity)
+        public virtual void Update(TEntity entity)
         {
             Db.Entry<TEntity>(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         }
