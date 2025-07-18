@@ -16,57 +16,87 @@ namespace Infrastructure.Data
             var context = scope.ServiceProvider.GetRequiredService<AirbnbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            
 
             // Ensure database is created
             await context.Database.EnsureCreatedAsync();
 
             // Check if data already exists
-            if (await context.Users.AnyAsync())
-            {
-                return; // Database has been seeded
-            }
+            //if (await context.Users.AnyAsync()||
+            //    await context.Properties.AnyAsync()||
+            //    await context.PropertyAmenities.AnyAsync() || 
+            //    await context.propertyTypes.AnyAsync()||
+            //    await context.Wishlist.AnyAsync()||
+            //    await context.Bookings.AnyAsync()
 
+                
+            //    )
+            //{
+            //    return; // Database has been seeded
+            //}
+            if(!await context.Roles.AnyAsync())
             // Create roles
-            await CreateRoles(roleManager);
+                await CreateRoles(roleManager);
 
             // Create users
-            var users = await CreateUsers(userManager);
+            List<User> users = new();
+            if(!await context.Users.AnyAsync())
+                users= await CreateUsers(userManager);
 
+            List<PropertyType> propertyTypes = new();
+            if(!await context.propertyTypes.AnyAsync())
             // Create property types
-            var propertyTypes = await CreatePropertyTypes(context);
+                 propertyTypes =await CreatePropertyTypes(context);
 
+            List<Amenity> amenities= new();
+            if(!await context.Amenities.AnyAsync())
             // Create amenities
-            var amenities = await CreateAmenities(context);
+            amenities = await CreateAmenities(context);
 
-            // Create properties
-            var properties = await CreateProperties(context, users, propertyTypes);
 
-            // Create property amenities
-            await CreatePropertyAmenities(context, properties, amenities);
+            List<Property> properties= new();
+            if (!await context.Properties.AnyAsync())
+                // Create properties
+                properties = await CreateProperties(context, users, propertyTypes);
 
+            
+            if (!await context.PropertyAmenities.AnyAsync())
+                // Create property amenities
+                await CreatePropertyAmenities(context, properties, amenities);
+
+            if (!await context.PropertyImages.AnyAsync())
             // Create property images
             await CreatePropertyImages(context, properties);
 
+            if (!await context.calendarAvailabilities.AnyAsync())
             // Create calendar availabilities
             await CreateCalendarAvailabilities(context, properties);
 
             // Create bookings
-            var bookings = await CreateBookings(context, users, properties);
+            List<Booking> bookings = new();
+            if (!await context.Bookings.AnyAsync())
+                bookings = await CreateBookings(context, users, properties);
 
             // Create payments
+            if (!await context.Payments.AnyAsync())
             await CreatePayments(context, bookings);
 
             // Create reviews
+            if (!await context.Reviews.AnyAsync())
             await CreateReviews(context, users, properties, bookings);
 
             // Create wishlists
+            if (!await context.Wishlist.AnyAsync())
             await CreateWishlists(context, users, properties);
 
             // Create notifications
+            if (!await context.Notifications.AnyAsync())
             await CreateNotifications(context, users);
 
             // Create messages
+            if (!await context.Messages.AnyAsync())
             await CreateMessages(context, users, properties);
+
 
             await context.SaveChangesAsync();
         }
@@ -364,7 +394,8 @@ namespace Infrastructure.Data
                     {
                         PropertyId = property.Id,
                         ImageUrl = $"https://example.com/property-{property.Id}-image-{i}.jpg",
-                        IsCover = i == 1 // First image is cover
+                        IsCover = i == 1, // First image is cover
+                        GroupName = ""
                     });
                 }
             }
