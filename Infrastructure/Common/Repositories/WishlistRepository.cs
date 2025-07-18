@@ -19,41 +19,57 @@ namespace Infrastructure.Common.Repositories
         public async Task<Wishlist> GetByIdAsync(int id)
         {
             return await Db.Set<Wishlist>()
+                .Include(w => w.WishlistProperties)
+                .ThenInclude(wp => wp.Property)
                 .FirstOrDefaultAsync(w => w.Id == id);
         }
+
         public async Task<List<Wishlist>> GetByUserIdAsync(string userId)
         {
-            return await Db.Set<Wishlist>()
-                .Include(w => w.Property)
+            return await Db.Wishlists
+                .Include(w => w.WishlistProperties)
+                .ThenInclude(wp => wp.Property)
                 .Where(w => w.UserId == userId)
                 .ToListAsync();
         }
 
         public async Task<bool> IsPropertyInWishlistAsync(string userId, int wishlistId, int propertyId)
         {
-            return await Db.Wishlist
-                .AnyAsync(w => w.UserId == userId && w.Id == wishlistId && w.PropertyId == propertyId);
+            return await Db.Set<WishlistProperty>()
+                .AnyAsync(wp => wp.WishlistId == wishlistId && wp.PropertyId == propertyId);
         }
 
         public async Task AddPropertyToWishlistAsync(string userId, int wishlistId, int propertyId)
         {
-            var wishlist = await Db.Wishlist
-                .FirstOrDefaultAsync(w => w.UserId == userId && w.Id == wishlistId);
-            if (wishlist != null && wishlist.PropertyId == null)
+            var wishlist = await Db.Wishlists
+                .FirstOrDefaultAsync(w => w.Id == wishlistId && w.UserId == userId);
+
+            if (wishlist != null)
             {
-                wishlist.PropertyId = propertyId;
-                Update(wishlist);
+                bool exists = await IsPropertyInWishlistAsync(userId, wishlistId, propertyId);
+                if (!exists)
+                {
+                    var wishlistProperty = new WishlistProperty
+                    {
+                        WishlistId = wishlistId,
+                        PropertyId = propertyId
+                    };
+                    await Db.Set<WishlistProperty>().AddAsync(wishlistProperty);
+                }
             }
         }
 
         public async Task RemovePropertyFromWishlistAsync(string userId, int wishlistId, int propertyId)
         {
-            var wishlist = await Db.Wishlist
-                .FirstOrDefaultAsync(w => w.UserId == userId && w.Id == wishlistId && w.PropertyId == propertyId);
-            if (wishlist != null)
+            var wishlistProperty = await Db.Set<WishlistProperty>()
+                .FirstOrDefaultAsync(wp =>
+                    wp.WishlistId == wishlistId &&
+                    wp.PropertyId == propertyId &&
+                    wp.Wishlist.UserId == userId);
+
+            if (wishlistProperty != null)
             {
-                wishlist.PropertyId = null;
-                Update(wishlist);
+                Db.Set<WishlistProperty>().Remove(wishlistProperty);
             }
         }
 
@@ -66,17 +82,23 @@ namespace Infrastructure.Common.Repositories
                 Notes = notes,
                 CreatedAt = DateTime.UtcNow
             };
-            Db.Wishlist.Add(wishlist);
+            await Db.Wishlists.AddAsync(wishlist);
             await Db.SaveChangesAsync();
         }
 
         public async Task DeleteWishlistAsync(string userId, int wishlistId)
         {
-            var wishlist = await Db.Wishlist
+            var wishlist = await Db.Wishlists
                 .FirstOrDefaultAsync(w => w.UserId == userId && w.Id == wishlistId);
+
             if (wishlist != null)
             {
-                Db.Wishlist.Remove(wishlist);
+                
+                var related = Db.Set<WishlistProperty>()
+                    .Where(wp => wp.WishlistId == wishlistId);
+                Db.Set<WishlistProperty>().RemoveRange(related);
+
+                Db.Wishlists.Remove(wishlist);
                 await Db.SaveChangesAsync();
             }
         }

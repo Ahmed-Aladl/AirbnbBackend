@@ -28,28 +28,11 @@ namespace Infrastructure.DbConfigs
                 .WithOne(r=> r.User).OnDelete(DeleteBehavior.Restrict)
                 .HasForeignKey(r=> r.UserId);
 
-            builder.HasMany(u=> u.WishlistedProps)
-                .WithMany()
-                .UsingEntity<Wishlist>(
-                            r=> r.HasOne(r=> r.Property)
-                                 .WithMany()
-                                 .HasForeignKey(r=> r.PropertyId),
-
-                            l=> l.HasOne(l=> l.User)
-                                    .WithMany(u=> u.Wishlist)
-                                    .HasForeignKey(l=> l.UserId),
-                            j=> {
-                                    j.HasKey(j => j.Id);
-                                    j.HasIndex(j => new { j.UserId, j.PropertyId }).IsUnique();
-
-                                    j.Property(j => j.UserId).IsRequired();
-                                    j.Property(j => j.PropertyId).IsRequired();
-                                }
-                );
-
-           
-
-
+            builder.HasMany(u => u.Wishlists)
+                 .WithOne(w => w.User)
+                 .HasForeignKey(w => w.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+        
         }
     }
 }

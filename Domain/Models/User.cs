@@ -20,8 +20,9 @@ namespace Domain.Models
         public DateOnly? BirthDate { get; set; }
         public bool IsDeleted { get; set; }
 
-        public ICollection<Wishlist>? Wishlist { get; set; }
-        public ICollection<Property>? WishlistedProps { get; set; }
+        //public ICollection<Wishlist>? Wishlist { get; set; }
+        //public ICollection<Property>? WishlistedProps { get; set; }
+        public ICollection<Wishlist> Wishlists { get; set; }
 
 
         public ICollection<Property>? OwnedProps { get; set; }

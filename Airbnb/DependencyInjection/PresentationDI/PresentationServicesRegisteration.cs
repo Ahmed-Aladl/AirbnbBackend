@@ -40,6 +40,10 @@ namespace Airbnb.DependencyInjection.PresentationDI
         {
 
             AddCors(services, configuration);
+
+
+            services.AddScoped<WishlistService>();
+
             services.AddScoped<IFileService,FileService>();
             services.AddSwaggerGen(c =>
                           c.OperationFilter<FileUploadOperationFilter>()
