@@ -42,6 +42,7 @@ namespace Infrastructure.Common.Repositories
 
         public void Update(Booking entity)
         {
+
            base.Update( entity );
 
         }
