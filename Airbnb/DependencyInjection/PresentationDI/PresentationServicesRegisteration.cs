@@ -51,9 +51,15 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
 
 
+            // Add AutoMapper
+            services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
+            services.AddAutoMapper(typeof(AmenityMappingProfile).Assembly);
+
+
             services.AddScoped<PropertyService>();
             services.AddScoped<BookingService>();
             services.AddScoped<CalendarService>();
+            services.AddScoped<AmenityService>();
             return services;
         }
 

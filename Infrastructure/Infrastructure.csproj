@@ -14,7 +14,7 @@
 		<Folder Include="DbSeeders\" />
 		<Folder Include="Migrations\" />
 	</ItemGroup>
-
+   
 	<ItemGroup>
 		<PackageReference Include="MailKit" Version="4.13.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.7" />
