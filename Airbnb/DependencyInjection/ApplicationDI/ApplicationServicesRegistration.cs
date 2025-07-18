@@ -17,6 +17,7 @@ namespace Airbnb.DependencyInjection.ApplicationDI
         {
             services.AddScoped<ICalendarAvailabilityRepo, CalendarAvailabilityRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>(); // <-- Register UnitOfWork in DI
+            services.AddScoped<IAmenityRepo, AmenityRepo>();
 
 
             // Add AutoMapper
