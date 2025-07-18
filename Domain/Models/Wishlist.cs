@@ -11,7 +11,7 @@ namespace Domain.Models
     { 
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
 
         [ForeignKey(nameof(User))]
