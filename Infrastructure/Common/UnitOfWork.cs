@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces;
+using Infrastructure.Common;
 using Application.Interfaces.IRepositories;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Contexts;
@@ -58,5 +59,12 @@ namespace Infrastructure.Common
             return await Context
                                 .SaveChangesAsync();
         }
+
+
+        // Calendar
+        private ICalendarAvailabilityRepo _calendarAvailabilityRepo;
+
+        public ICalendarAvailabilityRepo CalendarAvailabilities =>
+            _calendarAvailabilityRepo ??= new CalendarAvailabilityRepository(Context);
     }
 }
