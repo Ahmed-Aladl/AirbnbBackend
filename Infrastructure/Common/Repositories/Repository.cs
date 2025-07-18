@@ -32,6 +32,10 @@ namespace Infrastructure.Common.Repositories
         {
             Db.Set<TEntity>().Add(entity);
         }
+        public virtual void AddRange(ICollection<TEntity> entities)
+        {
+            Db.Set<TEntity>().AddRange(entities);
+        }
         public virtual void Update(TEntity entity)
         {
             Db.Entry<TEntity>(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;

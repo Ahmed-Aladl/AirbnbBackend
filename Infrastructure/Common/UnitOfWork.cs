@@ -18,6 +18,7 @@ namespace Infrastructure.Common
     {
 
         private IPropertyRepository _propertyRepo;
+        private IPropertyImageRepository _propertyImageRepo;
         //private IRepository _repo;
         //public IRepository Repo =>
         //    _repo ??= new Repository(_context);
@@ -42,6 +43,8 @@ namespace Infrastructure.Common
         }
         public IPropertyRepository PropertyRepo => 
                 _propertyRepo ?? new PropertyRepository(Context);
+        public IPropertyImageRepository PropertyImageRepo => 
+                _propertyImageRepo ?? new PropertyImageRepository(Context);
 
 
         private IWishlistRepository _wishlistRepo;

@@ -10,8 +10,11 @@ namespace Domain.Models
     public class PropertyImage
     {
         public int Id { get; set; }
+        public string GroupName {  get; set; }
+
         [ForeignKey(nameof(Property))]
         public int PropertyId{ get; set; }
+
         public string ImageUrl{ get; set; }
         public bool IsCover{ get; set; }
 
