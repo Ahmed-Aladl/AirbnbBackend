@@ -9,6 +9,7 @@ using Application.Services;
 using AutoMapper;
 using Infrastructure.Common.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Airbnb.DependencyInjection.PresentationDI;
 
 namespace Airbnb
 {
