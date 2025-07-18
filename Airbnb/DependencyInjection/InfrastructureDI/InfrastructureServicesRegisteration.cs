@@ -18,7 +18,6 @@ namespace Airbnb.DependencyInjection.InfrastructureDI
                                                                                     .Value ?? "")
                                                                         )
                                                         );
-            services.AddScoped<IUnitOfWork, UnitOfWork>(); // <-- Register UnitOfWork in DI
             return services;
         }
     }
