@@ -4,7 +4,7 @@ using Infrastructure.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Builder; 
+using Microsoft.AspNetCore.Builder;
 
 namespace Infrastructure.Data
 {
@@ -16,7 +16,7 @@ namespace Infrastructure.Data
             var context = scope.ServiceProvider.GetRequiredService<AirbnbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            
+
 
             // Ensure database is created
             await context.Database.EnsureCreatedAsync();
@@ -29,48 +29,48 @@ namespace Infrastructure.Data
             //    await context.Wishlist.AnyAsync()||
             //    await context.Bookings.AnyAsync()
 
-                
+
             //    )
             //{
             //    return; // Database has been seeded
             //}
-            if(!await context.Roles.AnyAsync())
-            // Create roles
+            if (!await context.Roles.AnyAsync())
+                // Create roles
                 await CreateRoles(roleManager);
 
             // Create users
             List<User> users = new();
-            if(!await context.Users.AnyAsync())
-                users= await CreateUsers(userManager);
+            if (!await context.Users.AnyAsync())
+                users = await CreateUsers(userManager);
 
             List<PropertyType> propertyTypes = new();
-            if(!await context.propertyTypes.AnyAsync())
-            // Create property types
-                 propertyTypes =await CreatePropertyTypes(context);
+            if (!await context.propertyTypes.AnyAsync())
+                // Create property types
+                propertyTypes = await CreatePropertyTypes(context);
 
-            List<Amenity> amenities= new();
-            if(!await context.Amenities.AnyAsync())
-            // Create amenities
-            amenities = await CreateAmenities(context);
+            List<Amenity> amenities = new();
+            if (!await context.Amenities.AnyAsync())
+                // Create amenities
+                amenities = await CreateAmenities(context);
 
 
-            List<Property> properties= new();
+            List<Property> properties = new();
             if (!await context.Properties.AnyAsync())
                 // Create properties
                 properties = await CreateProperties(context, users, propertyTypes);
 
-            
+
             if (!await context.PropertyAmenities.AnyAsync())
                 // Create property amenities
                 await CreatePropertyAmenities(context, properties, amenities);
 
             if (!await context.PropertyImages.AnyAsync())
-            // Create property images
-            await CreatePropertyImages(context, properties);
+                // Create property images
+                await CreatePropertyImages(context, properties);
 
             if (!await context.calendarAvailabilities.AnyAsync())
-            // Create calendar availabilities
-            await CreateCalendarAvailabilities(context, properties);
+                // Create calendar availabilities
+                await CreateCalendarAvailabilities(context, properties);
 
             // Create bookings
             List<Booking> bookings = new();
@@ -79,23 +79,23 @@ namespace Infrastructure.Data
 
             // Create payments
             if (!await context.Payments.AnyAsync())
-            await CreatePayments(context, bookings);
+                await CreatePayments(context, bookings);
 
             // Create reviews
             if (!await context.Reviews.AnyAsync())
-            await CreateReviews(context, users, properties, bookings);
+                await CreateReviews(context, users, properties, bookings);
 
             // Create wishlists
             if (!await context.Wishlist.AnyAsync())
-            await CreateWishlists(context, users, properties);
+                await CreateWishlists(context, users, properties);
 
             // Create notifications
             if (!await context.Notifications.AnyAsync())
-            await CreateNotifications(context, users);
+                await CreateNotifications(context, users);
 
             // Create messages
             if (!await context.Messages.AnyAsync())
-            await CreateMessages(context, users, properties);
+                await CreateMessages(context, users, properties);
 
 
             await context.SaveChangesAsync();
@@ -104,7 +104,7 @@ namespace Infrastructure.Data
         private static async Task CreateRoles(RoleManager<IdentityRole> roleManager)
         {
             string[] roleNames = { "Admin", "Host", "Guest" };
-            
+
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -366,7 +366,7 @@ namespace Infrastructure.Data
             {
                 // Add random amenities to each property
                 var randomAmenities = amenities.OrderBy(x => Guid.NewGuid()).Take(Random.Shared.Next(3, 8)).ToList();
-                
+
                 foreach (var amenity in randomAmenities)
                 {
                     propertyAmenities.Add(new PropertyAmenity
@@ -395,7 +395,7 @@ namespace Infrastructure.Data
                         PropertyId = property.Id,
                         ImageUrl = $"https://example.com/property-{property.Id}-image-{i}.jpg",
                         IsCover = i == 1, // First image is cover
-                        GroupName = ""
+                        GroupName = $"Property {property.Id} Images"
                     });
                 }
             }
@@ -525,18 +525,36 @@ namespace Infrastructure.Data
             {
                 // Add 2-4 properties to each guest's wishlist
                 var randomProperties = properties.OrderBy(x => Guid.NewGuid()).Take(Random.Shared.Next(2, 5)).ToList();
-                
+
                 foreach (var property in randomProperties)
                 {
+                    var wishlistNames = new[]
+                    {
+                        "Dream Vacation Spots",
+                        "Weekend Getaways",
+                        "Family Trips",
+                        "Romantic Escapes",
+                        "Business Travel",
+                        "Adventure Destinations"
+                    };
+
+                    var wishlistNotes = new[]
+                    {
+                        "Perfect for next vacation!",
+                        "Great location and amenities",
+                        "Bookmarked for future reference",
+                        "Looks amazing in photos",
+                        "Recommended by friends",
+                        "Good value for money"
+                    };
+
                     wishlists.Add(new Wishlist
                     {
                         UserId = guest.Id,
                         PropertyId = property.Id,
-                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30)),
-                        Name = $"Wishlist for {guest.FirstName}",
-                        Notes = "Auto-generated"
-
-
+                        Name = wishlistNames[Random.Shared.Next(wishlistNames.Length)],
+                        Notes = wishlistNotes[Random.Shared.Next(wishlistNotes.Length)],
+                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
                     });
                 }
             }
