@@ -37,8 +37,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
             AddCors(services, configuration);
 
-            // Add AutoMapper
-            services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
+            
 
             services.AddScoped<PropertyService>();
             services.AddScoped<CalendarService>();

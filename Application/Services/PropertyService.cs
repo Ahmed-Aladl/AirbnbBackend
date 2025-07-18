@@ -9,6 +9,8 @@ using Application.Interfaces;
 
 using Application.Result;
 using AutoMapper;
+using AutoMapper.Features;
+using AutoMapper.Internal;
 using Domain.Models;
 using static Application.Result.Result<Application.DTOs.PropertyDTOS.PropertyDisplayDTO>;
 
@@ -45,6 +47,11 @@ namespace Application.Services
 
         public Result<PropertyDisplayDTO> Get(int id) 
         {
+            var config = Mapper.ConfigurationProvider.Internal() ;
+            foreach (var map in config.GetAllTypeMaps())
+            {
+                Console.WriteLine($"Mapped: {map.SourceType.FullName} => {map.DestinationType.FullName}");
+            }
             var property = UnitOfWork
                             .PropertyRepo
                             .GetById(id);
@@ -89,6 +96,10 @@ namespace Application.Services
 
             if (prop == null)
                 return Fail("Property doesn't exist", (int) HttpStatusCode.NotFound);
+
+            if (propertyDTO.HostId != prop.HostId)
+                return Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
+
             Mapper.Map(propertyDTO, prop);
 
             try
