@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Application.Result
 {
@@ -16,6 +17,7 @@ namespace Application.Result
         {
             IsSuccess = isSuccess;
             Message = message;
+            StatusCode = statusCode;
         }
         public static Result Success(int statusCode=200, string message = "Success")
             => new(true, message, statusCode);

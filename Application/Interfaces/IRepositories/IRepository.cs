@@ -12,6 +12,7 @@ namespace Application.Interfaces.IRepositories
         T GetById(TKey id);
 
         void Add(T entity);
+        void AddRange(ICollection<T> entities);
         void Update(T entity);
         void Delete(T entity);
 

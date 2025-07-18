@@ -23,17 +23,20 @@ namespace Airbnb
 
             // Add services to the container.
             builder.Services.ConfigureRateLimiting(builder.Configuration);
-
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressMapClientErrors = true;
+            });
 
             builder.Services.AddControllers(options =>
             {
-                options.Filters.Add<ErrorHandlingFilter>();
+                //options.Filters.Add<ErrorHandlingFilter>();
             });
 
-            builder.Services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.SuppressModelStateInvalidFilter = true;
-            });
+            //builder.Services.Configure<ApiBehaviorOptions>(options =>
+            //{
+            //    options.SuppressModelStateInvalidFilter = true;
+            //});
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
