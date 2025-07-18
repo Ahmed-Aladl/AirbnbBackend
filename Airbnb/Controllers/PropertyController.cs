@@ -3,6 +3,7 @@ using Application.DTOs.PropertyDTOS;
 using Application.Result;
 using Application.Services;
 using Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -15,9 +16,8 @@ namespace Airbnb.Controllers
     {
         public PropertyService PropertyService { get; }
 
-        public PropertyController(PropertyService _propertyService)
+        public PropertyController(PropertyService _propertyService, UserManager<User> user)
         {
-
             PropertyService = _propertyService;
         }
 

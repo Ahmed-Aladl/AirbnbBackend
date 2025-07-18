@@ -19,6 +19,10 @@ namespace Domain.Models
         public string? Country { get; set; }
         public DateOnly? BirthDate { get; set; }
         public bool IsDeleted { get; set; }
+        
+        public string? Bio { get; set; }
+        public string? Country { get; set; }
+        public DateOnly? BirthDate { get; set; }
 
         public ICollection<Wishlist>? Wishlist { get; set; }
         public ICollection<Property>? WishlistedProps { get; set; }

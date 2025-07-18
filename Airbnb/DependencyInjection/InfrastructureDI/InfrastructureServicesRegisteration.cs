@@ -1,5 +1,6 @@
-﻿
-using Infrastructure.Contexts;
+﻿using Infrastructure.Contexts;
+using Infrastructure.Common; // <-- Add this for UnitOfWork
+using Application.Interfaces; // <-- Add this for IUnitOfWork
 using Microsoft.EntityFrameworkCore;
 namespace Airbnb.DependencyInjection.InfrastructureDI
 {
@@ -14,10 +15,10 @@ namespace Airbnb.DependencyInjection.InfrastructureDI
                                                                         .GetConnectionString(
                                                                                 configuration?
                                                                                     .GetSection("AirbnbConnectionString")?
-                                                                                    .Value??"")
+                                                                                    .Value ?? "")
                                                                         )
                                                         );
-
+            services.AddScoped<IUnitOfWork, UnitOfWork>(); // <-- Register UnitOfWork in DI
             return services;
         }
     }

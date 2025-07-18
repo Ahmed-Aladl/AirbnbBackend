@@ -2,6 +2,14 @@ using Airbnb.DependencyInjection.InfrastructureDI;
 using Airbnb.Middleware;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Mvc;
+
+using Application.Interfaces.IRepositories;
+using Application.Mappings;
+using Application.Services;
+using AutoMapper;
+using Infrastructure.Common.Repositories;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Airbnb
 {
     public class Program
@@ -23,6 +31,7 @@ namespace Airbnb
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
@@ -50,24 +59,24 @@ namespace Airbnb
             });
             builder.Services.AddInfrastructure(builder.Configuration);
 
-            var app = builder.Build();
+            // Add AutoMapper
+            builder.Services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
 
+            // Register Calendar Services
+            builder.Services.AddScoped<ICalendarAvailabilityRepo, CalendarAvailabilityRepository>();
+            builder.Services.AddScoped<CalendarService>();
+
+            var app = builder.Build();
             app.UseIpRateLimiting();
 
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
-                app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
-
+                app.AddPresentationDevelopmentDI();
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
-
             app.Run();
         }
     }

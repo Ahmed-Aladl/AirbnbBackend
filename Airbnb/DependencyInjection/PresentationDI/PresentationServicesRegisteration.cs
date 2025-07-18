@@ -8,5 +8,13 @@ namespace Airbnb.DependencyInjection.PresentationDI
         {
             return services;
         }
+
+
+        public static WebApplication AddPresentationDevelopmentDI(this WebApplication app) 
+        {
+            app.MapOpenApi();
+            app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
+            return app;
+        }
     }
 }

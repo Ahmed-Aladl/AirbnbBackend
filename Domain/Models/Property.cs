@@ -13,45 +13,40 @@ namespace Domain.Models
     {
         public int Id { get; set; }
         public string Title { get; set; }
-
         public string Description { get; set; }
-
         public string City { get; set; }
         public string Country { get; set; }
         public string State { get; set; }
 
-        [Precision(9,6)]
+        [Precision(9, 6)]
         public decimal Latitude { get; set; }
-        [Precision(9,6)]
+
+        [Precision(9, 6)]
         public decimal Longitude { get; set; }
 
-        [Precision(18,2)]
+        [Precision(18, 2)]
         public decimal PricePerNight { get; set; }
 
         public int MaxGuests { get; set; }
         public int Bedrooms { get; set; }
-        public int Beds{ get; set; }
+        public int Beds { get; set; }
         public int Bathrooms { get; set; }
-
-        public float AverageRating{ get; set; }
+        public float AverageRating { get; set; }
         public int ReviewCount { get; set; }
-        
         public bool IsActive { get; set; }
-        public bool IsDeleted{ get; set; }
-        
+        public bool IsDeleted { get; set; }
 
         [ForeignKey(nameof(PropertyType))]
-        public int PropertyTypeId {  get; set; }
+        public int PropertyTypeId { get; set; }
+
         [ForeignKey(nameof(Host))]
-        public string HostId{ get; set; }
+        public string HostId { get; set; }
 
+        // Navigation properties
         public PropertyType PropertyType { get; set; }
-        public User Host{ get; set; }
-
-
+        public User Host { get; set; }
         public ICollection<Amenity> Amenities { get; set; }
-        public ICollection<PropertyAmenity> PropertyAmenities{ get; set; }
-
-
+        public ICollection<PropertyAmenity> PropertyAmenities { get; set; }
+        public ICollection<CalendarAvailability> CalendarAvailabilities { get; set; } = new List<CalendarAvailability>();
     }
 }
