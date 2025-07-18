@@ -1,3 +1,5 @@
+using Airbnb.DependencyInjection.ApplicationDI;
+using Airbnb.DependencyInjection.DomainDI;
 using Airbnb.DependencyInjection.InfrastructureDI;
 using Airbnb.DependencyInjection.PresentationDI;
 
@@ -21,14 +23,12 @@ namespace Airbnb
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+            builder.Services.AddDomain();
             builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddApplication();
+            builder.Services.AddPresentation();
 
-            // Add AutoMapper
-            builder.Services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
-
-            // Register Calendar Services
-            builder.Services.AddScoped<ICalendarAvailabilityRepo, CalendarAvailabilityRepository>();
-            builder.Services.AddScoped<CalendarService>();
+            
 
             var app = builder.Build();
 

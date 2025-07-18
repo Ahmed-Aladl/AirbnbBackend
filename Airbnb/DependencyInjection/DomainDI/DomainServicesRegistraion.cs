@@ -6,7 +6,7 @@ namespace Airbnb.DependencyInjection.DomainDI
 {
     public static class DomainServicesRegistraion
     {
-        public static IServiceCollection AddDomain(this IServiceCollection services,IConfiguration configuration)
+        public static IServiceCollection AddDomain(this IServiceCollection services)
         {
 
             return services;
