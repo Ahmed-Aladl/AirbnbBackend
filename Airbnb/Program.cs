@@ -1,4 +1,7 @@
 using Airbnb.DependencyInjection.InfrastructureDI;
+using Airbnb.Middleware;
+using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Mvc;
 namespace Airbnb
 {
     public class Program
@@ -8,14 +11,48 @@ namespace Airbnb
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.ConfigureRateLimiting(builder.Configuration);
 
-            builder.Services.AddControllers();
+
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<ErrorHandlingFilter>();
+            });
+
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+
+                options.AddPolicy("AllowTrusted", policy =>
+                {
+                    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials() // For cookies
+                          .WithHeaders("Authorization", "Content-Type", "X-Requested-With");
+                });
+
+            });
             builder.Services.AddInfrastructure(builder.Configuration);
 
             var app = builder.Build();
 
+            app.UseIpRateLimiting();
 
             if (app.Environment.IsDevelopment())
             {
