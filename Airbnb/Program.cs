@@ -49,9 +49,9 @@ namespace Airbnb
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddApplication();
             builder.Services.AddPresentation(builder.Configuration);
-            builder.Services.AddIdentity<User, IdentityRole>()
-            .AddEntityFrameworkStores<AirbnbContext>()
-                 .AddDefaultTokenProviders();
+            //builder.Services.AddIdentity<User, IdentityRole>()
+            //.AddEntityFrameworkStores<AirbnbContext>()
+            //     .AddDefaultTokenProviders();
 
 
 

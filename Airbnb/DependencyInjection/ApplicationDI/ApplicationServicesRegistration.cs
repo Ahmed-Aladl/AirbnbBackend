@@ -27,8 +27,8 @@ namespace Airbnb.DependencyInjection.ApplicationDI
             }, typeof(PropertyProfile).Assembly);
 
             services.AddIdentity<User, IdentityRole>()
-            .AddEntityFrameworkStores<AirbnbContext>()
-            .AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<AirbnbContext>()
+                .AddDefaultTokenProviders();
 
             return services;
         }
