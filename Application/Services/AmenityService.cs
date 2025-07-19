@@ -19,29 +19,64 @@ public class AmenityService
         _mapper = mapper;
     }
 
-    public async Task<Result<AmenityDTO>> CreateAsync(CreateAmenityDTO createAmenityDto)
+    //public async Task<Result<AmenityDTO>> CreateAsync(CreateAmenityDTO createAmenityDto)
+    //{
+    //    if (string.IsNullOrWhiteSpace(createAmenityDto.AmenityName))
+    //        return Fail("Couldn't add new amenity", (int)HttpStatusCode.BadRequest);
+
+    //    var amenity = _mapper.Map<Amenity>(createAmenityDto);
+
+    //    try
+    //    {
+    //        _unitOfWork.AmenitiesRepo.Add(amenity);
+    //        var success = _unitOfWork.SaveChanges() > 0;
+
+    //        if (!success)
+    //            return Fail("Couldn't add a new amenity", (int)HttpStatusCode.BadRequest);
+
+    //        var resultDto = _mapper.Map<AmenityDTO>(amenity);
+    //        return Success(resultDto);
+    //    }
+    //    catch
+    //    {
+    //        return Fail("Reference confliction", (int)HttpStatusCode.Conflict);
+    //    }
+    //}
+
+
+    public async Task<Result<AmenityDTO>> CreateAsync(CreateAmenityDTO dto)
     {
-        if (string.IsNullOrWhiteSpace(createAmenityDto.AmenityName))
-            return Fail("Couldn't add new amenity", (int)HttpStatusCode.BadRequest);
+        if (dto.IconUrl == null || dto.IconUrl.Length == 0)
+            return Result<AmenityDTO>.Fail("Icon file is required", 400);
 
-        var amenity = _mapper.Map<Amenity>(createAmenityDto);
+        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.IconUrl.FileName);
+        string filePath = Path.Combine("wwwroot", "AmenitiesIcons", fileName);
 
-        try
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            _unitOfWork.AmenitiesRepo.Add(amenity);
-            var success = _unitOfWork.SaveChanges() > 0;
-
-            if (!success)
-                return Fail("Couldn't add a new amenity", (int)HttpStatusCode.BadRequest);
-
-            var resultDto = _mapper.Map<AmenityDTO>(amenity);
-            return Success(resultDto);
+            await dto.IconUrl.CopyToAsync(stream);
         }
-        catch
+
+        string iconUrl = $"/uploads/amenities/{fileName}"; 
+
+        var amenity = new Amenity
         {
-            return Fail("Reference confliction", (int)HttpStatusCode.Conflict);
-        }
+            AmenityName = dto.AmenityName,
+            IconURL = iconUrl
+        };
+
+        _unitOfWork.AmenitiesRepo.Add(amenity);
+        var success = _unitOfWork.SaveChanges() > 0;
+
+        if (!success)
+            return Result<AmenityDTO>.Fail("Failed to save amenity", 500);
+
+        var resultDto = _mapper.Map<AmenityDTO>(amenity);
+        return Result<AmenityDTO>.Success(resultDto);
     }
+
 
     public async Task<Result<AmenityDTO>> GetAmenityById(int amenityId)
     {
