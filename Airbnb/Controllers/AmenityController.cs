@@ -30,22 +30,21 @@ public class AmenityController : ControllerBase
         return Ok(result);
     }
 
-    // POST: api/Amenity/add
-    [HttpPost]
+    [HttpPost("Create")]
+    [Consumes("multipart/form-data")]
     //[Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Result<AmenityDTO>>> CreateAmenity(CreateAmenityDTO createAmenityDto)
+    public async Task<ActionResult<Result<AmenityDTO>>> CreateAmenity([FromForm] CreateAmenityDTO createAmenityDto)
     {
         var result = await _amenityService.CreateAsync(createAmenityDto);
 
         if (!result.IsSuccess)
-            return StatusCode(result.StatusCode ?? 400, result); 
+            return StatusCode(result.StatusCode ?? 400, result);
 
         return Ok(result);
     }
 
 
-
-    //GEt All Amenities related to a specific property 
+    //GEt All Amenities related to a specific property   
     [HttpGet("property/{propertyId}/amenities")]
     public async Task<ActionResult<Result<IEnumerable<AmenityDTO>>>> GetAmenitiesByPropertyId(int propertyId)
     {
@@ -73,10 +72,10 @@ public class AmenityController : ControllerBase
 
     [HttpPut("{id}")]
     //[Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Result<AmenityDTO>>> Edit(int id,AmenityDTO amenityDTO)
+    public async Task<ActionResult<Result<AmenityDTO>>> Edit(int id, AmenityDTO amenityDTO)
     {
         var result = await _amenityService.Update(amenityDTO);
-   
+
         if (!result.IsSuccess)
             return StatusCode(result.StatusCode ?? 400, result);
 

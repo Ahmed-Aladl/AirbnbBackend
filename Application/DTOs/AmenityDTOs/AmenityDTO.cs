@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.DTOs.AmenityDTOs;
+﻿namespace Application.DTOs.AmenityDTOs;
 
 public class AmenityDTO
 {
