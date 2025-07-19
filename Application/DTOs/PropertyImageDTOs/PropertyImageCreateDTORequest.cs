@@ -1,4 +1,4 @@
-﻿namespace Airbnb.DTOs.PropertyImageDTOs
+﻿namespace Application.DTOs.PropertyImageDTOs
 {
     public class PropertyImageCreateDTORequest
     {

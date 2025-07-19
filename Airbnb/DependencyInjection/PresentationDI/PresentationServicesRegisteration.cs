@@ -1,16 +1,18 @@
 ﻿
+using Airbnb.Middleware;
 using Airbnb.Services;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.SignalR;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Airbnb.DependencyInjection.PresentationDI
 {
     public static class InfrastructureServicesRegisteration
     {
-        private static IServiceCollection AddCors(IServiceCollection services,IConfiguration configuration)
+        private static IServiceCollection AddCors(IServiceCollection services, IConfiguration configuration)
         {
             return services.AddCors(options =>
                     {
@@ -44,16 +46,17 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
             services.AddScoped<WishlistService>();
 
-            services.AddScoped<IFileService,FileService>();
+            services.AddScoped<IFileService, FileService>();
             services.AddSwaggerGen(c =>
                           c.OperationFilter<FileUploadOperationFilter>()
             );
 
-
+            services.AddSignalR();
+            services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 
             // Add AutoMapper
-            services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
-            services.AddAutoMapper(typeof(AmenityMappingProfile).Assembly);
+            services.AddAutoMapper(cfg => cfg.AddProfile<CalendarMappingProfile>(), typeof(CalendarMappingProfile).Assembly);
+            services.AddAutoMapper(cfg => cfg.AddProfile<AmenityMappingProfile>(), typeof(AmenityMappingProfile).Assembly);
 
 
             services.AddScoped<PropertyService>();
@@ -64,8 +67,9 @@ namespace Airbnb.DependencyInjection.PresentationDI
         }
 
 
-        public static WebApplication AddPresentationDevelopmentDI(this WebApplication app) 
+        public static WebApplication AddPresentationDevelopmentDI(this WebApplication app)
         {
+            app.MapHub<NotificationHub>("/notificationHub");
 
             app.MapOpenApi();
             app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));

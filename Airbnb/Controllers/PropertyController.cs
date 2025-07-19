@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using Airbnb.DTOs.PropertyImageDTOs;
 using Airbnb.Extensions;
 using Application.DTOs.PropertyDTOS;
 using Application.DTOs.PropertyImageDTOs;
@@ -102,11 +101,11 @@ namespace Airbnb.Controllers
                 HostId = dto.HostId,
                 Images = imageDtos
             };
-            
+
             try
-            { 
+            {
                 var result = PropertyService.AddImages(containerDto);
-                if(!result.IsSuccess)
+                if (!result.IsSuccess)
                     for (int i = 0; i < imageDtos.Count; i++)
                     {
                         await _fileService.DeleteFileAsync(imageDtos[i].ImageUrl, _env.WebRootPath);
@@ -114,7 +113,7 @@ namespace Airbnb.Controllers
 
                 if (!result.IsSuccess)
                     return ToActionResult(result);
-                return CreatedAtAction(nameof(Get), new {id=dto.PropertyId});
+                return CreatedAtAction(nameof(Get), new { id = dto.PropertyId });
             }
             catch
             {
