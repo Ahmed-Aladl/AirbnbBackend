@@ -1,51 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Interfaces.IRepositories;
-using Domain.Models;
+﻿using Domain.Models;
 using Infrastructure.Contexts;
+using Application.Interfaces.IRepositories;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Common.Repositories
 {
-    public class BookingRepository :Repository<Booking,int> ,IBookingRepo 
+    public class BookingRepository : Repository<Booking, int>, IBookingRepo
     {
+        private readonly AirbnbContext _db;
 
-
-        public BookingRepository (AirbnbContext _db ):base( _db ) 
+        public BookingRepository(AirbnbContext db) : base(db)
         {
-
-           
-
+            _db = db;
         }
-        public void Add(Booking entity)
-        {
 
-            base.Add( entity );
+        public async Task<List<Booking>> GetAllAsync()
+        {
+            return await _db.Bookings.ToListAsync();
+        }
+
+        public async Task<Booking?> GetByIdAsync(int id)
+        {
+            return await _db.Bookings.FindAsync(id);
+        }
+
+        public async Task AddAsync(Booking entity)
+        {
+            await _db.Bookings.AddAsync(entity);
         }
 
         public void Delete(Booking entity)
         {
-            base.Delete( entity ); 
-        }
-
-        public List<Booking> GetAll()
-        {
-             return base.GetAll();
-        }
-
-        public Booking GetById(int id)
-        {
-            return base.GetById(id); 
+            _db.Bookings.Remove(entity);
         }
 
         public void Update(Booking entity)
         {
-
-           base.Update( entity );
-
+            _db.Bookings.Update(entity);
         }
-
     }
 }
