@@ -45,6 +45,16 @@ namespace Infrastructure.Common.Repositories
                 await Db.SaveChangesAsync();
             }
         }
+        public async Task DeleteAsync(int id)
+        {
+            var notification = await Db.Notifications.FindAsync(id);
+            if (notification != null)
+            {
+                Db.Notifications.Remove(notification);
+                await Db.SaveChangesAsync();
+            }
+            
+        }
 
     }
 }

@@ -13,5 +13,6 @@ namespace Application.Interfaces.IRepositories
         Task<Notification> GetByIdAsync(int id);
         Task AddAsync(Notification notification);
         Task MarkAsReadAsync(int id);
+        Task DeleteAsync(int id);
     }
 }

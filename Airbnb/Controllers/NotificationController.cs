@@ -56,5 +56,11 @@ namespace Airbnb.Controllers
             var result = await Notification.MarkAsRead(id);
             return result.ToActionResult();
         }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteNotification(int id)
+        {
+            var result = await Notification.DeleteNotification(id);
+            return result.ToActionResult();
+        }
     }
 }
