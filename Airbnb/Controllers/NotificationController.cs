@@ -1,12 +1,8 @@
 ﻿using Airbnb.Extensions;
 using Airbnb.Middleware;
 using Application.DTOs.NotificationDTOs;
-using Application.Interfaces.IRepositories;
-using Application.Result;
 using Application.Services;
 using Domain.Models;
-using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -19,9 +15,10 @@ namespace Airbnb.Controllers
         private readonly IHubContext<NotificationHub> _hubContext;
         public NotificationService Notification { get; }
 
-        public NotificationController(NotificationService _notification)
+        public NotificationController(NotificationService _notification, IHubContext<NotificationHub> hubContext)
 
         {
+            _hubContext = hubContext;
             Notification = _notification;
         }
 

@@ -16,7 +16,6 @@ namespace Application.Services
 {
     public class NotificationService
     {
-
         public IUnitOfWork _unitOfWork;
         public IMapper _mapper;
 
@@ -25,9 +24,12 @@ namespace Application.Services
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
+
         public async Task<Result<List<Notification>>> GetUserNotifications(string userId)
         {
-            var notifications = (await _unitOfWork.NotificationRepo.GetAllByUserIdAsync(userId)).ToList();
+            var notifications = (
+                await _unitOfWork.NotificationRepo.GetAllByUserIdAsync(userId)
+            ).ToList();
             return Result<List<Notification>>.Success(notifications);
         }
 
@@ -43,11 +45,11 @@ namespace Application.Services
             await _unitOfWork.NotificationRepo.MarkAsReadAsync(id); // Await the method call
             return Result<bool>.Success(true); // Return a success result with a boolean value
         }
+
         public async Task<Result<bool>> DeleteNotification(int id)
         {
             await _unitOfWork.NotificationRepo.DeleteAsync(id); // Await the method call
             return Result<bool>.Success(true); // Return a success result with a boolean value
         }
-
     }
 }

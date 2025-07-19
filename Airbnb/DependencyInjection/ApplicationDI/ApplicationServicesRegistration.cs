@@ -1,4 +1,3 @@
-
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
 using Application.Mappings;
@@ -19,15 +18,18 @@ namespace Airbnb.DependencyInjection.ApplicationDI
             services.AddScoped<IUnitOfWork, UnitOfWork>(); // <-- Register UnitOfWork in DI
             services.AddScoped<IAmenityRepo, AmenityRepo>();
 
-
             // Add AutoMapper
-            services.AddAutoMapper(config =>
-            {
-                config.AddProfile<PropertyProfile>();
-                config.AddProfile<WishlistProfile>();
-            }, typeof(PropertyProfile).Assembly);
+            services.AddAutoMapper(
+                config =>
+                {
+                    config.AddProfile<PropertyProfile>();
+                    config.AddProfile<WishlistProfile>();
+                },
+                typeof(PropertyProfile).Assembly
+            );
 
-            services.AddIdentity<User, IdentityRole>()
+            services
+                .AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<AirbnbContext>()
                 .AddDefaultTokenProviders();
 

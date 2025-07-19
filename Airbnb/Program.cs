@@ -1,21 +1,20 @@
 using Airbnb.DependencyInjection.ApplicationDI;
 using Airbnb.DependencyInjection.DomainDI;
 using Airbnb.DependencyInjection.InfrastructureDI;
+using Airbnb.DependencyInjection.PresentationDI;
 using Airbnb.Middleware;
-using AspNetCoreRateLimit;
-using Microsoft.AspNetCore.Mvc;
-
 using Application.Interfaces.IRepositories;
 using Application.Mappings;
 using Application.Services;
+using AspNetCoreRateLimit;
 using AutoMapper;
-using Infrastructure.Common.Repositories;
-using Microsoft.Extensions.DependencyInjection;
-using Airbnb.DependencyInjection.PresentationDI;
-using Infrastructure.Data;
 using Domain.Models;
+using Infrastructure.Common.Repositories;
 using Infrastructure.Contexts;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Airbnb
 {
@@ -53,12 +52,9 @@ namespace Airbnb
             //.AddEntityFrameworkStores<AirbnbContext>()
             //     .AddDefaultTokenProviders();
 
-
-
             var app = builder.Build();
             app.UseIpRateLimiting();
             await DbSeeder.SeedAsync(app);
-
 
             if (app.Environment.IsDevelopment())
             {

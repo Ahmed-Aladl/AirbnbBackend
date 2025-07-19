@@ -8,13 +8,12 @@ namespace Domain.Models
 {
     public class Amenity
     {
-        public int Id { get; set; } 
+        public int Id { get; set; }
 
         public string AmenityName { get; set; }
-        public string IconURL  { get; set; }
+        public string IconURL { get; set; }
 
         public ICollection<PropertyAmenity>? PropertyAmenities { get; set; }
         public ICollection<Property>? Properties { get; set; }
-
     }
 }

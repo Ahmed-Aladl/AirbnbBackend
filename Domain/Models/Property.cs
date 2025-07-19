@@ -47,9 +47,9 @@ namespace Domain.Models
         public User Host { get; set; }
         public ICollection<Amenity> Amenities { get; set; }
         public ICollection<PropertyAmenity> PropertyAmenities { get; set; }
-        public ICollection<CalendarAvailability> CalendarAvailabilities { get; set; } = new List<CalendarAvailability>();
+        public ICollection<CalendarAvailability> CalendarAvailabilities { get; set; } =
+            new List<CalendarAvailability>();
 
         public ICollection<WishlistProperty> WishlistProperties { get; set; }
-
     }
 }

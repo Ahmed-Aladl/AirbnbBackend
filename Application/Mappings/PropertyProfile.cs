@@ -9,15 +9,11 @@ using Domain.Models;
 
 namespace Application.Mappings
 {
-    public class PropertyProfile: Profile
+    public class PropertyProfile : Profile
     {
-        public PropertyProfile() 
-        
+        public PropertyProfile()
         {
-
             CreateMap<Property, PropertyDisplayDTO>().ReverseMap();
-
-
         }
     }
 }

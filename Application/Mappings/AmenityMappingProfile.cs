@@ -9,7 +9,7 @@ public class AmenityMappingProfile : Profile
     public AmenityMappingProfile()
     {
         CreateMap<Amenity, AmenityDTO>()
-             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.AmenityName));
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.AmenityName));
 
         // DTO → Entity
         CreateMap<AmenityDTO, Amenity>()
@@ -19,8 +19,5 @@ public class AmenityMappingProfile : Profile
         CreateMap<CreateAmenityDTO, Amenity>()
             .ForMember(dest => dest.AmenityName, opt => opt.MapFrom(src => src.AmenityName))
             .ForMember(dest => dest.IconURL, opt => opt.MapFrom(src => src.IconUrl));
-
-
     }
-
 }

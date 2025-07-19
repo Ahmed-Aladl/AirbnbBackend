@@ -1,10 +1,10 @@
-﻿using Domain.Models;
-using Domain.Enums.Booking;
+﻿using Domain.Enums.Booking;
+using Domain.Models;
 using Infrastructure.Contexts;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Builder;
 
 namespace Infrastructure.Data
 {
@@ -17,18 +17,16 @@ namespace Infrastructure.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-
             // Ensure database is created
             await context.Database.EnsureCreatedAsync();
 
             // Check if data already exists
             //if (await context.Users.AnyAsync()||
             //    await context.Properties.AnyAsync()||
-            //    await context.PropertyAmenities.AnyAsync() || 
+            //    await context.PropertyAmenities.AnyAsync() ||
             //    await context.propertyTypes.AnyAsync()||
             //    await context.Wishlist.AnyAsync()||
             //    await context.Bookings.AnyAsync()
-
 
             //    )
             //{
@@ -53,12 +51,10 @@ namespace Infrastructure.Data
                 // Create amenities
                 amenities = await CreateAmenities(context);
 
-
             List<Property> properties = new();
             if (!await context.Properties.AnyAsync())
                 // Create properties
                 properties = await CreateProperties(context, users, propertyTypes);
-
 
             if (!await context.PropertyAmenities.AnyAsync())
                 // Create property amenities
@@ -97,7 +93,6 @@ namespace Infrastructure.Data
             if (!await context.Messages.AnyAsync())
                 await CreateMessages(context, users, properties);
 
-
             await context.SaveChangesAsync();
         }
 
@@ -130,7 +125,7 @@ namespace Infrastructure.Data
                     Bio = "System Administrator",
                     Country = "USA",
                     BirthDate = new DateOnly(1990, 1, 1),
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
                 },
                 new User
                 {
@@ -144,7 +139,7 @@ namespace Infrastructure.Data
                     Bio = "Experienced host with 5 years of hosting experience",
                     Country = "USA",
                     BirthDate = new DateOnly(1985, 3, 15),
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
                 },
                 new User
                 {
@@ -158,7 +153,7 @@ namespace Infrastructure.Data
                     Bio = "Luxury property host specializing in beachfront rentals",
                     Country = "France",
                     BirthDate = new DateOnly(1988, 7, 22),
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
                 },
                 new User
                 {
@@ -172,7 +167,7 @@ namespace Infrastructure.Data
                     Bio = "Travel enthusiast and digital nomad",
                     Country = "Canada",
                     BirthDate = new DateOnly(1992, 11, 8),
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
                 },
                 new User
                 {
@@ -186,8 +181,8 @@ namespace Infrastructure.Data
                     Bio = "Family vacation planner and food lover",
                     Country = "UK",
                     BirthDate = new DateOnly(1995, 4, 12),
-                    EmailConfirmed = true
-                }
+                    EmailConfirmed = true,
+                },
             };
 
             var createdUsers = new List<User>();
@@ -217,7 +212,7 @@ namespace Infrastructure.Data
                 new PropertyType { Name = "Condo" },
                 new PropertyType { Name = "Cabin" },
                 new PropertyType { Name = "Loft" },
-                new PropertyType { Name = "Studio" }
+                new PropertyType { Name = "Studio" },
             };
 
             context.propertyTypes.AddRange(propertyTypes);
@@ -229,16 +224,48 @@ namespace Infrastructure.Data
         {
             var amenities = new List<Amenity>
             {
-                new Amenity { AmenityName = "WiFi", IconURL = "https://example.com/icons/wifi.png" },
-                new Amenity { AmenityName = "Kitchen", IconURL = "https://example.com/icons/kitchen.png" },
-                new Amenity { AmenityName = "Air Conditioning", IconURL = "https://example.com/icons/ac.png" },
-                new Amenity { AmenityName = "Parking", IconURL = "https://example.com/icons/parking.png" },
-                new Amenity { AmenityName = "Pool", IconURL = "https://example.com/icons/pool.png" },
+                new Amenity
+                {
+                    AmenityName = "WiFi",
+                    IconURL = "https://example.com/icons/wifi.png",
+                },
+                new Amenity
+                {
+                    AmenityName = "Kitchen",
+                    IconURL = "https://example.com/icons/kitchen.png",
+                },
+                new Amenity
+                {
+                    AmenityName = "Air Conditioning",
+                    IconURL = "https://example.com/icons/ac.png",
+                },
+                new Amenity
+                {
+                    AmenityName = "Parking",
+                    IconURL = "https://example.com/icons/parking.png",
+                },
+                new Amenity
+                {
+                    AmenityName = "Pool",
+                    IconURL = "https://example.com/icons/pool.png",
+                },
                 new Amenity { AmenityName = "Gym", IconURL = "https://example.com/icons/gym.png" },
-                new Amenity { AmenityName = "Pet Friendly", IconURL = "https://example.com/icons/pet.png" },
-                new Amenity { AmenityName = "Washing Machine", IconURL = "https://example.com/icons/washing.png" },
+                new Amenity
+                {
+                    AmenityName = "Pet Friendly",
+                    IconURL = "https://example.com/icons/pet.png",
+                },
+                new Amenity
+                {
+                    AmenityName = "Washing Machine",
+                    IconURL = "https://example.com/icons/washing.png",
+                },
                 new Amenity { AmenityName = "TV", IconURL = "https://example.com/icons/tv.png" },
-                new Amenity { AmenityName = "Balcony", IconURL = "https://example.com/icons/balcony.png" }
+                new Amenity
+                {
+                    AmenityName = "Balcony",
+                    IconURL = "https://example.com/icons/balcony.png",
+                },
             };
 
             context.Amenities.AddRange(amenities);
@@ -246,7 +273,11 @@ namespace Infrastructure.Data
             return amenities;
         }
 
-        private static async Task<List<Property>> CreateProperties(AirbnbContext context, List<User> users, List<PropertyType> propertyTypes)
+        private static async Task<List<Property>> CreateProperties(
+            AirbnbContext context,
+            List<User> users,
+            List<PropertyType> propertyTypes
+        )
         {
             var hosts = users.Where(u => u.Email.Contains("host")).ToList();
             var properties = new List<Property>
@@ -254,7 +285,8 @@ namespace Infrastructure.Data
                 new Property
                 {
                     Title = "Luxury Beachfront Villa",
-                    Description = "Stunning villa with panoramic ocean views and private beach access",
+                    Description =
+                        "Stunning villa with panoramic ocean views and private beach access",
                     City = "Miami",
                     Country = "USA",
                     State = "Florida",
@@ -269,7 +301,7 @@ namespace Infrastructure.Data
                     ReviewCount = 24,
                     IsActive = true,
                     PropertyTypeId = propertyTypes.First(pt => pt.Name == "Villa").Id,
-                    HostId = hosts[0].Id
+                    HostId = hosts[0].Id,
                 },
                 new Property
                 {
@@ -289,7 +321,7 @@ namespace Infrastructure.Data
                     ReviewCount = 18,
                     IsActive = true,
                     PropertyTypeId = propertyTypes.First(pt => pt.Name == "Apartment").Id,
-                    HostId = hosts[0].Id
+                    HostId = hosts[0].Id,
                 },
                 new Property
                 {
@@ -309,7 +341,7 @@ namespace Infrastructure.Data
                     ReviewCount = 31,
                     IsActive = true,
                     PropertyTypeId = propertyTypes.First(pt => pt.Name == "Loft").Id,
-                    HostId = hosts[1].Id
+                    HostId = hosts[1].Id,
                 },
                 new Property
                 {
@@ -329,7 +361,7 @@ namespace Infrastructure.Data
                     ReviewCount = 15,
                     IsActive = true,
                     PropertyTypeId = propertyTypes.First(pt => pt.Name == "Cabin").Id,
-                    HostId = hosts[1].Id
+                    HostId = hosts[1].Id,
                 },
                 new Property
                 {
@@ -349,8 +381,8 @@ namespace Infrastructure.Data
                     ReviewCount = 12,
                     IsActive = true,
                     PropertyTypeId = propertyTypes.First(pt => pt.Name == "Studio").Id,
-                    HostId = hosts[0].Id
-                }
+                    HostId = hosts[0].Id,
+                },
             };
 
             context.Properties.AddRange(properties);
@@ -358,22 +390,27 @@ namespace Infrastructure.Data
             return properties;
         }
 
-        private static async Task CreatePropertyAmenities(AirbnbContext context, List<Property> properties, List<Amenity> amenities)
+        private static async Task CreatePropertyAmenities(
+            AirbnbContext context,
+            List<Property> properties,
+            List<Amenity> amenities
+        )
         {
             var propertyAmenities = new List<PropertyAmenity>();
 
             foreach (var property in properties)
             {
                 // Add random amenities to each property
-                var randomAmenities = amenities.OrderBy(x => Guid.NewGuid()).Take(Random.Shared.Next(3, 8)).ToList();
+                var randomAmenities = amenities
+                    .OrderBy(x => Guid.NewGuid())
+                    .Take(Random.Shared.Next(3, 8))
+                    .ToList();
 
                 foreach (var amenity in randomAmenities)
                 {
-                    propertyAmenities.Add(new PropertyAmenity
-                    {
-                        PropertyId = property.Id,
-                        AmenityId = amenity.Id
-                    });
+                    propertyAmenities.Add(
+                        new PropertyAmenity { PropertyId = property.Id, AmenityId = amenity.Id }
+                    );
                 }
             }
 
@@ -381,7 +418,10 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreatePropertyImages(AirbnbContext context, List<Property> properties)
+        private static async Task CreatePropertyImages(
+            AirbnbContext context,
+            List<Property> properties
+        )
         {
             var propertyImages = new List<PropertyImage>();
 
@@ -390,13 +430,15 @@ namespace Infrastructure.Data
                 // Add 3-5 images per property
                 for (int i = 1; i <= Random.Shared.Next(3, 6); i++)
                 {
-                    propertyImages.Add(new PropertyImage
-                    {
-                        PropertyId = property.Id,
-                        ImageUrl = $"https://example.com/property-{property.Id}-image-{i}.jpg",
-                        IsCover = i == 1, // First image is cover
-                        GroupName = $"Property {property.Id} Images"
-                    });
+                    propertyImages.Add(
+                        new PropertyImage
+                        {
+                            PropertyId = property.Id,
+                            ImageUrl = $"https://example.com/property-{property.Id}-image-{i}.jpg",
+                            IsCover = i == 1, // First image is cover
+                            GroupName = $"Property {property.Id} Images",
+                        }
+                    );
                 }
             }
 
@@ -404,7 +446,10 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreateCalendarAvailabilities(AirbnbContext context, List<Property> properties)
+        private static async Task CreateCalendarAvailabilities(
+            AirbnbContext context,
+            List<Property> properties
+        )
         {
             var availabilities = new List<CalendarAvailability>();
 
@@ -418,13 +463,15 @@ namespace Infrastructure.Data
                     var priceVariation = (decimal)(Random.Shared.NextDouble() * 0.3 - 0.15); // ±15% price variation
                     var price = property.PricePerNight * (1 + priceVariation);
 
-                    availabilities.Add(new CalendarAvailability
-                    {
-                        PropertyId = property.Id,
-                        Date = date,
-                        IsAvailable = isAvailable,
-                        Price = Math.Round(price, 2)
-                    });
+                    availabilities.Add(
+                        new CalendarAvailability
+                        {
+                            PropertyId = property.Id,
+                            Date = date,
+                            IsAvailable = isAvailable,
+                            Price = Math.Round(price, 2),
+                        }
+                    );
                 }
             }
 
@@ -432,7 +479,11 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task<List<Booking>> CreateBookings(AirbnbContext context, List<User> users, List<Property> properties)
+        private static async Task<List<Booking>> CreateBookings(
+            AirbnbContext context,
+            List<User> users,
+            List<Property> properties
+        )
         {
             var guests = users.Where(u => u.Email.Contains("guest")).ToList();
             var bookings = new List<Booking>();
@@ -447,16 +498,18 @@ namespace Infrastructure.Data
                     var nights = Random.Shared.Next(2, 8);
                     var checkOut = checkIn.AddDays(nights);
 
-                    bookings.Add(new Booking
-                    {
-                        CheckInDate = checkIn,
-                        CheckOutDate = checkOut,
-                        NumberOfGuests = Random.Shared.Next(1, property.MaxGuests + 1),
-                        TotalPrice = property.PricePerNight * nights,
-                        BookingStatus = (BookingStatus)Random.Shared.Next(0, 4),
-                        PropertyId = property.Id,
-                        UserId = guest.Id
-                    });
+                    bookings.Add(
+                        new Booking
+                        {
+                            CheckInDate = checkIn,
+                            CheckOutDate = checkOut,
+                            NumberOfGuests = Random.Shared.Next(1, property.MaxGuests + 1),
+                            TotalPrice = property.PricePerNight * nights,
+                            BookingStatus = (BookingStatus)Random.Shared.Next(0, 4),
+                            PropertyId = property.Id,
+                            UserId = guest.Id,
+                        }
+                    );
                 }
             }
 
@@ -469,25 +522,39 @@ namespace Infrastructure.Data
         {
             var payments = new List<Payment>();
 
-            foreach (var booking in bookings.Where(b => b.BookingStatus == BookingStatus.Confirmed || b.BookingStatus == BookingStatus.Completed))
+            foreach (
+                var booking in bookings.Where(b =>
+                    b.BookingStatus == BookingStatus.Confirmed
+                    || b.BookingStatus == BookingStatus.Completed
+                )
+            )
             {
-                payments.Add(new Payment
-                {
-                    BookingId = booking.Id,
-                    Amount = (int)(booking.TotalPrice * 100), // Convert to cents
-                    PaymentDate = booking.CheckInDate.AddDays(-1),
-                    Status = "Completed"
-                });
+                payments.Add(
+                    new Payment
+                    {
+                        BookingId = booking.Id,
+                        Amount = (int)(booking.TotalPrice * 100), // Convert to cents
+                        PaymentDate = booking.CheckInDate.AddDays(-1),
+                        Status = "Completed",
+                    }
+                );
             }
 
             context.Payments.AddRange(payments);
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreateReviews(AirbnbContext context, List<User> users, List<Property> properties, List<Booking> bookings)
+        private static async Task CreateReviews(
+            AirbnbContext context,
+            List<User> users,
+            List<Property> properties,
+            List<Booking> bookings
+        )
         {
             var reviews = new List<Review>();
-            var completedBookings = bookings.Where(b => b.BookingStatus == BookingStatus.Completed).ToList();
+            var completedBookings = bookings
+                .Where(b => b.BookingStatus == BookingStatus.Completed)
+                .ToList();
 
             foreach (var booking in completedBookings.Take(10)) // Create reviews for first 10 completed bookings
             {
@@ -499,24 +566,30 @@ namespace Infrastructure.Data
                     "Perfect for our vacation needs.",
                     "Host was very responsive and helpful.",
                     "Beautiful property with stunning views.",
-                    "Would definitely stay again!"
+                    "Would definitely stay again!",
                 };
 
-                reviews.Add(new Review
-                {
-                    UserId = booking.UserId,
-                    PropertyId = booking.PropertyId,
-                    BookingId = booking.Id,
-                    Rating = rating,
-                    Comment = comments[Random.Shared.Next(comments.Length)]
-                });
+                reviews.Add(
+                    new Review
+                    {
+                        UserId = booking.UserId,
+                        PropertyId = booking.PropertyId,
+                        BookingId = booking.Id,
+                        Rating = rating,
+                        Comment = comments[Random.Shared.Next(comments.Length)],
+                    }
+                );
             }
 
             context.Reviews.AddRange(reviews);
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreateWishlists(AirbnbContext context, List<User> users, List<Property> properties)
+        private static async Task CreateWishlists(
+            AirbnbContext context,
+            List<User> users,
+            List<Property> properties
+        )
         {
             var guests = users.Where(u => u.Email.Contains("guest")).ToList();
             var wishlists = new List<Wishlist>();
@@ -524,23 +597,23 @@ namespace Infrastructure.Data
 
             var wishlistNames = new[]
             {
-        "Dream Vacation Spots",
-        "Weekend Getaways",
-        "Family Trips",
-        "Romantic Escapes",
-        "Business Travel",
-        "Adventure Destinations"
-    };
+                "Dream Vacation Spots",
+                "Weekend Getaways",
+                "Family Trips",
+                "Romantic Escapes",
+                "Business Travel",
+                "Adventure Destinations",
+            };
 
             var wishlistNotes = new[]
             {
-        "Perfect for next vacation!",
-        "Great location and amenities",
-        "Bookmarked for future reference",
-        "Looks amazing in photos",
-        "Recommended by friends",
-        "Good value for money"
-    };
+                "Perfect for next vacation!",
+                "Great location and amenities",
+                "Bookmarked for future reference",
+                "Looks amazing in photos",
+                "Recommended by friends",
+                "Good value for money",
+            };
 
             foreach (var guest in guests)
             {
@@ -550,18 +623,19 @@ namespace Infrastructure.Data
                     Name = wishlistNames[Random.Shared.Next(wishlistNames.Length)],
                     Notes = wishlistNotes[Random.Shared.Next(wishlistNotes.Length)],
                     CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30)),
-                    WishlistProperties = new List<WishlistProperty>()
+                    WishlistProperties = new List<WishlistProperty>(),
                 };
 
-                var randomProperties = properties.OrderBy(x => Guid.NewGuid()).Take(Random.Shared.Next(2, 5)).ToList();
+                var randomProperties = properties
+                    .OrderBy(x => Guid.NewGuid())
+                    .Take(Random.Shared.Next(2, 5))
+                    .ToList();
 
                 foreach (var property in randomProperties)
                 {
-                    wishlist.WishlistProperties.Add(new WishlistProperty
-                    {
-                        Wishlist = wishlist,
-                        Property = property
-                    });
+                    wishlist.WishlistProperties.Add(
+                        new WishlistProperty { Wishlist = wishlist, Property = property }
+                    );
                 }
 
                 wishlists.Add(wishlist);
@@ -587,16 +661,18 @@ namespace Infrastructure.Data
                         "Don't forget to leave a review.",
                         "New property matches your preferences.",
                         "Payment received successfully.",
-                        "Your reservation is coming up soon."
+                        "Your reservation is coming up soon.",
                     };
 
-                    notifications.Add(new Notification
-                    {
-                        UserId = user.Id,
-                        Message = messages[Random.Shared.Next(messages.Length)],
-                        isRead = Random.Shared.Next(0, 2) == 1,
-                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
-                    });
+                    notifications.Add(
+                        new Notification
+                        {
+                            UserId = user.Id,
+                            Message = messages[Random.Shared.Next(messages.Length)],
+                            isRead = Random.Shared.Next(0, 2) == 1,
+                            CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30)),
+                        }
+                    );
                 }
             }
 
@@ -604,7 +680,11 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreateMessages(AirbnbContext context, List<User> users, List<Property> properties)
+        private static async Task CreateMessages(
+            AirbnbContext context,
+            List<User> users,
+            List<Property> properties
+        )
         {
             var messages = new List<Message>();
             var hosts = users.Where(u => u.Email.Contains("host")).ToList();
@@ -626,18 +706,20 @@ namespace Infrastructure.Data
                                 SenderId = guest.Id,
                                 ReceiverId = host.Id,
                                 PropertyId = property.Id,
-                                MesageText = "Hi, I'm interested in booking your property. Is it available for next weekend?",
+                                MesageText =
+                                    "Hi, I'm interested in booking your property. Is it available for next weekend?",
                                 SentAt = DateTime.Now.AddHours(-24),
-                                Isread = true
+                                Isread = true,
                             },
                             new Message
                             {
                                 SenderId = host.Id,
                                 ReceiverId = guest.Id,
                                 PropertyId = property.Id,
-                                MesageText = "Hello! Yes, it's available. I'd be happy to host you. Do you have any questions about the property?",
+                                MesageText =
+                                    "Hello! Yes, it's available. I'd be happy to host you. Do you have any questions about the property?",
                                 SentAt = DateTime.Now.AddHours(-23),
-                                Isread = true
+                                Isread = true,
                             },
                             new Message
                             {
@@ -646,8 +728,8 @@ namespace Infrastructure.Data
                                 PropertyId = property.Id,
                                 MesageText = "Great! What's the check-in process like?",
                                 SentAt = DateTime.Now.AddHours(-22),
-                                Isread = false
-                            }
+                                Isread = false,
+                            },
                         };
 
                         messages.AddRange(conversationMessages);

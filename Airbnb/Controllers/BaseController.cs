@@ -1,6 +1,4 @@
-
 using Application.Result; // Changed from Application.Responses
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Airbnb.Controllers
@@ -9,12 +7,13 @@ namespace Airbnb.Controllers
     [Route("api/[controller]")]
     public class BaseController : ControllerBase
     {
-        protected IActionResult ToActionResult<T>(Result<T> result) 
+        protected IActionResult ToActionResult<T>(Result<T> result)
         {
-            return result.IsSuccess ?
-                            Success(result.Data, result.Message, result.StatusCode ?? 200) :
-                            Fail(result.Message, result.StatusCode ?? 400);
+            return result.IsSuccess
+                ? Success(result.Data, result.Message, result.StatusCode ?? 200)
+                : Fail(result.Message, result.StatusCode ?? 400);
         }
+
         protected IActionResult Success<T>(T data, string message = "", int statusCode = 200)
         {
             return StatusCode(statusCode, Result<T>.Success(data, statusCode, message));
@@ -48,13 +47,13 @@ namespace Airbnb.Controllers
         // Helper method to handle Result<T> returns
         protected IActionResult HandleResult<T>(Result<T> result)
         {
-            if (result == null) return NotFound();
+            if (result == null)
+                return NotFound();
             if (result.IsSuccess && result.Data != null)
                 return StatusCode(result.StatusCode ?? 200, result);
             if (result.IsSuccess && result.Data == null)
                 return NotFound();
             return StatusCode(result.StatusCode ?? 400, result);
         }
-
     }
 }

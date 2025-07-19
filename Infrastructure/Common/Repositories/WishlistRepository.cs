@@ -12,9 +12,8 @@ namespace Infrastructure.Common.Repositories
 {
     public class WishlistRepository : Repository<Wishlist, int>, IWishlistRepository
     {
-        public WishlistRepository(AirbnbContext _db) : base(_db)
-        {
-        }
+        public WishlistRepository(AirbnbContext _db)
+            : base(_db) { }
 
         public async Task<Wishlist> GetByIdAsync(int id)
         {
@@ -26,14 +25,18 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<List<Wishlist>> GetByUserIdAsync(string userId)
         {
-            return await Db.Wishlists
-                .Include(w => w.WishlistProperties)
+            return await Db
+                .Wishlists.Include(w => w.WishlistProperties)
                 .ThenInclude(wp => wp.Property)
                 .Where(w => w.UserId == userId)
                 .ToListAsync();
         }
 
-        public async Task<bool> IsPropertyInWishlistAsync(string userId, int wishlistId, int propertyId)
+        public async Task<bool> IsPropertyInWishlistAsync(
+            string userId,
+            int wishlistId,
+            int propertyId
+        )
         {
             return await Db.Set<WishlistProperty>()
                 .AnyAsync(wp => wp.WishlistId == wishlistId && wp.PropertyId == propertyId);
@@ -41,8 +44,9 @@ namespace Infrastructure.Common.Repositories
 
         public async Task AddPropertyToWishlistAsync(string userId, int wishlistId, int propertyId)
         {
-            var wishlist = await Db.Wishlists
-                .FirstOrDefaultAsync(w => w.Id == wishlistId && w.UserId == userId);
+            var wishlist = await Db.Wishlists.FirstOrDefaultAsync(w =>
+                w.Id == wishlistId && w.UserId == userId
+            );
 
             if (wishlist != null)
             {
@@ -52,20 +56,25 @@ namespace Infrastructure.Common.Repositories
                     var wishlistProperty = new WishlistProperty
                     {
                         WishlistId = wishlistId,
-                        PropertyId = propertyId
+                        PropertyId = propertyId,
                     };
                     await Db.Set<WishlistProperty>().AddAsync(wishlistProperty);
                 }
             }
         }
 
-        public async Task RemovePropertyFromWishlistAsync(string userId, int wishlistId, int propertyId)
+        public async Task RemovePropertyFromWishlistAsync(
+            string userId,
+            int wishlistId,
+            int propertyId
+        )
         {
             var wishlistProperty = await Db.Set<WishlistProperty>()
                 .FirstOrDefaultAsync(wp =>
-                    wp.WishlistId == wishlistId &&
-                    wp.PropertyId == propertyId &&
-                    wp.Wishlist.UserId == userId);
+                    wp.WishlistId == wishlistId
+                    && wp.PropertyId == propertyId
+                    && wp.Wishlist.UserId == userId
+                );
 
             if (wishlistProperty != null)
             {
@@ -80,7 +89,7 @@ namespace Infrastructure.Common.Repositories
                 UserId = userId,
                 Name = name,
                 Notes = notes,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
             };
             await Db.Wishlists.AddAsync(wishlist);
             await Db.SaveChangesAsync();
@@ -88,14 +97,13 @@ namespace Infrastructure.Common.Repositories
 
         public async Task DeleteWishlistAsync(string userId, int wishlistId)
         {
-            var wishlist = await Db.Wishlists
-                .FirstOrDefaultAsync(w => w.UserId == userId && w.Id == wishlistId);
+            var wishlist = await Db.Wishlists.FirstOrDefaultAsync(w =>
+                w.UserId == userId && w.Id == wishlistId
+            );
 
             if (wishlist != null)
             {
-                
-                var related = Db.Set<WishlistProperty>()
-                    .Where(wp => wp.WishlistId == wishlistId);
+                var related = Db.Set<WishlistProperty>().Where(wp => wp.WishlistId == wishlistId);
                 Db.Set<WishlistProperty>().RemoveRange(related);
 
                 Db.Wishlists.Remove(wishlist);

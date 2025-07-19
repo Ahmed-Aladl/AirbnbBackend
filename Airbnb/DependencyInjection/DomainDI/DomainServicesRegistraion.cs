@@ -1,5 +1,3 @@
-
-
 using Microsoft.EntityFrameworkCore;
 
 namespace Airbnb.DependencyInjection.DomainDI
@@ -8,9 +6,7 @@ namespace Airbnb.DependencyInjection.DomainDI
     {
         public static IServiceCollection AddDomain(this IServiceCollection services)
         {
-
             return services;
-
         }
     }
 }

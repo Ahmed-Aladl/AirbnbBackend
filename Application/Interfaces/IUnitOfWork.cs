@@ -10,7 +10,7 @@ namespace Application.Interfaces
 {
     public interface IUnitOfWork
     {
-        IUserRepository UserRepo{ get; }
+        IUserRepository UserRepo { get; }
         IBookingRepo Bookings { get; }
         IPropertyRepository PropertyRepo { get; }
         IPropertyImageRepository PropertyImageRepo { get; }

@@ -7,7 +7,7 @@ namespace Airbnb.Extensions
     {
         public static IActionResult ToActionResult<T>(this Result<T> result)
         {
-                return new ObjectResult(result);
+            return new ObjectResult(result);
             //if (result.IsSuccess)
             //{
             //}
@@ -18,5 +18,4 @@ namespace Airbnb.Extensions
             //});
         }
     }
-
 }

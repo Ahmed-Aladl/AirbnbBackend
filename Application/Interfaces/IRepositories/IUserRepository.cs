@@ -7,7 +7,5 @@ using Domain.Models;
 
 namespace Application.Interfaces.IRepositories
 {
-    public interface IUserRepository:IRepository<User,string>
-    {
-    }
+    public interface IUserRepository : IRepository<User, string> { }
 }

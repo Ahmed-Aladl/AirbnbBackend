@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using System.Net;
 using Application.Shared;
-using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Airbnb.Middleware
 {
@@ -30,7 +30,8 @@ namespace Airbnb.Middleware
         public void OnActionExecuted(ActionExecutedContext context)
         {
             // Skip if there was an exception — handled in OnException
-            if (context.Exception != null) return;
+            if (context.Exception != null)
+                return;
 
             if (context.Result is ObjectResult objectResult)
             {
@@ -43,10 +44,14 @@ namespace Airbnb.Middleware
                         IEnumerable<string> strList => string.Join(" | ", strList),
                         Exception ex => $"{ex.Message}{Environment.NewLine}{ex.StackTrace}",
                         string str => str,
-                        _ => objectResult.Value?.ToString() ?? "null"
+                        _ => objectResult.Value?.ToString() ?? "null",
                     };
 
-                    _logger.LogError("An error occurred with status code {StatusCode}. Raw error: {Error}", statusCode, rawError);
+                    _logger.LogError(
+                        "An error occurred with status code {StatusCode}. Raw error: {Error}",
+                        statusCode,
+                        rawError
+                    );
 
                     // Prevent re-wrapping if already List<string>
                     if (objectResult.Value is not List<string>)
@@ -56,13 +61,10 @@ namespace Airbnb.Middleware
                             string str => new List<string> { str },
                             IEnumerable<string> strList => strList.ToList(),
                             Exception ex => new List<string> { ex.Message },
-                            _ => new List<string> { "An unexpected error occurred." }
+                            _ => new List<string> { "An unexpected error occurred." },
                         };
 
-                        context.Result = new ObjectResult(errorList)
-                        {
-                            StatusCode = statusCode
-                        };
+                        context.Result = new ObjectResult(errorList) { StatusCode = statusCode };
                     }
                 }
             }
@@ -73,7 +75,10 @@ namespace Airbnb.Middleware
             context.ExceptionHandled = true;
 
             // Log the actual exception details
-            _logger.LogError(context.Exception, "An unhandled exception occurred while processing the request.");
+            _logger.LogError(
+                context.Exception,
+                "An unhandled exception occurred while processing the request."
+            );
 
             var errorMessages = new List<string>();
             int statusCode = 500;
@@ -106,10 +111,7 @@ namespace Airbnb.Middleware
                 }
             }
 
-            context.Result = new ObjectResult(errorMessages)
-            {
-                StatusCode = statusCode
-            };
+            context.Result = new ObjectResult(errorMessages) { StatusCode = statusCode };
         }
     }
 }

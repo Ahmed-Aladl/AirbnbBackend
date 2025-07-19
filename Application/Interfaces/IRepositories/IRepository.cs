@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Application.Interfaces.IRepositories
 {
-    public interface IRepository<T,TKey> where T : class
+    public interface IRepository<T, TKey>
+        where T : class
     {
         List<T> GetAll();
         T GetById(TKey id);
@@ -15,7 +16,5 @@ namespace Application.Interfaces.IRepositories
         void AddRange(ICollection<T> entities);
         void Update(T entity);
         void Delete(T entity);
-
-
     }
 }

@@ -17,8 +17,8 @@ namespace Airbnb.Services
         //}
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            var formParams = context.MethodInfo
-                .GetParameters()
+            var formParams = context
+                .MethodInfo.GetParameters()
                 .Where(p => p.ParameterType == typeof(PropertyImagesUploadContainerDTO))
                 .ToList();
 
@@ -30,8 +30,6 @@ namespace Airbnb.Services
 
             //        operation.RequestBody.Content.Remove("application/json");
             //    }
-
         }
     }
-
 }

@@ -12,5 +12,4 @@ namespace Application.Interfaces
         Task<string> UploadFileAsync(IFormFile file, string webRootPath);
         Task<bool> DeleteFileAsync(string relativeFilePath, string webRootPath);
     }
-
 }

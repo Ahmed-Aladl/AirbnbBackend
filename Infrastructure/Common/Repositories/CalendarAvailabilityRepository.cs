@@ -9,9 +9,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Common.Repositories
 {
-    public class CalendarAvailabilityRepository : Repository<CalendarAvailability, int>, ICalendarAvailabilityRepo
+    public class CalendarAvailabilityRepository
+        : Repository<CalendarAvailability, int>,
+            ICalendarAvailabilityRepo
     {
-        public CalendarAvailabilityRepository(AirbnbContext db) : base(db) { }
+        public CalendarAvailabilityRepository(AirbnbContext db)
+            : base(db) { }
 
         public async Task<List<CalendarAvailability>> GetByPropertyIdAsync(int propertyId)
         {
@@ -21,7 +24,11 @@ namespace Infrastructure.Common.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<CalendarAvailability>> GetAvailabilityRangeAsync(int propertyId, DateTime startDate, DateTime endDate)
+        public async Task<List<CalendarAvailability>> GetAvailabilityRangeAsync(
+            int propertyId,
+            DateTime startDate,
+            DateTime endDate
+        )
         {
             return await Db.Set<CalendarAvailability>()
                 .Where(c => c.PropertyId == propertyId && c.Date >= startDate && c.Date <= endDate)
@@ -35,7 +42,10 @@ namespace Infrastructure.Common.Repositories
                 .AnyAsync(c => c.PropertyId == propertyId && c.Date == date && c.IsAvailable);
         }
 
-        public async Task UpdateAvailabilityRangeAsync(int propertyId, List<CalendarAvailability> availabilities)
+        public async Task UpdateAvailabilityRangeAsync(
+            int propertyId,
+            List<CalendarAvailability> availabilities
+        )
         {
             var existingDates = availabilities.Select(a => a.Date).ToList();
 

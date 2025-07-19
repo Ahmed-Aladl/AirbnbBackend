@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Shared
 {
@@ -12,7 +12,10 @@ namespace Application.Shared
             _extensions = extensions;
         }
 
-        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        protected override ValidationResult? IsValid(
+            object? value,
+            ValidationContext validationContext
+        )
         {
             var file = value as IFormFile;
             if (file != null)
@@ -20,12 +23,14 @@ namespace Application.Shared
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!_extensions.Contains(extension))
                 {
-                    return new ValidationResult(ErrorMessage ?? $"This file type is not allowed. Allowed: {string.Join(", ", _extensions)}");
+                    return new ValidationResult(
+                        ErrorMessage
+                            ?? $"This file type is not allowed. Allowed: {string.Join(", ", _extensions)}"
+                    );
                 }
             }
 
             return ValidationResult.Success;
         }
     }
-
 }

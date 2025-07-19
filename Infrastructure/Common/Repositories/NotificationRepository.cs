@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domain.Models;
 using Application.Interfaces.IRepositories;
+using Domain.Models;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,15 +12,13 @@ namespace Infrastructure.Common.Repositories
 {
     public class NotificationRepository : Repository<Notification, int>, INotificationRepository
     {
-
-        public NotificationRepository(AirbnbContext context) : base(context)
-        {
-        }
+        public NotificationRepository(AirbnbContext context)
+            : base(context) { }
 
         public async Task<IEnumerable<Notification>> GetAllByUserIdAsync(string userId)
         {
-            return await Db.Notifications
-                .Where(n => n.UserId == userId)
+            return await Db
+                .Notifications.Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
@@ -45,6 +43,7 @@ namespace Infrastructure.Common.Repositories
                 await Db.SaveChangesAsync();
             }
         }
+
         public async Task DeleteAsync(int id)
         {
             var notification = await Db.Notifications.FindAsync(id);
@@ -53,8 +52,6 @@ namespace Infrastructure.Common.Repositories
                 Db.Notifications.Remove(notification);
                 await Db.SaveChangesAsync();
             }
-            
         }
-
     }
 }

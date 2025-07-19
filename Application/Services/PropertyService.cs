@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Application.DTOs.PropertyDTOS;
 using Application.DTOs.PropertyImageDTOs;
 using Application.Interfaces;
-
 using Application.Result;
 using AutoMapper;
 using AutoMapper.Features;
@@ -19,7 +18,8 @@ namespace Application.Services
 {
     public class PropertyService
     {
-        public PropertyService(IUnitOfWork _unitOfWork,IMapper mapper) {
+        public PropertyService(IUnitOfWork _unitOfWork, IMapper mapper)
+        {
             UnitOfWork = _unitOfWork;
             Mapper = mapper;
         }
@@ -34,35 +34,26 @@ namespace Application.Services
 
         public Result<List<PropertyDisplayDTO>> GetAll()
         {
-            
-            var props = UnitOfWork
-                            .PropertyRepo
-                            .GetAll();
+            var props = UnitOfWork.PropertyRepo.GetAll();
             if (props == null)
-                return Result<List<PropertyDisplayDTO>>.Fail("No properties found",(int)HttpStatusCode.NotFound);
+                return Result<List<PropertyDisplayDTO>>.Fail(
+                    "No properties found",
+                    (int)HttpStatusCode.NotFound
+                );
 
+            var mapped = Mapper.Map<List<PropertyDisplayDTO>>(props);
 
-            var mapped = Mapper
-                            .Map<List<PropertyDisplayDTO>>(props);
-                    
-            return Result<List<PropertyDisplayDTO>>
-                                                .Success(mapped);
-
-                
+            return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
 
-        public Result<PropertyDisplayDTO> Get(int id) 
+        public Result<PropertyDisplayDTO> Get(int id)
         {
-            var property = UnitOfWork
-                            .PropertyRepo
-                            .GetById(id);
+            var property = UnitOfWork.PropertyRepo.GetById(id);
 
-            if(property == null)
-                    return Fail("Property not found!",(int)HttpStatusCode.NotFound);
+            if (property == null)
+                return Fail("Property not found!", (int)HttpStatusCode.NotFound);
 
-
-            var mapped = Mapper
-                            .Map<PropertyDisplayDTO>(property);
+            var mapped = Mapper.Map<PropertyDisplayDTO>(property);
 
             return Success(mapped);
         }
@@ -75,18 +66,15 @@ namespace Application.Services
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
 
-
         public Result<PropertyDisplayDTO> Add(PropertyDisplayDTO propertyDTO)
         {
             if (propertyDTO.Id == 0)
                 return Fail("Couldn't add new property", (int)HttpStatusCode.BadRequest);
-            
 
             var prop = Mapper.Map<Property>(propertyDTO);
 
             try
             {
-
                 UnitOfWork.PropertyRepo.Add(prop);
                 var success = UnitOfWork.SaveChanges() > 0;
 
@@ -96,16 +84,16 @@ namespace Application.Services
             }
             catch
             {
-                return Fail("Reference confliction", (int) HttpStatusCode.Conflict);
+                return Fail("Reference confliction", (int)HttpStatusCode.Conflict);
             }
         }
+
         public Result<PropertyDisplayDTO> Update(PropertyDisplayDTO propertyDTO)
         {
-            var prop =  UnitOfWork.PropertyRepo
-                                  .GetById(propertyDTO.Id);
+            var prop = UnitOfWork.PropertyRepo.GetById(propertyDTO.Id);
 
             if (prop == null)
-                return Fail("Property doesn't exist", (int) HttpStatusCode.NotFound);
+                return Fail("Property doesn't exist", (int)HttpStatusCode.NotFound);
 
             if (propertyDTO.HostId != prop.HostId)
                 return Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
@@ -114,7 +102,6 @@ namespace Application.Services
 
             try
             {
-
                 UnitOfWork.PropertyRepo.Update(prop);
                 var success = UnitOfWork.SaveChanges() > 0;
 
@@ -124,31 +111,26 @@ namespace Application.Services
             }
             catch
             {
-                return Fail("Reference confliction", (int) HttpStatusCode.Conflict);
+                return Fail("Reference confliction", (int)HttpStatusCode.Conflict);
             }
         }
 
-
-        public Result<PropertyDisplayDTO> Delete(int id) 
+        public Result<PropertyDisplayDTO> Delete(int id)
         {
-            var property = UnitOfWork
-                            .PropertyRepo
-                            .GetById(id);
-            if(property == null)
-                   return Fail("Property not found!", (int)HttpStatusCode.NotFound);
-
+            var property = UnitOfWork.PropertyRepo.GetById(id);
+            if (property == null)
+                return Fail("Property not found!", (int)HttpStatusCode.NotFound);
 
             try
             {
                 property.IsDeleted = true;
                 UnitOfWork.PropertyRepo.Update(property);
-                var success = UnitOfWork.SaveChanges()> 0;
+                var success = UnitOfWork.SaveChanges() > 0;
 
                 if (!success)
                     Fail("Couldn't delete this property", (int)HttpStatusCode.BadRequest);
 
-                var mapped= Mapper
-                                 .Map<PropertyDisplayDTO>(property);
+                var mapped = Mapper.Map<PropertyDisplayDTO>(property);
 
                 return Success(mapped);
             }
@@ -157,7 +139,6 @@ namespace Application.Services
                 return Fail("Couldn't delete this property", (int)HttpStatusCode.Conflict);
             }
         }
-
 
         //public Result<PropertyImageDisplayDTO> AddImage(PropertyImageCreateDTO propImageCreateDTO)
         //{
@@ -180,7 +161,6 @@ namespace Application.Services
         //            return Result<PropertyImageDisplayDTO>.Success(propDisDto, (int)HttpStatusCode.Created, "Image uploaded");
         //        }
 
-
         //        return Result<PropertyImageDisplayDTO>.Fail("Faild to uploaded", (int)HttpStatusCode.BadRequest);
         //    }
         //    catch
@@ -192,10 +172,16 @@ namespace Application.Services
         {
             var property = UnitOfWork.PropertyRepo.GetById(dto.PropertyId);
             if (property == null)
-                return Result<List<PropertyImageDisplayDTO>>.Fail("Property not found", (int)HttpStatusCode.NotFound);
+                return Result<List<PropertyImageDisplayDTO>>.Fail(
+                    "Property not found",
+                    (int)HttpStatusCode.NotFound
+                );
 
             if (property.HostId != dto.HostId)
-                return Result<List<PropertyImageDisplayDTO>>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
+                return Result<List<PropertyImageDisplayDTO>>.Fail(
+                    "Unauthorized",
+                    (int)HttpStatusCode.Unauthorized
+                );
 
             var imageEntities = new List<PropertyImage>();
 
@@ -206,7 +192,7 @@ namespace Application.Services
                     GroupName = imageDto.GroupName,
                     PropertyId = dto.PropertyId,
                     ImageUrl = imageDto.ImageUrl,
-                    IsCover = imageDto.IsCover
+                    IsCover = imageDto.IsCover,
                 };
 
                 imageEntities.Add(image);
@@ -223,18 +209,25 @@ namespace Application.Services
                         .Select(img => Mapper.Map<PropertyImageDisplayDTO>(img))
                         .ToList();
 
-                    return Result<List<PropertyImageDisplayDTO>>.Success(result, (int)HttpStatusCode.Created, "Images uploaded");
+                    return Result<List<PropertyImageDisplayDTO>>.Success(
+                        result,
+                        (int)HttpStatusCode.Created,
+                        "Images uploaded"
+                    );
                 }
 
-                return Result<List<PropertyImageDisplayDTO>>.Fail("Images not uploaded", (int)HttpStatusCode.BadRequest);
+                return Result<List<PropertyImageDisplayDTO>>.Fail(
+                    "Images not uploaded",
+                    (int)HttpStatusCode.BadRequest
+                );
             }
             catch (Exception e)
             {
-                return Result<List<PropertyImageDisplayDTO>>.Fail("Couldn't upload the images "+ e.Message, (int)HttpStatusCode.InternalServerError);
+                return Result<List<PropertyImageDisplayDTO>>.Fail(
+                    "Couldn't upload the images " + e.Message,
+                    (int)HttpStatusCode.InternalServerError
+                );
             }
         }
-
-
-
     }
 }

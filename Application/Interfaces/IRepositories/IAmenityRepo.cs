@@ -2,7 +2,7 @@
 
 namespace Application.Interfaces.IRepositories;
 
-public interface IAmenityRepo : IRepository<Amenity,int>
+public interface IAmenityRepo : IRepository<Amenity, int>
 {
     Task<Amenity> GetAmenityByIdAsync(int amenityId);
     Task<IEnumerable<Amenity>> GetAmenitiesByPropertyIdAsync(int propertyId);

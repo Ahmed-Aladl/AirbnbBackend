@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 using Application.Interfaces.IRepositories;
 using Domain.Models;
 using Infrastructure.Contexts;
+
 namespace Infrastructure.Common.Repositories
 {
     class PropertyImageRepository : Repository<PropertyImage, int>, IPropertyImageRepository
     {
-        public PropertyImageRepository(AirbnbContext _db) : base(_db)
-        {
-
-
-        }
+        public PropertyImageRepository(AirbnbContext _db)
+            : base(_db) { }
     }
 }

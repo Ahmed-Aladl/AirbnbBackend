@@ -18,12 +18,12 @@ namespace Domain.Models
 
         [ForeignKey(nameof(Property))]
         public int PropertyId { get; set; }
-        
+
         [ForeignKey(nameof(Booking))]
         public int BookingId { get; set; }
-        
+
         public User User { get; set; }
         public Property Property { get; set; }
-        public Booking Booking{ get; set; }
+        public Booking Booking { get; set; }
     }
 }

@@ -1,9 +1,9 @@
-﻿using Domain.Models;
-using Infrastructure.Contexts;
-using Application.Interfaces.IRepositories;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Application.Interfaces.IRepositories;
+using Domain.Models;
+using Infrastructure.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Common.Repositories
 {
@@ -11,7 +11,8 @@ namespace Infrastructure.Common.Repositories
     {
         private readonly AirbnbContext _db;
 
-        public BookingRepository(AirbnbContext db) : base(db)
+        public BookingRepository(AirbnbContext db)
+            : base(db)
         {
             _db = db;
         }

@@ -21,6 +21,5 @@ namespace Domain.Enums.Booking
         Failed, //: The booking attempt failed, usually due to a payment processing error.
 
         AwaitingPayment, //: The booking is reserved for a short period, waiting for the user to complete the payment.
-
     }
 }

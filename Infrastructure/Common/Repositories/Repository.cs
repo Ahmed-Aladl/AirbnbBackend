@@ -10,9 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Common.Repositories
 {
-    public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntity : class
+    public class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
+        where TEntity : class
     {
         public AirbnbContext Db { get; set; }
+
         public Repository(AirbnbContext _db)
         {
             Db = _db;
@@ -26,26 +28,27 @@ namespace Infrastructure.Common.Repositories
         public virtual TEntity GetById(TKey id)
         {
             return Db.Set<TEntity>().Find(id);
-
         }
 
         public virtual void Add(TEntity entity)
         {
             Db.Set<TEntity>().Add(entity);
         }
+
         public virtual void AddRange(ICollection<TEntity> entities)
         {
             Db.Set<TEntity>().AddRange(entities);
         }
+
         public virtual void Update(TEntity entity)
         {
             Db.Entry<TEntity>(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         }
+
         public virtual void Delete(TEntity entity)
         {
             Db.Set<TEntity>().Remove(entity);
         }
-
 
         //public async Task<TEntity?> GetByConditionAsync(
         //    Expression<Func<TEntity, bool>> predicate,
@@ -57,7 +60,6 @@ namespace Infrastructure.Common.Repositories
 
         //    return await query.FirstOrDefaultAsync(predicate);
         //}
-        
 
         //public List<TEntity> GetPage<TOrder>(Expression<Func<TEntity, bool>> filterExp, Expression<Func<TEntity, TOrder>> orderExp, string search = "", int page = 1, int pageSize = 10) where TOrder : IComparable<TOrder>
         //{
@@ -72,11 +74,7 @@ namespace Infrastructure.Common.Repositories
         //                    .Skip((page - 1) * pageSize)
         //                    .Take(pageSize);
 
-
-
         //    return result.ToList();
         //}
-
-
     }
 }

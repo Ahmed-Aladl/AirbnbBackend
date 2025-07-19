@@ -9,6 +9,5 @@ namespace Airbnb.Middleware
         {
             return connection.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
-
     }
 }
