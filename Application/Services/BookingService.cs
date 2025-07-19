@@ -68,11 +68,15 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<bool>> CheckClientAndPropertyAsync(int propId)
+        public async Task<Result<bool>> CheckClientAndPropertyAsync(int propId,string userid)
         {
             try
             {
-                var propertyExists = await uow.PropertyRepo.GetByIdAsync(propId) != null;
+                var hostExists = uow.UserRepo.GetById(userid) !=null;
+
+                var propertyExists = await uow.PropertyRepo.GetByIdAsync(propId) != null; 
+
+
 
                 if (!propertyExists)
                     return Result<bool>.Fail("Property does not exist", 404);
@@ -89,7 +93,7 @@ namespace Application.Services
         {
             try
             {
-                var checkResult = await CheckClientAndPropertyAsync(propertyId);
+                var checkResult = await CheckClientAndPropertyAsync(propertyId, userId);
 
                 if (!checkResult.IsSuccess)
                     return Result<bool>.Fail(checkResult.Message, checkResult.StatusCode ?? 500);
