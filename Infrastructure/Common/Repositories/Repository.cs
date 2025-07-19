@@ -6,10 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces.IRepositories;
 using Infrastructure.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Common.Repositories
 {
-    public class Repository<TEntity,TKey> : IRepository<TEntity,TKey> where TEntity : class
+    public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntity : class
     {
         public AirbnbContext Db { get; set; }
         public Repository(AirbnbContext _db)
@@ -45,6 +46,18 @@ namespace Infrastructure.Common.Repositories
             Db.Set<TEntity>().Remove(entity);
         }
 
+
+        //public async Task<TEntity?> GetByConditionAsync(
+        //    Expression<Func<TEntity, bool>> predicate,
+        //    Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
+        //{
+        //    var query = Db.Set<TEntity>().AsQueryable();
+        //    if (include != null)
+        //        query = include(query);
+
+        //    return await query.FirstOrDefaultAsync(predicate);
+        //}
+        
 
         //public List<TEntity> GetPage<TOrder>(Expression<Func<TEntity, bool>> filterExp, Expression<Func<TEntity, TOrder>> orderExp, string search = "", int page = 1, int pageSize = 10) where TOrder : IComparable<TOrder>
         //{

@@ -13,55 +13,37 @@ namespace Airbnb.Controllers
     {
         public BookingService book { get; }
 
-        public BookingController(BookingService _book) 
-        
+        public BookingController(BookingService _book)
         {
-            book = _book; 
+            book = _book;
         }
 
         [HttpGet]
-        public IActionResult GetAll() 
+        public async Task<IActionResult> GetAll() 
         {
-
-           return book.GetAllBookings().ToActionResult(); 
-        
+            var result = await book.GetAllBookingsAsync(); 
+            return result.ToActionResult();
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(int id) 
-        { 
-            return book.GetBookingById(id).ToActionResult(); 
-  
+        public async Task<IActionResult> Get(int id) 
+        {
+            var result = await book.GetBookingByIdAsync(id); 
+            return result.ToActionResult(); 
         }
 
-        [HttpDelete("id")]
-        public IActionResult delete(int id) 
-        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id) 
         {
-            return book.DeleteBooking(id).ToActionResult();
-             
+            var result = await book.DeleteBookingAsync(id); 
+            return result.ToActionResult(); 
         }
 
         [HttpPost]
-        public IActionResult Create(BookingDTO booking)
+        public async Task<IActionResult> Create(BookingDTO booking) 
         {
-
-            return book.CreateBooking(booking).ToActionResult();
-
-        }     
-
-       
-
-        
-
-
-
-
-
-
-
-
-
-
+            var result = await book.CreateBookingAsync(booking); 
+            return result.ToActionResult(); 
+        }
     }
 }
