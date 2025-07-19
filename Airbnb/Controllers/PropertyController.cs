@@ -29,7 +29,6 @@ namespace Airbnb.Controllers
             PropertyService = _propertyService;
         }
 
-        // GET: api/<PropertyController>
         [HttpGet]
         public IActionResult Get()
         {
@@ -39,7 +38,6 @@ namespace Airbnb.Controllers
 
         }
 
-        // GET api/<PropertyController>/5
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -47,7 +45,12 @@ namespace Airbnb.Controllers
             return ToActionResult(result);
         }
 
-        // POST api/<PropertyController>
+        [HttpGet("host/{hostId}")]
+        public async Task<IActionResult> GetByHostIdAsync(string hostId)
+        {
+            return ToActionResult(await PropertyService.GetByHostIdAsync(hostId));
+        }
+
         [HttpPost("{id}")]
         public IActionResult Add(PropertyDisplayDTO propertyDTO, int id)
         {
@@ -55,7 +58,6 @@ namespace Airbnb.Controllers
                                   .ToActionResult();
         }
 
-        // PUT api/<PropertyController>/5
         [HttpPut("{id}")]
         public IActionResult Put(PropertyDisplayDTO propertyDTO, int id)
         {
@@ -64,7 +66,6 @@ namespace Airbnb.Controllers
             return ToActionResult(result); ;
         }
 
-        // DELETE api/<PropertyController>/5
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {

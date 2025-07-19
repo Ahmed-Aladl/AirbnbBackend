@@ -12,6 +12,11 @@ namespace Infrastructure.Common.Repositories
     {
         public PropertyRepository(AirbnbContext context) : base(context) { }
 
+        public async Task<List<Property>> GetByHostIdAsync(string hostId)
+        {
+            return await Db.Properties.Where(p=> p.HostId == hostId).ToListAsync();
+        }
+
         public async Task<Property> GetByIdAsync(int id)
         {
             return await Db.Set<Property>()

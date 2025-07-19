@@ -34,7 +34,7 @@ namespace Application.Services
 
         public Result<List<PropertyDisplayDTO>> GetAll()
         {
-
+            
             var props = UnitOfWork
                             .PropertyRepo
                             .GetAll();
@@ -66,6 +66,15 @@ namespace Application.Services
 
             return Success(mapped);
         }
+
+        public async Task<Result<List<PropertyDisplayDTO>>> GetByHostIdAsync(string hostId)
+        {
+            var host = UnitOfWork.UserRepo.GetById(hostId);
+            var properties = await UnitOfWork.PropertyRepo.GetByHostIdAsync(hostId);
+            var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
+            return Result<List<PropertyDisplayDTO>>.Success(mapped);
+        }
+
 
         public Result<PropertyDisplayDTO> Add(PropertyDisplayDTO propertyDTO)
         {
@@ -219,9 +228,9 @@ namespace Application.Services
 
                 return Result<List<PropertyImageDisplayDTO>>.Fail("Images not uploaded", (int)HttpStatusCode.BadRequest);
             }
-            catch
+            catch (Exception e)
             {
-                return Result<List<PropertyImageDisplayDTO>>.Fail("Couldn't upload the images", (int)HttpStatusCode.InternalServerError);
+                return Result<List<PropertyImageDisplayDTO>>.Fail("Couldn't upload the images "+ e.Message, (int)HttpStatusCode.InternalServerError);
             }
         }
 

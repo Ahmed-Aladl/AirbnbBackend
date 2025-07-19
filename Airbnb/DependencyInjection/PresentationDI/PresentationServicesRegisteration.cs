@@ -1,8 +1,10 @@
 ﻿
 using Airbnb.Services;
 using Application.Interfaces;
+using Application.Interfaces.IRepositories;
 using Application.Mappings;
 using Application.Services;
+using Infrastructure.Common.Repositories;
 using Infrastructure.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -54,7 +56,6 @@ namespace Airbnb.DependencyInjection.PresentationDI
             // Add AutoMapper
             services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
             services.AddAutoMapper(typeof(AmenityMappingProfile).Assembly);
-
 
             services.AddScoped<PropertyService>();
             services.AddScoped<BookingService>();
