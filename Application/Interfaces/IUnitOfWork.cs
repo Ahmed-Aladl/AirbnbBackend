@@ -18,6 +18,8 @@ namespace Application.Interfaces
         IAmenityRepo AmenitiesRepo { get; }
         IWishlistRepository Wishlist { get; }
 
+        INotificationRepository NotificationRepo { get; }
+
         Task<int> SaveChangesAsync();
         int SaveChanges();
     }

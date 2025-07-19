@@ -1,4 +1,4 @@
-﻿using Airbnb.DTOs.PropertyImageDTOs;
+﻿using Application.DTOs.PropertyImageDTOs;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 

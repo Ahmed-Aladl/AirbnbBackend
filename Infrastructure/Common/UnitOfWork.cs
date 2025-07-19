@@ -19,6 +19,7 @@ namespace Infrastructure.Common
 
         private IPropertyRepository _propertyRepo;
         private IPropertyImageRepository _propertyImageRepo;
+        private INotificationRepository _notificationRepo;
         private IUserRepository _userRepo;
         //private IRepository _repo;
         //public IRepository Repo =>
@@ -27,7 +28,7 @@ namespace Infrastructure.Common
         private IBookingRepo _bookingRepo;
 
 
-        public UnitOfWork(AirbnbContext _context) 
+        public UnitOfWork(AirbnbContext _context)
         {
             Context = _context;
         }
@@ -42,9 +43,11 @@ namespace Infrastructure.Common
                 return _bookingRepo;
             }
         }
-        public IPropertyRepository PropertyRepo => 
+        public IPropertyRepository PropertyRepo =>
                 _propertyRepo ?? new PropertyRepository(Context);
-        public IPropertyImageRepository PropertyImageRepo => 
+        public INotificationRepository NotificationRepo =>
+                _notificationRepo ?? new NotificationRepository(Context);
+        public IPropertyImageRepository PropertyImageRepo =>
                 _propertyImageRepo ?? new PropertyImageRepository(Context);
         public IUserRepository UserRepo => 
                 _userRepo ?? new UserRepository(Context);
