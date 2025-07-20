@@ -27,6 +27,14 @@ namespace Infrastructure.Common.Repositories
             return await _db.Bookings.FindAsync(id);
         }
 
+        public async Task<List<Booking>> GetBookingByUserIdAsync(string userId)
+        {
+            return await _db.Bookings
+                .Where(b => b.UserId == userId && !b.IsDeleted)
+                .ToListAsync();
+        }
+
+
         public async Task AddAsync(Booking entity)
         {
             await _db.Bookings.AddAsync(entity);
@@ -41,5 +49,7 @@ namespace Infrastructure.Common.Repositories
         {
             _db.Bookings.Update(entity);
         }
+
+      
     }
 }

@@ -49,6 +49,27 @@ namespace Application.Services
             }
         }
 
+        public async Task<Result<List<Booking>>> GetBookingByUserIdAsync(string userId)
+        {
+            try
+            {
+                var bookings = await uow.Bookings.GetBookingByUserIdAsync(userId);
+
+                if (bookings == null || !bookings.Any())
+                {
+                    return Result<List<Booking>>.Fail("No bookings found for this user.", 404);
+                }
+
+                return Result<List<Booking>>.Success(bookings);
+            }
+            catch (Exception ex)
+            {
+                return Result<List<Booking>>.Fail("Failed to retrieve bookings.", 500);
+            }
+        }
+
+
+
         public async Task<Result<string>> DeleteBookingAsync(int id)
         {
             try
@@ -68,16 +89,26 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<bool>> CheckClientAndPropertyAsync(int propId, string userid)
+        public async Task<Result<bool>> CheckClientAndPropertyAsync(int propId, string userId)
         {
             try
             {
-                var hostExists = uow.UserRepo.GetById(userid) != null;
+                var user = uow.UserRepo.GetById(userId);
+                if (user == null)
+                {
+                    return Result<bool>.Fail("User does not exist.", 404);
+                }
 
-                var propertyExists = await uow.PropertyRepo.GetByIdAsync(propId) != null;
+                var property = await uow.PropertyRepo.GetByIdAsync(propId);
+                if (property == null)
+                {
+                    return Result<bool>.Fail("Property does not exist.", 404);
+                }
 
-                if (!propertyExists)
-                    return Result<bool>.Fail("Property does not exist", 404);
+                if (property.HostId == userId) 
+                {
+                    return Result<bool>.Fail("You cannot reserve your own property.", 403);
+                }
 
                 return Result<bool>.Success(true);
             }

@@ -14,5 +14,7 @@ namespace Application.Interfaces.IRepositories
         Task AddAsync(Booking entity);
         void Delete(Booking entity);
         void Update(Booking entity);
+
+        Task<List<Booking>> GetBookingByUserIdAsync(string userId);
     }
 }
