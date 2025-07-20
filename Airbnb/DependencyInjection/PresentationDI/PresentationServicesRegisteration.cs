@@ -61,7 +61,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<CalendarService>();
             services.AddScoped<AmenityService>();
 
-            services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
+            services.AddAutoMapper(c=> c.AddProfile<PropertyProfile>() ,typeof(CalendarMappingProfile).Assembly);
            
             services.AddScoped<IFileService, FileService>();
             services.AddSwaggerGen(c => c.OperationFilter<FileUploadOperationFilter>());
