@@ -48,7 +48,7 @@ public class UserController : ControllerBase
             UserName = dto.Email,
             PasswordHash = dto.Password,
             CreateAt = DateTime.UtcNow,
-            Roles = new List<IdentityRole> { new IdentityRole { Name = "user" } },
+            Roles = new List<IdentityRole> { new IdentityRole { Name = "guest" } },
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -271,13 +271,13 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("profile/role")]
-    public async Task<IActionResult> UpdateRole(string id, [FromBody] string role)
+    public async Task<IActionResult> UpdateRole(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
             return NotFound("User not found");
 
-        user.Roles = new List<IdentityRole> { new IdentityRole { Name = role } };
+        user.Roles = new List<IdentityRole> { new IdentityRole { Name = "host" } };
         await _userManager.UpdateAsync(user);
         await _context.SaveChangesAsync();
         return Ok();
