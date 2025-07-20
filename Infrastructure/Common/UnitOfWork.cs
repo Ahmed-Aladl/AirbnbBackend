@@ -18,20 +18,13 @@ namespace Infrastructure.Common
         private IPropertyImageRepository _propertyImageRepo;
         private INotificationRepository _notificationRepo;
         private IUserRepository _userRepo;
-
-        //private IRepository _repo;
-        //public IRepository Repo =>
-        //    _repo ??= new Repository(_context);
-
         private IBookingRepo _bookingRepo;
-
+        private IUserOtpRepository _userOtps;
         public UnitOfWork(AirbnbContext _context)
         {
             Context = _context;
         }
-
         public AirbnbContext Context { get; }
-
         public IBookingRepo Bookings
         {
             get
@@ -48,26 +41,21 @@ namespace Infrastructure.Common
         public IPropertyImageRepository PropertyImageRepo =>
             _propertyImageRepo ?? new PropertyImageRepository(Context);
         public IUserRepository UserRepo => _userRepo ?? new UserRepository(Context);
-
-        private IWishlistRepository _wishlistRepo;
+        public IUserOtpRepository UserOtps => _userOtps ?? new UserOtpRepository(Context);
+        public IWishlistRepository _wishlistRepo;
         public IWishlistRepository Wishlist => _wishlistRepo ??= new WishlistRepository(Context);
-
         public int SaveChanges()
         {
             return Context.SaveChanges();
         }
-
         public async Task<int> SaveChangesAsync()
         {
             return await Context.SaveChangesAsync();
         }
-
         // Calendar
         private ICalendarAvailabilityRepo _calendarAvailabilityRepo;
-
         public ICalendarAvailabilityRepo CalendarAvailabilities =>
             _calendarAvailabilityRepo ??= new CalendarAvailabilityRepository(Context);
-
         // Amenities
         private IAmenityRepo _amenityRepo;
         public IAmenityRepo AmenitiesRepo => _amenityRepo ??= new AmenityRepo(Context);

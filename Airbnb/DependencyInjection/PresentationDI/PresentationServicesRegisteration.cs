@@ -54,6 +54,10 @@ namespace Airbnb.DependencyInjection.PresentationDI
         {
             AddCors(services, configuration);
 
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IEmailService, GmailEmailService>();
+
+
             services.AddScoped<WishlistService>();
 
             services.AddScoped<IFileService, FileService>();

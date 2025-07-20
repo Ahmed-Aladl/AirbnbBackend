@@ -25,6 +25,7 @@ namespace Infrastructure.Contexts
         public DbSet<Review> Reviews { get; set; }
         public DbSet<CalendarAvailability> calendarAvailabilities { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }
+        public DbSet<UserOtp> UsersOtp { get; set; }
 
         public DbSet<WishlistProperty> WishlistProperties { get; set; }
 
