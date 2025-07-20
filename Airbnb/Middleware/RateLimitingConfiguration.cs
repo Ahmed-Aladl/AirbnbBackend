@@ -4,7 +4,10 @@ namespace Airbnb.Middleware
 {
     public static class RateLimitingConfiguration
     {
-        public static IServiceCollection ConfigureRateLimiting(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection ConfigureRateLimiting(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.AddMemoryCache();
             services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));

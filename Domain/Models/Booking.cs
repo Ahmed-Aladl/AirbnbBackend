@@ -20,27 +20,19 @@ namespace Domain.Models
 
         public int NumberOfGuests { get; set; }
 
-        [Precision(18,6)]
+        [Precision(18, 6)]
         public decimal TotalPrice { get; set; }
 
         public BookingStatus BookingStatus { get; set; }
-        public bool IsDeleted { get; set; } 
-
+        public bool IsDeleted { get; set; }
 
         [ForeignKey(nameof(Property))]
         public int PropertyId { get; set; }
 
-
-
-
         [ForeignKey(nameof(User))]
-        public string UserId { get; set; } 
-        
-        public User User{ get; set; }
+        public string UserId { get; set; }
+
+        public User User { get; set; }
         public Property Property { get; set; }
-
-
-
-
     }
 }

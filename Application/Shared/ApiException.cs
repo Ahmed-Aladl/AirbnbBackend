@@ -6,8 +6,13 @@ namespace Application.Shared
     {
         public HttpStatusCode StatusCode { get; }
         public bool IsClientError { get; }
-        public ApiException(string message, HttpStatusCode statusCode = HttpStatusCode.InternalServerError, bool isClientError = false)
-    : base(message)
+
+        public ApiException(
+            string message,
+            HttpStatusCode statusCode = HttpStatusCode.InternalServerError,
+            bool isClientError = false
+        )
+            : base(message)
         {
             StatusCode = statusCode;
             IsClientError = isClientError;
@@ -16,8 +21,8 @@ namespace Application.Shared
 
     public class NotFoundException : ApiException
     {
-        public NotFoundException(string message) : base(message, HttpStatusCode.NotFound, true)
-        { }
+        public NotFoundException(string message)
+            : base(message, HttpStatusCode.NotFound, true) { }
     }
 
     public class ConflictException : ApiException
@@ -25,7 +30,6 @@ namespace Application.Shared
         public ConflictException(string message)
             : base(message, HttpStatusCode.Conflict, true) { }
     }
-
 
     public class ValidationException : ApiException
     {
@@ -37,7 +41,8 @@ namespace Application.Shared
             Errors = errors;
         }
 
-        public ValidationException(string message) : this([message]) { }
+        public ValidationException(string message)
+            : this([message]) { }
     }
 
     public class UnauthorizedException : ApiException

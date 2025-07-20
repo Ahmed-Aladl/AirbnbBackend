@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Application.DTOs.PropertyDTOS;
+using Application.DTOs.NotificationDTOs;
 using AutoMapper;
 using Domain.Models;
 
 namespace Application.Mappings
 {
-    public class PropertyProfile : Profile
+    public class NotificationProfile : Profile
     {
-        public PropertyProfile()
+        public NotificationProfile()
         {
-            CreateMap<Property, PropertyDisplayDTO>().ReverseMap();
+            CreateMap<Notification, NotificationDto>().ReverseMap();
         }
     }
 }

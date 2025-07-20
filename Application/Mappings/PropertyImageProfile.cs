@@ -9,14 +9,12 @@ using Domain.Models;
 
 namespace Application.Mappings
 {
-    public class PropertyImageProfile:Profile
+    public class PropertyImageProfile : Profile
     {
-
-        public PropertyImageProfile() 
+        public PropertyImageProfile()
         {
             CreateMap<PropertyImage, PropertyImageCreateDTO>().ReverseMap();
             CreateMap<PropertyImage, PropertyImageDisplayDTO>().ReverseMap();
-        
         }
     }
 }

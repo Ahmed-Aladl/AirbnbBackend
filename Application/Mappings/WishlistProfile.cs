@@ -14,11 +14,13 @@ namespace Application.Mappings
         public WishlistProfile()
         {
             CreateMap<Wishlist, WishlistDTO>()
-           .ForMember(dest => dest.PropertyIds, opt => opt.MapFrom(src => src.WishlistProperties.Select(wp => wp.PropertyId)));
+                .ForMember(
+                    dest => dest.PropertyIds,
+                    opt => opt.MapFrom(src => src.WishlistProperties.Select(wp => wp.PropertyId))
+                );
 
             CreateMap<CreateWishlistDTO, Wishlist>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
-
         }
     }
 }

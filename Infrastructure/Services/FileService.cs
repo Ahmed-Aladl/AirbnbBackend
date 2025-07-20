@@ -1,7 +1,6 @@
 ﻿using Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 
-
 namespace Infrastructure.Services
 {
     public class FileService : IFileService
@@ -23,12 +22,15 @@ namespace Infrastructure.Services
 
             return $"/uploads/{uniqueName}";
         }
+
         public async Task<bool> DeleteFileAsync(string relativeFilePath, string webRootPath)
         {
             try
             {
                 // Ensure path is clean and rooted in wwwroot
-                var trimmedPath = relativeFilePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString());
+                var trimmedPath = relativeFilePath
+                    .TrimStart('/')
+                    .Replace("/", Path.DirectorySeparatorChar.ToString());
                 var fullPath = Path.Combine(webRootPath, trimmedPath);
 
                 if (File.Exists(fullPath))
@@ -45,8 +47,5 @@ namespace Infrastructure.Services
                 return false;
             }
         }
-
     }
-
-
 }

@@ -19,10 +19,11 @@ namespace Application.Result
             Message = message;
             StatusCode = statusCode;
         }
-        public static Result Success(int statusCode=200, string message = "Success")
-            => new(true, message, statusCode);
 
-        public static Result Fail(string message, int statusCode)
-            => new(false, message,statusCode);
+        public static Result Success(int statusCode = 200, string message = "Success") =>
+            new(true, message, statusCode);
+
+        public static Result Fail(string message, int statusCode) =>
+            new(false, message, statusCode);
     }
 }

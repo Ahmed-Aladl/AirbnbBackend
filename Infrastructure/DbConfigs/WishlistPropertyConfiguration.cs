@@ -15,13 +15,15 @@ namespace Infrastructure.DbConfigs
         {
             builder.HasKey(wp => new { wp.WishlistId, wp.PropertyId });
 
-            builder.HasOne(wp => wp.Wishlist)
-                   .WithMany(w => w.WishlistProperties)
-                   .HasForeignKey(wp => wp.WishlistId);
+            builder
+                .HasOne(wp => wp.Wishlist)
+                .WithMany(w => w.WishlistProperties)
+                .HasForeignKey(wp => wp.WishlistId);
 
-            builder.HasOne(wp => wp.Property)
-                   .WithMany(p => p.WishlistProperties)
-                   .HasForeignKey(wp => wp.PropertyId);
+            builder
+                .HasOne(wp => wp.Property)
+                .WithMany(p => p.WishlistProperties)
+                .HasForeignKey(wp => wp.PropertyId);
         }
     }
 }

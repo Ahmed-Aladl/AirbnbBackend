@@ -11,9 +11,7 @@ namespace Infrastructure.Common.Repositories
 {
     public class UserRepository : Repository<User, string>, IUserRepository
     {
-        public UserRepository(AirbnbContext _db) : base(_db)
-        {
-
-        }
+        public UserRepository(AirbnbContext _db)
+            : base(_db) { }
     }
 }

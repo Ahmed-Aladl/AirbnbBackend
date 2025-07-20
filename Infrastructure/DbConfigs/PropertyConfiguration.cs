@@ -13,9 +13,10 @@ namespace Infrastructure.DbConfigs
     {
         public void Configure(EntityTypeBuilder<Property> builder)
         {
-            builder.HasMany<Review>()
+            builder
+                .HasMany<Review>()
                 .WithOne(r => r.Property)
-                .HasForeignKey(r=> r.PropertyId)
+                .HasForeignKey(r => r.PropertyId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

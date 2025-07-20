@@ -14,12 +14,12 @@ namespace Application.Result
             : base(isSuccess, message, statusCode)
         {
             Data = data;
-
         }
-        public static Result<T> Success(T data, int statusCode=200, string message = "Success")
-            => new(data, true, message, statusCode);
 
-        public static new Result<T> Fail(string message, int statusCode)
-            => new(default, false, message, statusCode);
+        public static Result<T> Success(T data, int statusCode = 200, string message = "Success") =>
+            new(data, true, message, statusCode);
+
+        public static new Result<T> Fail(string message, int statusCode) =>
+            new(default, false, message, statusCode);
     }
 }

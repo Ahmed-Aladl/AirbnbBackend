@@ -10,9 +10,9 @@ namespace Airbnb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WishlistController: BaseController
+    public class WishlistController : BaseController
     {
-        public WishlistService WishlistService { get;}
+        public WishlistService WishlistService { get; }
 
         public WishlistController(WishlistService wishlistService)
         {

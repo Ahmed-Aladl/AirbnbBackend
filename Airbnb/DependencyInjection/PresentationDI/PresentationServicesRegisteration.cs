@@ -1,10 +1,13 @@
-﻿using Airbnb.Services;
+using Airbnb.Services;
+
+using Airbnb.Middleware;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
 using Application.Mappings;
 using Application.Services;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.SignalR;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Airbnb.DependencyInjection.PresentationDI
@@ -47,6 +50,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
         }
 
         public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
+
         {
             AddCors(services, configuration);
 
@@ -57,19 +61,29 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<CalendarService>();
             services.AddScoped<AmenityService>();
 
-            services.AddSwaggerGen(c =>
-            {
-                c.OperationFilter<FileUploadOperationFilter>();
-            });
-
             services.AddAutoMapper(typeof(CalendarMappingProfile).Assembly);
-            services.AddAutoMapper(typeof(AmenityMappingProfile).Assembly);
+           
+            services.AddScoped<IFileService, FileService>();
+            services.AddSwaggerGen(c => c.OperationFilter<FileUploadOperationFilter>());
+
+            services.AddSignalR();
+            services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+
+            // Add AutoMapper
+            services.AddAutoMapper(
+                cfg => cfg.AddProfile<CalendarMappingProfile>(),
+                typeof(CalendarMappingProfile).Assembly
+            );
+
 
             return services;
         }
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app)
         {
+            app.MapHub<NotificationHub>("/notificationHub");
+
+
             app.MapOpenApi();
             app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
 

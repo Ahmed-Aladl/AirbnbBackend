@@ -1,20 +1,21 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Domain.Models;
-using Application.Interfaces.IRepositories;
-using Infrastructure.Contexts;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Application.Interfaces.IRepositories;
+using Domain.Models;
+using Infrastructure.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Common.Repositories
 {
     public class PropertyRepository : Repository<Property, int>, IPropertyRepository
     {
-        public PropertyRepository(AirbnbContext context) : base(context) { }
+        public PropertyRepository(AirbnbContext context)
+            : base(context) { }
 
         public async Task<List<Property>> GetByHostIdAsync(string hostId)
         {
-            return await Db.Properties.Where(p=> p.HostId == hostId).ToListAsync();
+            return await Db.Properties.Where(p => p.HostId == hostId).ToListAsync();
         }
 
         public async Task<Property> GetByIdAsync(int id)

@@ -24,15 +24,11 @@ namespace Domain.Models
         //public ICollection<Property>? WishlistedProps { get; set; }
         public ICollection<Wishlist> Wishlists { get; set; }
 
-
         public ICollection<Property>? OwnedProps { get; set; }
         public ICollection<Property>? ReservedProps { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Review>? Reviews { get; set; }
 
-
         public ICollection<Payment>? Payments { get; set; }
-
-
     }
 }

@@ -68,15 +68,13 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<bool>> CheckClientAndPropertyAsync(int propId,string userid)
+        public async Task<Result<bool>> CheckClientAndPropertyAsync(int propId, string userid)
         {
             try
             {
-                var hostExists = uow.UserRepo.GetById(userid) !=null;
+                var hostExists = uow.UserRepo.GetById(userid) != null;
 
-                var propertyExists = await uow.PropertyRepo.GetByIdAsync(propId) != null; 
-
-
+                var propertyExists = await uow.PropertyRepo.GetByIdAsync(propId) != null;
 
                 if (!propertyExists)
                     return Result<bool>.Fail("Property does not exist", 404);
@@ -89,7 +87,12 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<bool>> CheckAvailabilityAsync(string userId, int propertyId, DateTime checkInDate, DateTime checkOutDate)
+        public async Task<Result<bool>> CheckAvailabilityAsync(
+            string userId,
+            int propertyId,
+            DateTime checkInDate,
+            DateTime checkOutDate
+        )
         {
             try
             {
@@ -98,17 +101,19 @@ namespace Application.Services
                 if (!checkResult.IsSuccess)
                     return Result<bool>.Fail(checkResult.Message, checkResult.StatusCode ?? 500);
 
-                var bookings = await uow.Bookings
-                    .GetAllAsync();
+                var bookings = await uow.Bookings.GetAllAsync();
 
                 var propertyBookings = bookings
                     .Where(b => b.PropertyId == propertyId && !b.IsDeleted)
                     .ToList();
 
                 bool isAvailable = propertyBookings.All(b =>
-                    checkOutDate <= b.CheckInDate || checkInDate >= b.CheckOutDate);
+                    checkOutDate <= b.CheckInDate || checkInDate >= b.CheckOutDate
+                );
 
-                string message = isAvailable ? "Property is available" : "Property is not available";
+                string message = isAvailable
+                    ? "Property is available"
+                    : "Property is not available";
 
                 return Result<bool>.Success(isAvailable, 200, message);
             }
@@ -122,13 +127,24 @@ namespace Application.Services
         {
             try
             {
-                var availabilityResult = await CheckAvailabilityAsync(dto.UserId, dto.PropertyId, dto.CheckInDate, dto.CheckOutDate);
+                var availabilityResult = await CheckAvailabilityAsync(
+                    dto.UserId,
+                    dto.PropertyId,
+                    dto.CheckInDate,
+                    dto.CheckOutDate
+                );
 
                 if (!availabilityResult.IsSuccess)
-                    return Result<bool>.Fail(availabilityResult.Message, availabilityResult.StatusCode ?? 500);
+                    return Result<bool>.Fail(
+                        availabilityResult.Message,
+                        availabilityResult.StatusCode ?? 500
+                    );
 
                 if (!availabilityResult.Data)
-                    return Result<bool>.Fail("The property is not available for the selected dates.", 400);
+                    return Result<bool>.Fail(
+                        "The property is not available for the selected dates.",
+                        400
+                    );
 
                 var property = await uow.PropertyRepo.GetByIdAsync(dto.PropertyId);
                 if (property == null)
@@ -149,7 +165,7 @@ namespace Application.Services
                     NumberOfGuests = dto.NumberOfGuests,
                     TotalPrice = totalPrice,
                     BookingStatus = BookingStatus.Pending,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 await uow.Bookings.AddAsync(booking);
@@ -159,7 +175,10 @@ namespace Application.Services
             }
             catch (Exception ex)
             {
-                return Result<bool>.Fail("An unexpected error occurred while creating the booking.", 500);
+                return Result<bool>.Fail(
+                    "An unexpected error occurred while creating the booking.",
+                    500
+                );
             }
         }
     }

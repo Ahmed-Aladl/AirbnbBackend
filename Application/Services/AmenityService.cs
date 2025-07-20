@@ -43,7 +43,6 @@ public class AmenityService
     //    }
     //}
 
-
     public async Task<Result<AmenityDTO>> CreateAsync(CreateAmenityDTO dto)
     {
         if (dto.IconUrl == null || dto.IconUrl.Length == 0)
@@ -59,13 +58,9 @@ public class AmenityService
             await dto.IconUrl.CopyToAsync(stream);
         }
 
-        string iconUrl = $"/uploads/amenities/{fileName}"; 
+        string iconUrl = $"/uploads/amenities/{fileName}";
 
-        var amenity = new Amenity
-        {
-            AmenityName = dto.AmenityName,
-            IconURL = iconUrl
-        };
+        var amenity = new Amenity { AmenityName = dto.AmenityName, IconURL = iconUrl };
 
         _unitOfWork.AmenitiesRepo.Add(amenity);
         var success = _unitOfWork.SaveChanges() > 0;
@@ -77,7 +72,6 @@ public class AmenityService
         return Result<AmenityDTO>.Success(resultDto);
     }
 
-
     public async Task<Result<AmenityDTO>> GetAmenityById(int amenityId)
     {
         try
@@ -86,7 +80,6 @@ public class AmenityService
 
             var result = _mapper.Map<AmenityDTO>(amenity);
             return Result<AmenityDTO>.Success(result);
-
         }
         catch (Exception ex)
         {
@@ -94,17 +87,24 @@ public class AmenityService
         }
     }
 
-    public async Task<Result<IEnumerable<AmenityDTO>>> GetAllAmenitiesByPropertyIdAsync(int proprtyId)
+    public async Task<Result<IEnumerable<AmenityDTO>>> GetAllAmenitiesByPropertyIdAsync(
+        int proprtyId
+    )
     {
         try
         {
-            var amenities = await _unitOfWork.AmenitiesRepo.GetAmenitiesByPropertyIdAsync(proprtyId);
+            var amenities = await _unitOfWork.AmenitiesRepo.GetAmenitiesByPropertyIdAsync(
+                proprtyId
+            );
             var result = _mapper.Map<IEnumerable<AmenityDTO>>(amenities);
             return Result<IEnumerable<AmenityDTO>>.Success(result);
         }
         catch (Exception ex)
         {
-            return Result<IEnumerable<AmenityDTO>>.Fail($"Error retrieving amenities: {ex.Message}", 500);
+            return Result<IEnumerable<AmenityDTO>>.Fail(
+                $"Error retrieving amenities: {ex.Message}",
+                500
+            );
         }
     }
 
@@ -118,7 +118,10 @@ public class AmenityService
         }
         catch (Exception ex)
         {
-            return Result<IEnumerable<AmenityDTO>>.Fail($"Error retrieving amenities: {ex.Message}", 500);
+            return Result<IEnumerable<AmenityDTO>>.Fail(
+                $"Error retrieving amenities: {ex.Message}",
+                500
+            );
         }
     }
 
@@ -153,7 +156,7 @@ public class AmenityService
 
         var amenity = await repo.GetAmenityByIdAsync(amenityId);
         if (amenity == null)
-            return Result<string>.Fail( "Amenity not found", 404);
+            return Result<string>.Fail("Amenity not found", 404);
 
         repo.Delete(amenity);
         var success = await _unitOfWork.SaveChangesAsync() > 0;
@@ -163,6 +166,4 @@ public class AmenityService
 
         return Result<string>.Success("Amenity deleted successfully");
     }
-
-
 }
