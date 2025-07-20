@@ -46,6 +46,7 @@ public class UserController : ControllerBase
         {
             Email = dto.Email,
             UserName = dto.Email,
+            PasswordHash = dto.Password,
             CreateAt = DateTime.UtcNow,
             Roles = new List<IdentityRole> { new IdentityRole { Name = "user" } },
         };
