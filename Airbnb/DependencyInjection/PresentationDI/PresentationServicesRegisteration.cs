@@ -64,9 +64,6 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<IStripeService, StripeService>();
             services.AddScoped<PaymentService>();
 
-
-
-
             services.AddAutoMapper(c=> c.AddProfile<PropertyProfile>() ,typeof(CalendarMappingProfile).Assembly);
            
             services.AddScoped<IFileService, FileService>();
