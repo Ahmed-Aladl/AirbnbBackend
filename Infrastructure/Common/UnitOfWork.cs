@@ -44,6 +44,11 @@ namespace Infrastructure.Common
         public IUserOtpRepository UserOtps => _userOtps ?? new UserOtpRepository(Context);
         public IWishlistRepository _wishlistRepo;
         public IWishlistRepository Wishlist => _wishlistRepo ??= new WishlistRepository(Context);
+
+
+        private IPaymentRepository _paymentRepository;
+        public IPaymentRepository paymentRepository=>_paymentRepository??=new PaymentRepository(Context);
+
         public int SaveChanges()
         {
             return Context.SaveChanges();

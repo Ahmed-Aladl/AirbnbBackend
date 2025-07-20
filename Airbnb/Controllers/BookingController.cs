@@ -23,6 +23,16 @@ namespace Airbnb.Controllers
             return result.ToActionResult();
         }
 
+
+        [HttpGet ("UserBooking/{id}")]
+        public async Task<IActionResult> GetAllByUserID(string id)
+        {
+            var result = await book.GetBookingByUserIdAsync(id);
+            return result.ToActionResult();
+        }
+
+
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -43,5 +53,7 @@ namespace Airbnb.Controllers
             var result = await book.CreateBookingAsync(booking);
             return result.ToActionResult();
         }
+
+
     }
 }

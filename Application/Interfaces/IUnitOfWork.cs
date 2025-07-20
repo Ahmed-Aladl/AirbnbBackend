@@ -17,7 +17,8 @@ namespace Application.Interfaces
         ICalendarAvailabilityRepo CalendarAvailabilities { get; }
         IAmenityRepo AmenitiesRepo { get; }
         IWishlistRepository Wishlist { get; }
-
+        IPaymentRepository paymentRepository { get; }
+        
         INotificationRepository NotificationRepo { get; }
 
         Task<int> SaveChangesAsync();
