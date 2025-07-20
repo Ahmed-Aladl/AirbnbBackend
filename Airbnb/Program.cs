@@ -15,6 +15,7 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Stripe;
 
 namespace Airbnb
 {
@@ -42,12 +43,18 @@ namespace Airbnb
             //});
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+            //builder.Services.AddOpenApi();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
 
             builder.Services.AddDomain();
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddApplication();
             builder.Services.AddPresentation(builder.Configuration);
+
+
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
             //builder.Services.AddIdentity<User, IdentityRole>()
             //.AddEntityFrameworkStores<AirbnbContext>()
             //     .AddDefaultTokenProviders();
@@ -61,9 +68,14 @@ namespace Airbnb
                 app.AddPresentationDevelopmentDI();
             }
 
+
             app.UseHttpsRedirection();
             app.UseAuthorization();
+
+
             app.MapControllers();
+
+
             app.Run();
         }
     }
