@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-//using Nestin.Core.Shared;
+﻿//using Nestin.Core.Shared;
 using System.ComponentModel.DataAnnotations;
 using Application.Shared;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.DTOs.UserDto
 {
@@ -24,12 +24,10 @@ namespace Application.DTOs.UserDto
 
         [MaxLength(500, ErrorMessage = "Bio cannot exceed 500 characters.")]
         public string? Bio { get; set; }
-
         public DateOnly? BirthDate { get; set; }
+        public string? Country { get; set; }
 
-
-        [AllowedImageExtensionsAttribute(new[] { ".jpg", ".jpeg", ".png", ".gif" }, ErrorMessage = "Only image files (.jpg, .jpeg, .png, .gif) are allowed.")]
-        public IFormFile? Photo { get; set; }
-
+        //[AllowedImageExtensionsAttribute(new[] { ".jpg", ".jpeg", ".png", ".gif" }, ErrorMessage = "Only image files (.jpg, .jpeg, .png, .gif) are allowed.")]
+        //public IFormFile? ProfilePictureURL { get; set; }
     }
 }
