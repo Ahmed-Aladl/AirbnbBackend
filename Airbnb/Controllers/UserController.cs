@@ -152,7 +152,6 @@ public class UserController : ControllerBase
         return Ok("OTP sent");
     }
 
-    [Authorize]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
     {
@@ -214,8 +213,6 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("me")]
-    [Authorize]
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile(string id)
     {
@@ -225,8 +222,7 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPost("profile")]
-    [Authorize]
+    [HttpPut("profile")]
     public async Task<IActionResult> UpdatedProfile(string id, [FromBody] UpdateUserProfileDto dto)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -245,15 +241,15 @@ public class UserController : ControllerBase
         return Ok();
     }
 
+    [Consumes("multipart/form-data")]
     [HttpPost("profile/image")]
-    [Authorize]
-    public async Task<IActionResult> UpdateProfileImage(string id, [FromForm] IFormFile file)
+    public async Task<IActionResult> UpdateProfileImage([FromForm] ProfileImageUploadDto dto)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _userManager.FindByIdAsync(dto.UserId);
         if (user == null)
             return NotFound("User not found");
 
-        var fileName = Guid.NewGuid().ToString();
+        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.File.FileName);
         var path = Path.Combine(
             Directory.GetCurrentDirectory(),
             "wwwroot",
@@ -261,9 +257,10 @@ public class UserController : ControllerBase
             "profile",
             fileName
         );
+
         using (var stream = new FileStream(path, FileMode.Create))
         {
-            await file.CopyToAsync(stream);
+            await dto.File.CopyToAsync(stream);
         }
 
         user.ProfilePictureURL = fileName;
@@ -273,7 +270,6 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("profile/role")]
-    [Authorize]
     public async Task<IActionResult> UpdateRole(string id, [FromBody] string role)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -286,8 +282,7 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("delete-account")]
-    [Authorize]
+    [HttpDelete("delete-account")]
     public async Task<IActionResult> DeleteAccount(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
