@@ -61,6 +61,9 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<CalendarService>();
             services.AddScoped<AmenityService>();
 
+            services.AddScoped<IStripeService, StripeService>();
+            services.AddScoped<PaymentService>();
+
             services.AddAutoMapper(c=> c.AddProfile<PropertyProfile>() ,typeof(CalendarMappingProfile).Assembly);
            
             services.AddScoped<IFileService, FileService>();
@@ -84,8 +87,13 @@ namespace Airbnb.DependencyInjection.PresentationDI
             app.MapHub<NotificationHub>("/notificationHub");
 
 
-            app.MapOpenApi();
-            app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
+            //app.MapOpenApi();
+            app.UseSwagger();
+            app.UseSwaggerUI(op =>
+            {
+                op.SwaggerEndpoint("/swagger/v1/swagger.json", "Airbnb API v1");
+                op.RoutePrefix = "swagger"; 
+            });
 
             app.UseCors("AllowAngularApp"); 
 

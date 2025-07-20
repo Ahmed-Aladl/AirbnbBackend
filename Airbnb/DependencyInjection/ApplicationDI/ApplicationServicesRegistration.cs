@@ -15,6 +15,8 @@ namespace Airbnb.DependencyInjection.ApplicationDI
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             services.AddScoped<ICalendarAvailabilityRepo, CalendarAvailabilityRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
+
             services.AddScoped<IUnitOfWork, UnitOfWork>(); // <-- Register UnitOfWork in DI
             services.AddScoped<IAmenityRepo, AmenityRepo>();
 
@@ -24,6 +26,7 @@ namespace Airbnb.DependencyInjection.ApplicationDI
                 {
                     config.AddProfile<PropertyProfile>();
                     config.AddProfile<WishlistProfile>();
+                    config.AddProfile<PaymentProfile>();
                 },
                 typeof(PropertyProfile).Assembly
             );
