@@ -60,6 +60,7 @@ namespace Airbnb
             //     .AddDefaultTokenProviders();
 
             var app = builder.Build();
+            app.UseStaticFiles();
             app.UseIpRateLimiting();
             await DbSeeder.SeedAsync(app);
 
@@ -68,11 +69,9 @@ namespace Airbnb
                 app.AddPresentationDevelopmentDI();
             }
 
-
             app.UseHttpsRedirection();
+
             app.UseAuthorization();
-
-
             app.MapControllers();
 
 
