@@ -56,6 +56,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IEmailService, GmailEmailService>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
 
             services.AddScoped<WishlistService>();
@@ -68,8 +69,8 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<IStripeService, StripeService>();
             services.AddScoped<PaymentService>();
 
-            services.AddAutoMapper(c=> c.AddProfile<PropertyProfile>() ,typeof(CalendarMappingProfile).Assembly);
-           
+            services.AddAutoMapper(c => c.AddProfile<PropertyProfile>(), typeof(CalendarMappingProfile).Assembly);
+
             services.AddScoped<IFileService, FileService>();
             services.AddSwaggerGen(c => c.OperationFilter<FileUploadOperationFilter>());
 
@@ -96,10 +97,10 @@ namespace Airbnb.DependencyInjection.PresentationDI
             app.UseSwaggerUI(op =>
             {
                 op.SwaggerEndpoint("/swagger/v1/swagger.json", "Airbnb API v1");
-                op.RoutePrefix = "swagger"; 
+                op.RoutePrefix = "swagger";
             });
 
-            app.UseCors("AllowAngularApp"); 
+            app.UseCors("AllowAngularApp");
 
             return app;
         }

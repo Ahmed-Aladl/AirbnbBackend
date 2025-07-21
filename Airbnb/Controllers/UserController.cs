@@ -3,7 +3,9 @@ using Airbnb.Middleware;
 using Airbnb.Services;
 using Application.DTOs.UserDto;
 using Application.Interfaces;
+using Application.Interfaces.IRepositories;
 using Domain.Models;
+using Infrastructure.Common;
 using Infrastructure.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +20,7 @@ namespace Airbnb.Controllers;
 [ApiController]
 public class UserController : ControllerBase
 {
+    private readonly IUserRepository _userRepository;
     private readonly UserManager<User> _userManager;
     private readonly AirbnbContext _context;
     private readonly ITokenService _tokenService;
@@ -25,13 +28,15 @@ public class UserController : ControllerBase
     private readonly IHubContext<NotificationHub> _hub;
 
     public UserController(
-        UserManager<User> userManager,
+    UserManager<User> userManager,
         AirbnbContext context,
         ITokenService tokenService,
         IEmailService emailService,
-        IHubContext<NotificationHub> hub
+        IHubContext<NotificationHub> hub,
+        IUserRepository userRepository
     )
     {
+        _userRepository = userRepository;
         _userManager = userManager;
         _context = context;
         _tokenService = tokenService;
@@ -48,14 +53,16 @@ public class UserController : ControllerBase
             UserName = dto.Email,
             PasswordHash = dto.Password,
             CreateAt = DateTime.UtcNow,
-            Roles = new List<IdentityRole> { new IdentityRole { Name = "guest" } },
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
             return BadRequest(result.Errors.Select(e => e.Description));
 
+        await _userManager.AddToRoleAsync(user, "guest");
+
         var otp = GenerateOtp();
+
         await _emailService.SendEmailAsync(dto.Email, "OTP Verification", $"Your OTP is: {otp}");
 
         await _context.UsersOtp.AddAsync(
@@ -82,9 +89,23 @@ public class UserController : ControllerBase
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
         var userId = user.Id;
-        var role = user.Roles;
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var notification = new Notification
+        {
+            UserId = user.Id,
+            Message = "Welcome",
+            CreatedAt = DateTime.UtcNow,
+            isRead = false
+        };
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
 
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", "Welcome");
+
+
+        var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
 
         return Ok(
             new TokenDto
@@ -92,10 +113,12 @@ public class UserController : ControllerBase
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 UserId = userId,
-                Roles = role.ToList(),
+                Roles = identityRoles
             }
         );
+
     }
+
 
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOtp(OtpDto dto)
@@ -217,7 +240,7 @@ public class UserController : ControllerBase
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = _userRepository.GetById(id);
         if (user == null)
             return NotFound("User not found");
         return Ok(user);
@@ -277,7 +300,7 @@ public class UserController : ControllerBase
         if (user == null)
             return NotFound("User not found");
 
-        user.Roles = new List<IdentityRole> { new IdentityRole { Name = "host" } };
+        await _userManager.AddToRoleAsync(user, "host");
         await _userManager.UpdateAsync(user);
         await _context.SaveChangesAsync();
         return Ok();
