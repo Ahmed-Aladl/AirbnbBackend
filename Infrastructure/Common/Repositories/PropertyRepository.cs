@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.DTOs.PropertyDTOS;
 using Application.Interfaces.IRepositories;
 using Application.Shared;
 using Domain.Models;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Stripe.Terminal;
 
 namespace Infrastructure.Common.Repositories
 {
@@ -76,7 +78,7 @@ namespace Infrastructure.Common.Repositories
             };
         }
 
-        public async Task<PaginatedResult<Property>> GetNearestPageWithCover(IpLocation ipLocation, int page, int pageSize, double maxDistanceKm)
+        public async Task<PaginatedResult<Property>> GetNearestPageWithCoverAsync(IpLocation ipLocation, int page, int pageSize, double maxDistanceKm)
         {
             var propertiesNearby = Db.Properties
                             .Where(p =>
@@ -92,7 +94,14 @@ namespace Infrastructure.Common.Repositories
 
             var result = await propertiesNearby
                             .Skip((page-1)* pageSize)
-                            .Take(pageSize)
+                            .Take(pageSize).OrderBy(p =>
+                                6371 * Math.Acos(
+                                    Math.Cos(Math.PI * ipLocation.Lat / 180) *
+                                    Math.Cos(Math.PI * (double)p.Latitude / 180) *
+                                    Math.Cos(Math.PI * ((double)p.Longitude - ipLocation.Lon) / 180) +
+                                    Math.Sin(Math.PI * ipLocation.Lat / 180) *
+                                    Math.Sin(Math.PI * (double)p.Latitude / 180)
+                                ) )
                             .ToListAsync();
             return new PaginatedResult<Property>()
             {
@@ -107,5 +116,72 @@ namespace Infrastructure.Common.Repositories
 
 
         }
+
+
+        public async Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto)
+        {
+            var query = Db.Properties
+                //.Include(p => p.Reservations)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(filterDto.Country))
+                query = query.Where(p => p.Country.ToLower() == filterDto.Country.ToLower());
+
+            if (filterDto.Longitude.HasValue && filterDto.Latitude.HasValue)
+            {
+                
+                //double tolerance = 0.5; 
+                //query = query.Where(p =>
+                //    Math.Abs((double)p.Longitude -(double) filterDto.Longitude.Value) < tolerance &&
+                //    Math.Abs((double)p.Latitude  -(double) filterDto.Latitude.Value) < tolerance);
+                query = query.Where(p =>
+                                6371 * Math.Acos(
+                                    Math.Cos(Math.PI * (double)filterDto.Latitude.Value/ 180) *
+                                    Math.Cos(Math.PI * (double)p.Latitude / 180) *
+                                    Math.Cos(Math.PI * ((double)p.Longitude - (double)filterDto.Longitude.Value) / 180) +
+                                    Math.Sin(Math.PI * (double)filterDto.Latitude.Value/ 180) *
+                                    Math.Sin(Math.PI * (double)p.Latitude / 180)
+                                ) < filterDto.maxDistanceKm
+                            );
+
+            }
+
+            if (filterDto.GuestsCount.HasValue)
+                query = query.Where(p => p.MaxGuests >= filterDto.GuestsCount.Value);
+
+            // Filter by availability
+            if (filterDto.StartDate.HasValue)
+            {
+                var start = filterDto.StartDate.Value.Date;
+                var end = filterDto.EndDate?.Date ?? start.AddDays(1); // if end not provided, use start only
+
+                query = query.Where(p =>
+                    !p.Bookings.Any(r =>
+                        r.CheckInDate <= end && r.CheckOutDate >= start));
+            }
+
+            var totalCount = await query.CountAsync();
+            var pageData = await query
+                                    .Include(p=> p.Images.Where(i=> !i.IsDeleted && i.IsCover))
+                                    .Skip((filterDto.Page - 1) * filterDto.PageSize)
+                                    .Take(filterDto.PageSize)
+                                    .ToListAsync();
+
+            return new() 
+                    { 
+                        Items= pageData,
+                        MetaData = new()
+                        {
+                            Page = filterDto.Page,
+                            PageSize = filterDto.PageSize,
+                            Total = totalCount,
+                        }
+
+                    };
+
+
+
+        }
+
     }
 }
