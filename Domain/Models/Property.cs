@@ -51,5 +51,6 @@ namespace Domain.Models
             new List<CalendarAvailability>();
 
         public ICollection<WishlistProperty> WishlistProperties { get; set; }
+        public ICollection<PropertyImage> Images { get; set; }
     }
 }

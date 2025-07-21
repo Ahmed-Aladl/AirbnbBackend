@@ -29,27 +29,42 @@ namespace Airbnb.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult GetAll()
         {
 
             return PropertyService.GetAll()
                                   .ToActionResult();
 
         }
-
+        [EndpointSummary("Gets Property Object only")]
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public IActionResult GetById(int id)
         {
             var result = PropertyService.Get(id);
             return ToActionResult(result);
         }
+        [EndpointSummary("Gets property with cover")]
+        [HttpGet("cover/{id}")]
+        public async Task<IActionResult> GetByWithCoverIdAsync(int id)
+        {
+            var result = await PropertyService.GetByIdWithCoverAsync(id);
+            return ToActionResult(result);
+        }
 
+        [EndpointSummary("Get by host Id")]
         [HttpGet("host/{hostId}")]
         public async Task<IActionResult> GetByHostIdAsync(string hostId)
         {
             return ToActionResult(await PropertyService.GetByHostIdAsync(hostId));
         }
+        [EndpointSummary("Get by host Id with cover")]
+        [HttpGet("host/cover/{hostId}")]
+        public async Task<IActionResult> GetByHostIdWithCoverAsync(string hostId)
+        {
+            return ToActionResult(await PropertyService.GetByHostIdWithCoverAsync(hostId));
+        }
 
+        [EndpointSummary("Add a new Property")]
         [HttpPost("{id}")]
         public IActionResult Add(PropertyDisplayDTO propertyDTO, int id)
         {
@@ -57,6 +72,7 @@ namespace Airbnb.Controllers
                                   .ToActionResult();
         }
 
+        [EndpointSummary("Update existing Property")]
         [HttpPut("{id}")]
         public IActionResult Put(PropertyDisplayDTO propertyDTO, int id)
         {
@@ -65,6 +81,7 @@ namespace Airbnb.Controllers
             return ToActionResult(result); ;
         }
 
+        [EndpointSummary("Deletes existing Property")]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
@@ -74,6 +91,7 @@ namespace Airbnb.Controllers
         }
 
 
+        [EndpointSummary("Upload images for a Property")]
         [Consumes("multipart/form-data")]
         [HttpPost("property-images/upload")]
         public async Task<IActionResult> UploadPropertyImages([FromForm] PropertyImagesUploadContainerDTO dto)
@@ -114,7 +132,7 @@ namespace Airbnb.Controllers
 
                 if (!result.IsSuccess)
                     return ToActionResult(result);
-                return CreatedAtAction(nameof(Get), new { id = dto.PropertyId });
+                return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId });
             }
             catch
             {

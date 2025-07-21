@@ -13,16 +13,19 @@ namespace Infrastructure.Common.Repositories
         public PropertyRepository(AirbnbContext context)
             : base(context) { }
 
-        public async Task<List<Property>> GetByHostIdAsync(string hostId)
-        {
-            return await Db.Properties.Where(p => p.HostId == hostId).ToListAsync();
-        }
+        
 
         public async Task<Property> GetByIdAsync(int id)
         {
             return await Db.Set<Property>()
                 .Include(p => p.PropertyType)
                 .Include(p => p.Host)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+        public async Task<Property> GetByIdWithCoverAsync(int id)
+        {
+            return await Db.Set<Property>()
+                .Include(p => p.Images.Where(i=> i.IsCover))
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -33,6 +36,19 @@ namespace Infrastructure.Common.Repositories
                 .Include(p => p.PropertyType)
                 .Include(p => p.Host)
                 .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<List<Property>> GetByHostIdAsync(string hostId)
+        {
+            return await Db.Properties.Where(p => p.HostId == hostId).ToListAsync();
+        }
+        public async Task<List<Property>> GetByHostIdWithCoverAsync(string hostId)
+        {
+            return await Db.Properties
+                                    .AsNoTracking()
+                                    .Where(p=> p.HostId == hostId && !p.IsDeleted && p.Images.Any(i=> i.IsCover))
+                                    .Include(p=> p.Images.Where(i=> i.IsCover))
+                                    .ToListAsync();
         }
     }
 }
