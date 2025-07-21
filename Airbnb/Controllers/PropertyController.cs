@@ -37,6 +37,16 @@ namespace Airbnb.Controllers
             PropertyService = _propertyService;
         }
 
+
+        [EndpointSummary("Get images by property id")]
+        [HttpGet("{id}/images")]
+        public IActionResult GetPropertyImages(int id)
+        {
+            var result = PropertyService.GetImagesByPropertyId(id);
+            return ToActionResult(result);
+        }
+
+
         [EndpointSummary("Get All Properties")]
         [HttpGet]
         public IActionResult GetAll()

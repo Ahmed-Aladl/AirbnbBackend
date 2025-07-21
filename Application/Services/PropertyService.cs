@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Application.DTOs.PropertyDTOS;
 using Application.DTOs.PropertyImageDTOs;
 using Application.Interfaces;
+using Application.Interfaces.IRepositories;
 using Application.Result;
 using Application.Shared;
 using AutoMapper;
@@ -32,6 +33,24 @@ namespace Application.Services
         //{
         //    UnitOfWork.
         //}
+
+        public Result<List<PropertyImageDisplayDTO>> GetImagesByPropertyId(int propertyId)
+        {
+            var images = UnitOfWork.PropertyImageRepo.GetImagesByPropertyId(propertyId);
+
+            var imageDTOs = images.Select(img => new PropertyImageDisplayDTO
+            {
+                Id = img.Id,
+                GroupName = img.GroupName,
+                PropertyId = img.PropertyId,
+                ImageUrl = img.ImageUrl,
+                IsCover = img.IsCover,
+                IsDeleted = img.IsDeleted
+            }).ToList();
+
+            return Result<List<PropertyImageDisplayDTO>>.Success(imageDTOs);
+        }
+
 
         public Result<List<PropertyDisplayDTO>> GetAll()
         {

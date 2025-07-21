@@ -7,5 +7,8 @@ using Domain.Models;
 
 namespace Application.Interfaces.IRepositories
 {
-    public interface IPropertyImageRepository : IRepository<PropertyImage, int> { }
+    public interface IPropertyImageRepository : IRepository<PropertyImage, int> 
+    {
+        List<PropertyImage> GetImagesByPropertyId(int propertyId);
+    }
 }
