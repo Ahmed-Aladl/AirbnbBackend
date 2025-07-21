@@ -57,6 +57,19 @@ namespace Application.Services
 
             return Success(mapped);
         }
+        public async Task<Result<PropertyDisplayDTO>> GetByIdWithCoverAsync(int id)
+        {
+            var property = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(id);
+
+            if (property == null)
+                return Fail("Property not found!", (int)HttpStatusCode.NotFound);
+
+            var mapped = Mapper.Map<PropertyDisplayDTO>(property);
+
+            return Success(mapped);
+        }
+
+
 
         public async Task<Result<List<PropertyDisplayDTO>>> GetByHostIdAsync(string hostId)
         {
@@ -65,10 +78,17 @@ namespace Application.Services
             var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
+        public async Task<Result<List<PropertyDisplayDTO>>> GetByHostIdWithCoverAsync(string hostId)
+        {
+            var host = UnitOfWork.UserRepo.GetById(hostId);
+            var properties = await UnitOfWork.PropertyRepo.GetByHostIdWithCoverAsync(hostId);
+            var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
+            return Result<List<PropertyDisplayDTO>>.Success(mapped);
+        }
 
         public Result<PropertyDisplayDTO> Add(PropertyDisplayDTO propertyDTO)
         {
-            if (propertyDTO.Id == 0)
+            if (string.IsNullOrEmpty(propertyDTO.HostId.Trim()))
                 return Fail("Couldn't add new property", (int)HttpStatusCode.BadRequest);
 
             var prop = Mapper.Map<Property>(propertyDTO);
@@ -80,6 +100,7 @@ namespace Application.Services
 
                 if (!success)
                     return Fail("Couldn't add a new property", (int)HttpStatusCode.BadRequest);
+                Mapper.Map(prop,propertyDTO);
                 return Success(propertyDTO);
             }
             catch

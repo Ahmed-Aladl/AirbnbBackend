@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.PropertyImageDTOs;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,5 +43,6 @@ namespace Application.DTOs.PropertyDTOS
 
         public int PropertyTypeId { get; set; }
         public string HostId { get; set; }
+        public List<PropertyImageDisplayDTO>? Images { get; set; }
     }
 }

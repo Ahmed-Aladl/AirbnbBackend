@@ -18,6 +18,10 @@ namespace Infrastructure.DbConfigs
                 .WithOne(r => r.Property)
                 .HasForeignKey(r => r.PropertyId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(p => p.Images)
+                   .WithOne(i => i.Property)
+                   .HasForeignKey(i => i.PropertyId);
         }
     }
 }
