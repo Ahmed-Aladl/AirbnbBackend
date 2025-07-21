@@ -217,7 +217,7 @@ namespace Airbnb.Controllers
 
                 if (!result.IsSuccess)
                     return ToActionResult(result);
-                return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId });
+                return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId }, new {});
             }
             catch
             {

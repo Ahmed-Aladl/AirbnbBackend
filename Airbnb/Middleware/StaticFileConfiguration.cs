@@ -13,6 +13,7 @@ namespace Airbnb.Middleware
             provider.Mappings[".jpeg"] = "image/jpeg";
             provider.Mappings[".jpg"] = "image/jpeg";
             provider.Mappings[".png"] = "image/png";
+            provider.Mappings[".webp"] = "image/webp";
 
             return app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = provider });
         }
