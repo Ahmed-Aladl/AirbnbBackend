@@ -8,6 +8,7 @@ using Application.DTOs.PropertyDTOS;
 using Application.DTOs.PropertyImageDTOs;
 using Application.Interfaces;
 using Application.Result;
+using Application.Shared;
 using AutoMapper;
 using AutoMapper.Features;
 using AutoMapper.Internal;
@@ -45,6 +46,24 @@ namespace Application.Services
 
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
+
+        public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetPageAsync(int page=1, int pageSize = 7)
+        {
+            var paginatedResult = await UnitOfWork.PropertyRepo.GetPageWithCoverAsync(page, pageSize);
+
+            var mapped = Mapper.Map<PaginatedResult<PropertyDisplayDTO>>(paginatedResult);
+
+            return Result<PaginatedResult<PropertyDisplayDTO>>.Success(mapped);
+        }
+        public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetNearestPageAsync(IpLocation ipLocation ,int page=1, int pageSize = 7, double maxDistanceKm = 10)
+        {
+            var paginatedResult = await UnitOfWork.PropertyRepo.GetNearestPageWithCover(ipLocation,page, pageSize,maxDistanceKm);
+
+            var mapped = Mapper.Map<PaginatedResult<PropertyDisplayDTO>>(paginatedResult);
+
+            return Result<PaginatedResult<PropertyDisplayDTO>>.Success(mapped);
+        }
+
 
         public Result<PropertyDisplayDTO> Get(int id)
         {

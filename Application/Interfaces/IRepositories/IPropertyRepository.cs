@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Shared;
 using Domain.Models;
 
 namespace Application.Interfaces.IRepositories
 {
     public interface IPropertyRepository : IRepository<Property, int>
     {
+        Task<PaginatedResult<Property>> GetPageWithCoverAsync(int page, int pageSize);
+        Task<PaginatedResult<Property>> GetNearestPageWithCover(IpLocation ipLocation, int page, int pageSize, double maxDistanceKm);
         Task<Property> GetByIdAsync(int id);
         Task<Property> GetByIdWithCoverAsync(int id);
         Task<Property> GetByIdWithCalendarAsync(int id);

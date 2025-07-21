@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.DTOs.PropertyDTOS;
+using Application.Shared;
 using AutoMapper;
 using Domain.Models;
 
@@ -14,6 +15,7 @@ namespace Application.Mappings
         public PropertyProfile()
         {
             CreateMap<Property, PropertyDisplayDTO>().ReverseMap();
+            CreateMap<PaginatedResult<Property>, PaginatedResult<PropertyDisplayDTO>>().ReverseMap();
         }
     }
 }

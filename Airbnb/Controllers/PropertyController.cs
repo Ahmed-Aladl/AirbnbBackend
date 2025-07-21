@@ -5,9 +5,13 @@ using Application.DTOs.PropertyImageDTOs;
 using Application.Interfaces;
 using Application.Result;
 using Application.Services;
+using Application.Shared;
+using Azure;
 using Domain.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Stripe.Terminal;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -21,7 +25,12 @@ namespace Airbnb.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IFileService _fileService;
 
-        public PropertyController(PropertyService _propertyService, UserManager<User> user, IWebHostEnvironment env, IFileService fileService)
+        public PropertyController(
+                                    PropertyService _propertyService,
+                                    UserManager<User> user,
+                                    IWebHostEnvironment env, 
+                                    IFileService fileService
+                                )
         {
             _env = env;
             _fileService = fileService;
@@ -36,6 +45,62 @@ namespace Airbnb.Controllers
                                   .ToActionResult();
 
         }
+
+        [HttpGet("page")]
+        public async Task<IActionResult> GetPage(
+                        [FromHeader] int page=1,
+                        [FromHeader] int pageSize=10
+            )
+        {
+
+            if (page< 0)
+                page = 1; // Default
+
+            if (pageSize < 1)
+                pageSize = 10; // Default
+            
+
+            pageSize = Math.Min(pageSize, 100);
+
+
+            var result = await PropertyService.GetPageAsync(page, pageSize);
+
+            return ToActionResult(result);
+
+        }
+
+
+        [EndpointSummary("Gets nearest Properties Paginated")]
+        [HttpGet("nearest")]
+        public async Task<IActionResult> GetNearestPagintedAsync(
+                        [FromHeader] int page = 1,
+                        [FromHeader] int pageSize = 10,
+                        [FromHeader] double maxDistanceKm = 10
+            )
+        {
+            if (page < 0)
+                page = 1; // Default
+
+            if (pageSize < 1)
+                pageSize = 10; // Default
+
+
+            pageSize = Math.Min(pageSize, 100);
+
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            if (ip == null)
+                return Fail("Internal Server Error");
+
+            using var client = new HttpClient();
+            var response = await client.GetFromJsonAsync<IpLocation>("http://ip-api.com/json/" + ip);
+            if (response == null)
+                return Fail("Internal Server Error");
+            var result = await PropertyService.GetNearestPageAsync(response, page, pageSize, maxDistanceKm);
+
+            return ToActionResult(result);
+        }
+
+
         [EndpointSummary("Gets Property Object only")]
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
