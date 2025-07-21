@@ -13,8 +13,12 @@ namespace Infrastructure.DbConfigs
     {
         public void Configure(EntityTypeBuilder<Notification> builder)
         {
-            builder.HasKey(n => n.UserId);
-            builder.HasOne(n => n.User);
+            builder.HasKey(n => n.Id);
+            builder.Property(n => n.Id).ValueGeneratedOnAdd();
+
+            builder.HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId);
         }
     }
 }

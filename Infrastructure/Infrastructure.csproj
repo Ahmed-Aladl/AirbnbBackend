@@ -9,7 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DbSeeders\" />
-    <Folder Include="Migrations\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MailKit" Version="4.13.0" />
