@@ -37,6 +37,7 @@ namespace Airbnb.Controllers
             PropertyService = _propertyService;
         }
 
+        [EndpointSummary("Get All Properties")]
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -46,6 +47,7 @@ namespace Airbnb.Controllers
 
         }
 
+        [EndpointSummary("Get Properties Page")]
         [HttpGet("page")]
         public async Task<IActionResult> GetPage(
                         [FromHeader] int page=1,
@@ -96,6 +98,14 @@ namespace Airbnb.Controllers
             if (response == null)
                 return Fail("Internal Server Error");
             var result = await PropertyService.GetNearestPageAsync(response, page, pageSize, maxDistanceKm);
+
+            return ToActionResult(result);
+        }
+        [EndpointSummary("Search Properties Paginated 'Date Range, Location, etc...'")]
+        [HttpGet("search")]
+        public async Task<IActionResult> GetNearestPagintedAsync([FromQuery]PropertyFilterDto filterDto)
+        {
+            var result = await PropertyService.GetFilteredPageAsync(filterDto);
 
             return ToActionResult(result);
         }

@@ -22,6 +22,14 @@ namespace Infrastructure.DbConfigs
             builder.HasMany(p => p.Images)
                    .WithOne(i => i.Property)
                    .HasForeignKey(i => i.PropertyId);
+
+            builder.HasMany(p=> p.Bookings)
+                   .WithOne(p=> p.Property)
+                   .HasForeignKey(b => b.PropertyId);
+
+            builder.HasMany(p => p.CalendarAvailabilities)
+                   .WithOne(c => c.Property)
+                   .HasForeignKey(c => c.PropertyId);
         }
     }
 }

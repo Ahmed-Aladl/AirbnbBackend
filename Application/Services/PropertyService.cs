@@ -55,9 +55,21 @@ namespace Application.Services
 
             return Result<PaginatedResult<PropertyDisplayDTO>>.Success(mapped);
         }
+
+
         public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetNearestPageAsync(IpLocation ipLocation ,int page=1, int pageSize = 7, double maxDistanceKm = 10)
         {
-            var paginatedResult = await UnitOfWork.PropertyRepo.GetNearestPageWithCover(ipLocation,page, pageSize,maxDistanceKm);
+            var paginatedResult = await UnitOfWork.PropertyRepo.GetNearestPageWithCoverAsync(ipLocation,page, pageSize,maxDistanceKm);
+
+            var mapped = Mapper.Map<PaginatedResult<PropertyDisplayDTO>>(paginatedResult);
+
+            return Result<PaginatedResult<PropertyDisplayDTO>>.Success(mapped);
+        }
+
+
+        public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetFilteredPageAsync(PropertyFilterDto filterDto)
+        {
+            var paginatedResult = await UnitOfWork.PropertyRepo.GetFilteredPageAsync(filterDto);
 
             var mapped = Mapper.Map<PaginatedResult<PropertyDisplayDTO>>(paginatedResult);
 

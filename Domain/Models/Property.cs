@@ -52,5 +52,6 @@ namespace Domain.Models
 
         public ICollection<WishlistProperty> WishlistProperties { get; set; }
         public ICollection<PropertyImage> Images { get; set; }
+        public ICollection<Booking> Bookings { get; set; }
     }
 }
