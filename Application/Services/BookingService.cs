@@ -19,52 +19,96 @@ namespace Application.Services
             this.uow = unitOfWork;
         }
 
-        public async Task<Result<List<Booking>>> GetAllBookingsAsync()
+        public async Task<Result<List<BookingDetailsDTO>>> GetAllBookingsAsync()
         {
             try
             {
                 var bookings = await uow.Bookings.GetAllAsync();
-                return Result<List<Booking>>.Success(bookings);
+
+                var bookingDtos = bookings.Select(b => new BookingDetailsDTO
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate,
+                    NumberOfGuests = b.NumberOfGuests,
+                    TotalPrice = b.TotalPrice,
+                    BookingStatus = b.BookingStatus.ToString(),
+                    PropertyId = b.Property?.Id ?? 0,
+                    PropertyTitle = b.Property?.Title ?? "",
+                    City = b.Property?.City ?? "",
+                    Country = b.Property?.Country ?? ""
+                }).ToList();
+
+                return Result<List<BookingDetailsDTO>>.Success(bookingDtos);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Optionally log ex
-                return Result<List<Booking>>.Fail("Failed to retrieve bookings.", 500);
+                return Result<List<BookingDetailsDTO>>.Fail("Failed to retrieve bookings.", 500);
             }
         }
 
-        public async Task<Result<Booking>> GetBookingByIdAsync(int id)
+        public async Task<Result<BookingDetailsDTO>> GetBookingByIdAsync(int id)
         {
             try
             {
                 var booking = await uow.Bookings.GetByIdAsync(id);
                 if (booking == null)
-                    return Result<Booking>.Fail("Booking not found", 404);
+                    return Result<BookingDetailsDTO>.Fail("Booking not found", 404);
 
-                return Result<Booking>.Success(booking);
+                var dto = new BookingDetailsDTO
+                {
+                    Id = booking.Id,
+                    UserId = booking.UserId,
+                    CheckInDate = booking.CheckInDate,
+                    CheckOutDate = booking.CheckOutDate,
+                    NumberOfGuests = booking.NumberOfGuests,
+                    TotalPrice = booking.TotalPrice,
+                    BookingStatus = booking.BookingStatus.ToString(),
+                    PropertyId = booking.Property?.Id ?? 0,
+                    PropertyTitle = booking.Property?.Title ?? "",
+                    City = booking.Property?.City ?? "",
+                    Country = booking.Property?.Country ?? ""
+                };
+
+                return Result<BookingDetailsDTO>.Success(dto);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return Result<Booking>.Fail("Failed to retrieve booking.", 500);
+                return Result<BookingDetailsDTO>.Fail("Failed to retrieve booking.", 500);
             }
         }
 
-        public async Task<Result<List<Booking>>> GetBookingByUserIdAsync(string userId)
+        public async Task<Result<List<BookingDetailsDTO>>> GetBookingByUserIdAsync(string userId)
         {
             try
             {
                 var bookings = await uow.Bookings.GetBookingByUserIdAsync(userId);
 
                 if (bookings == null || !bookings.Any())
-                {
-                    return Result<List<Booking>>.Fail("No bookings found for this user.", 404);
-                }
+                    return Result<List<BookingDetailsDTO>>.Fail("No bookings found for this user.", 404);
 
-                return Result<List<Booking>>.Success(bookings);
-            }
-            catch (Exception ex)
+                var bookingDtos = bookings.Select(b => new BookingDetailsDTO
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate,
+                    NumberOfGuests = b.NumberOfGuests,
+                    TotalPrice = b.TotalPrice,
+                    BookingStatus = b.BookingStatus.ToString(),
+                    PropertyId = b.Property.Id,
+                    PropertyTitle = b.Property.Title,
+                    City = b.Property.City,
+
+                    Country = b.Property.Country
+                }).ToList();
+
+                return Result<List<BookingDetailsDTO>>.Success(bookingDtos);
+            } 
+            catch (Exception)
             {
-                return Result<List<Booking>>.Fail("Failed to retrieve bookings.", 500);
+                return Result<List<BookingDetailsDTO>>.Fail("Failed to retrieve bookings.", 500);
             }
         }
 
