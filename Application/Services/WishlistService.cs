@@ -34,6 +34,18 @@ namespace Application.Services
                 );
 
             var mapped = Mapper.Map<List<WishlistDTO>>(wishlists);
+
+            foreach (var wishlist in mapped)
+            {
+                var firstPropertyId = wishlist.PropertyIds.FirstOrDefault();
+                if (firstPropertyId != 0)
+                {
+                    var prop = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(firstPropertyId);
+                    var coverImage = prop?.Images?.FirstOrDefault(i => i.IsCover) ?? prop?.Images?.FirstOrDefault();
+                    wishlist.CoverImageUrl = coverImage?.ImageUrl;
+                }
+            }
+
             return Result<List<WishlistDTO>>.Success(mapped);
         }
 
@@ -106,15 +118,24 @@ namespace Application.Services
         public async Task<Result<WishlistDTO>> CreateWishlist(
             string userId,
             string name,
-            string notes
+            string notes,
+            List<int> propertyIds
         )
         {
+
+            if (propertyIds == null || !propertyIds.Any())
+                return Result<WishlistDTO>.Fail("At least one property is required", (int)HttpStatusCode.BadRequest);
+
             var wishlist = new Wishlist
             {
                 Name = name,
                 Notes = notes,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                WishlistProperties = propertyIds.Select(id => new WishlistProperty
+                {
+                    PropertyId = id
+                }).ToList()
             };
 
             UnitOfWork.Wishlist.Add(wishlist);
