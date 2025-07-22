@@ -243,7 +243,7 @@ public class UserController : ControllerBase
         var user = _userRepository.GetById(id);
         if (user == null)
             return NotFound("User not found");
-        return Ok(user);
+        return Ok(new UserProfileDto { FirstName = user.FirstName, LastName = user.LastName, Email = user.Email, PhoneNumber = user.PhoneNumber, Bio = user.Bio, BirthDate = user.BirthDate, Country = user.Country });
     }
 
     [HttpPut("profile")]
