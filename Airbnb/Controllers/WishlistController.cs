@@ -76,5 +76,18 @@ namespace Airbnb.Controllers
         }
 
 
+
+
+        // GET: api/wishlist/{wishlistId}/properties
+        [EndpointSummary("show properties by wishlist")]
+        [HttpGet("{wishlistId}/properties")]
+        public async Task<IActionResult> GetPropertiesInWishlist(int wishlistId)
+        {
+            var userId = UserId;
+
+            var result = await WishlistService.GetPropertiesInWishlist(userId, wishlistId);
+            return ToActionResult(result);
+        }
+
     }
 }
