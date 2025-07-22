@@ -177,21 +177,24 @@ namespace Application.Services
 
 
 
-        public async Task<Result<List<PropertyDisplayDTO>>> GetPropertiesInWishlist(string userId, int wishlistId)
+        public async Task<Result<WishlistWithPropertiesDTO>> GetPropertiesInWishlist(string userId, int wishlistId)
         {
             var wishlist = await UnitOfWork.Wishlist.GetByIdAsync(wishlistId);
 
             if (wishlist == null || wishlist.UserId != userId)
-                return Result<List<PropertyDisplayDTO>>.Fail("Wishlist not found or unauthorized", (int)HttpStatusCode.NotFound);
+                return Result<WishlistWithPropertiesDTO>.Fail("Wishlist not found or unauthorized", (int)HttpStatusCode.NotFound);
 
             var properties = wishlist.WishlistProperties?.Select(wp => wp.Property)?.ToList();
 
-            if (properties == null || !properties.Any())
-                return Result<List<PropertyDisplayDTO>>.Success(new List<PropertyDisplayDTO>());
+            var dto = new WishlistWithPropertiesDTO
+            {
+                Id = wishlist.Id,
+                Name = wishlist.Name,
+                Notes = wishlist.Notes,
+                Properties = properties != null ? Mapper.Map<List<PropertyDisplayDTO>>(properties) : new()
+            };
 
-            var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
-
-            return Result<List<PropertyDisplayDTO>>.Success(mapped);
+            return Result<WishlistWithPropertiesDTO>.Success(dto);
         }
 
     }
