@@ -10,6 +10,8 @@ namespace Application.DTOs.WishlistDTOs
     {
         public string Name { get; set; }
         public string? Notes { get; set; }
+        public List<int> PropertyIds { get; set; }
+
     }
 
 }
