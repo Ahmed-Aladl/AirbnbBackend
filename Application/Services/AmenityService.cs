@@ -58,7 +58,7 @@ public class AmenityService
             await dto.IconUrl.CopyToAsync(stream);
         }
 
-        string iconUrl = $"/uploads/amenities/{fileName}";
+        string iconUrl = $"/AmenitiesIcons/{fileName}";
 
         var amenity = new Amenity { AmenityName = dto.AmenityName, IconURL = iconUrl };
 
