@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.PropertyDTOS;
 using Application.DTOs.WishlistDTOs;
 using Application.Interfaces;
 using Application.Result;
@@ -168,5 +169,30 @@ namespace Application.Services
 
             return Result<WishlistDTO>.Success(Mapper.Map<WishlistDTO>(wishlist));
         }
+
+
+
+
+
+
+
+
+        public async Task<Result<List<PropertyDisplayDTO>>> GetPropertiesInWishlist(string userId, int wishlistId)
+        {
+            var wishlist = await UnitOfWork.Wishlist.GetByIdAsync(wishlistId);
+
+            if (wishlist == null || wishlist.UserId != userId)
+                return Result<List<PropertyDisplayDTO>>.Fail("Wishlist not found or unauthorized", (int)HttpStatusCode.NotFound);
+
+            var properties = wishlist.WishlistProperties?.Select(wp => wp.Property)?.ToList();
+
+            if (properties == null || !properties.Any())
+                return Result<List<PropertyDisplayDTO>>.Success(new List<PropertyDisplayDTO>());
+
+            var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
+
+            return Result<List<PropertyDisplayDTO>>.Success(mapped);
+        }
+
     }
 }
