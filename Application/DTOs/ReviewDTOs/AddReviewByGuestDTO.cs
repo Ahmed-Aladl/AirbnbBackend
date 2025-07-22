@@ -11,6 +11,8 @@ namespace Application.DTOs.ReviewDTOs
 
         public string Comment { get; set; }
 
+        public string PrivateComment { get; set; } = string.Empty;
+
         // Ratings per category
         public int Cleanliness { get; set; }
         public int Accuracy { get; set; }
@@ -21,7 +23,6 @@ namespace Application.DTOs.ReviewDTOs
 
         public int BookingId { get; set; }
         public string userId    { get; set; }
-
         public int PropertyId { get; set; }
 
     }

@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Application.DTOs.BookingDTOS;
-
+using Domain.Enums.Booking; 
 
 namespace Airbnb.Controllers
 {
@@ -42,6 +42,27 @@ namespace Airbnb.Controllers
 
 
 
+        //[HttpGet("user/{userId}")]
+        //public async Task<IActionResult> GetReviewsByUserId(int userId)
+        //{
+        //    Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByUserId(userId);
+
+        //    if (!result.IsSuccess)
+        //        return StatusCode(result.StatusCode ?? 500, result.Message);
+        //    else
+        //        return Ok(result);
+        //}
+
+        //[HttpGet("property/{propertyId}")]
+        //public async Task<IActionResult> GetReviewsByPropertyId(int propertyId)
+        //{
+        //    Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByPropertyId(propertyId);
+
+        //    if (!result.IsSuccess)
+        //        return StatusCode(result.StatusCode ?? 500, result.Message);
+        //    else
+        //        return Ok(result);
+        //}
 
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
@@ -63,15 +84,7 @@ namespace Airbnb.Controllers
             {
                 return Ok(result);
             }
-
-
-
-
         }
-
-
-
-
 
         [HttpPost]
         public async Task<IActionResult> Add(AddReviewByGuestDTO dto)
@@ -82,21 +95,6 @@ namespace Airbnb.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
-         //
-         var bookingResult = await book.GetBookingByIdAsync(dto.BookingId);
-
-
-            if (!bookingResult.IsSuccess)
-                return StatusCode(bookingResult.StatusCode ?? 500, bookingResult.Message);
-
-
-            var booking = bookingResult.Data;
-
-
-            if (booking.UserId != dto.userId)
-                return Unauthorized("You are not authorized to review this booking.");
-            //
 
             var result = await reviewservice.Add(dto);
 
