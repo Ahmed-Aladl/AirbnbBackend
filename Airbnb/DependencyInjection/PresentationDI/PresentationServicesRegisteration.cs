@@ -61,6 +61,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
             services.AddScoped<WishlistService>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<ReviewService>();
             services.AddScoped<PropertyService>();
             services.AddScoped<BookingService>();
             services.AddScoped<CalendarService>();
