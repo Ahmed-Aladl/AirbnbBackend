@@ -14,6 +14,9 @@ using AutoMapper;
 using AutoMapper.Features;
 using AutoMapper.Internal;
 using Domain.Models;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 using static Application.Result.Result<Application.DTOs.PropertyDTOS.PropertyDisplayDTO>;
 
 namespace Application.Services
@@ -300,5 +303,8 @@ namespace Application.Services
                 );
             }
         }
+
+
+
     }
 }

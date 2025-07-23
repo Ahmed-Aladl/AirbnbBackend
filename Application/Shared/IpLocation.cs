@@ -12,5 +12,7 @@ namespace Application.Shared
         public string City { get; set; }
         public double Lat { get; set; }
         public double Lon { get; set; }
+
+        public string CountryCode { get; set; }
     }
 }
