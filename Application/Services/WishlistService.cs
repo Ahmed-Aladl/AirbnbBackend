@@ -29,9 +29,9 @@ namespace Application.Services
         {
             var wishlists = await UnitOfWork.Wishlist.GetByUserIdAsync(userId);
             if (wishlists == null || !wishlists.Any())
-                return Result<List<WishlistDTO>>.Fail(
-                    "No wishlists found",
-                    (int)HttpStatusCode.NotFound
+                return Result<List<WishlistDTO>>.Success(new List<WishlistDTO>(),
+                    (int)HttpStatusCode.NoContent,
+                    "No wishlists found"
                 );
 
             var mapped = Mapper.Map<List<WishlistDTO>>(wishlists);
