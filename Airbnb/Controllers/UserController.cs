@@ -28,7 +28,7 @@ public class UserController : ControllerBase
     private readonly IHubContext<NotificationHub> _hub;
 
     public UserController(
-    UserManager<User> userManager,
+        UserManager<User> userManager,
         AirbnbContext context,
         ITokenService tokenService,
         IEmailService emailService,
@@ -97,13 +97,12 @@ public class UserController : ControllerBase
             UserId = user.Id,
             Message = "Welcome",
             CreatedAt = DateTime.UtcNow,
-            isRead = false
+            isRead = false,
         };
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", "Welcome");
-
 
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
 
@@ -113,12 +112,10 @@ public class UserController : ControllerBase
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 UserId = userId,
-                Roles = identityRoles
+                Roles = identityRoles,
             }
         );
-
     }
-
 
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOtp(OtpDto dto)
@@ -127,19 +124,18 @@ public class UserController : ControllerBase
         if (user == null)
             return NotFound("User not found");
 
-        var otp = await _context
-            .UsersOtp.Where(x =>
-                x.UserId == user.Id
-                && x.Code == dto.Code
-                && !x.IsUsed
-                && x.ExpiresAt > DateTime.UtcNow
-            )
-            .FirstOrDefaultAsync();
+        var otp = await _context.UsersOtp.FirstOrDefaultAsync(x =>
+            x.UserId == user.Id && x.Code == dto.Code && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow
+        );
 
         if (otp == null)
             return BadRequest("Invalid or expired OTP");
 
         otp.IsUsed = true;
+
+        var allUserOtps = _context.UsersOtp.Where(x => x.UserId == user.Id);
+        _context.UsersOtp.RemoveRange(allUserOtps);
+
         await _context.SaveChangesAsync();
 
         return Ok("OTP verified");
@@ -168,7 +164,7 @@ public class UserController : ControllerBase
                 UserId = user.Id,
                 Code = otp,
                 IsUsed = false,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(1),
             }
         );
 
@@ -243,7 +239,18 @@ public class UserController : ControllerBase
         var user = _userRepository.GetById(id);
         if (user == null)
             return NotFound("User not found");
-        return Ok(new UserProfileDto { FirstName = user.FirstName, LastName = user.LastName, Email = user.Email, PhoneNumber = user.PhoneNumber, Bio = user.Bio, BirthDate = user.BirthDate, Country = user.Country });
+        return Ok(
+            new UserProfileDto
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Bio = user.Bio,
+                BirthDate = user.BirthDate,
+                Country = user.Country,
+            }
+        );
     }
 
     [HttpPut("profile")]

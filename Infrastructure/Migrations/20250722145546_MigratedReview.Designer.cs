@@ -4,6 +4,7 @@ using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AirbnbContext))]
-    partial class AirbnbContextModelSnapshot : ModelSnapshot
+    [Migration("20250722145546_MigratedReview")]
+    partial class MigratedReview
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,38 +115,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("PropertyId");
 
                     b.ToTable("calendarAvailabilities");
-                });
-
-            modelBuilder.Entity("Domain.Models.HostReply", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ReviewId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReviewId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("HostReply");
                 });
 
             modelBuilder.Entity("Domain.Models.Message", b =>
@@ -463,8 +434,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookingId")
-                        .IsUnique();
+                    b.HasIndex("BookingId");
 
                     b.HasIndex("PropertyId");
 
@@ -818,25 +788,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Property");
                 });
 
-            modelBuilder.Entity("Domain.Models.HostReply", b =>
-                {
-                    b.HasOne("Domain.Models.Review", "Review")
-                        .WithOne("HostReply")
-                        .HasForeignKey("Domain.Models.HostReply", "ReviewId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Review");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain.Models.Message", b =>
                 {
                     b.HasOne("Domain.Models.Property", "Property")
@@ -942,8 +893,8 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Review", b =>
                 {
                     b.HasOne("Domain.Models.Booking", "Booking")
-                        .WithOne()
-                        .HasForeignKey("Domain.Models.Review", "BookingId")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1090,11 +1041,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.PropertyType", b =>
                 {
                     b.Navigation("Properties");
-                });
-
-            modelBuilder.Entity("Domain.Models.Review", b =>
-                {
-                    b.Navigation("HostReply");
                 });
 
             modelBuilder.Entity("Domain.Models.User", b =>

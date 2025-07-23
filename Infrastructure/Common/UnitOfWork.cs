@@ -20,6 +20,10 @@ namespace Infrastructure.Common
         private IUserRepository _userRepo;
         private IBookingRepo _bookingRepo;
         private IUserOtpRepository _userOtps;
+        private IReviewRepo _reviewRepo;
+        private IHostReviewRepo _hostReviewRepo;
+
+        IPropertyTypeRepository _iPropertyTypeRepo;
         public UnitOfWork(AirbnbContext _context)
         {
             Context = _context;
@@ -41,10 +45,12 @@ namespace Infrastructure.Common
         public IPropertyImageRepository PropertyImageRepo =>
             _propertyImageRepo ?? new PropertyImageRepository(Context);
         public IUserRepository UserRepo => _userRepo ?? new UserRepository(Context);
+        public IHostReviewRepo HostReviewRepo => _hostReviewRepo ?? new HostReplyRepo(Context);
         public IUserOtpRepository UserOtps => _userOtps ?? new UserOtpRepository(Context);
         public IWishlistRepository _wishlistRepo;
         public IWishlistRepository Wishlist => _wishlistRepo ??= new WishlistRepository(Context);
-
+        public IReviewRepo ReviewRepo => _reviewRepo ??= new ReviewRepo(Context);
+        public IPropertyTypeRepository propertyType => _iPropertyTypeRepo ??= new PropertyTypeRepo(Context);
 
         private IPaymentRepository _paymentRepository;
         public IPaymentRepository paymentRepository=>_paymentRepository??=new PaymentRepository(Context);
