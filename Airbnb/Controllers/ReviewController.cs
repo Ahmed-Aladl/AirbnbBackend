@@ -136,8 +136,8 @@ namespace Airbnb.Controllers
             if (dto == null)
                 return BadRequest();
 
-            if (dto.Id != id)
-                return BadRequest("ID mismatch");
+            //if (dto.Id != id)
+            //    return BadRequest("ID mismatch");
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

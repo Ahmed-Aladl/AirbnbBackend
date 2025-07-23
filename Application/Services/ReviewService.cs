@@ -11,6 +11,7 @@ using Domain.Enums.Booking;
 using Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 
 namespace Application.Services
@@ -177,15 +178,19 @@ namespace Application.Services
                 if (dto == null)
                     return Result<GuestReviewDTO>.Fail("Review data is required.", 400);
 
-                if (dto.Id != id)
-                    return Result<GuestReviewDTO>.Fail("Review ID mismatch.", 400);
+                //if (dto.Id != id)
+                //    return Result<GuestReviewDTO>.Fail("Review ID mismatch.", 400);
 
-                Review review = _map.Map<Review>(dto);
+                Review existingReview = await UOW.ReviewRepo.GetByIdAsync(id); // _map.Map<Review>(dto);
 
-                UOW.ReviewRepo.Update(review);
+                if (existingReview == null)
+                    return Result<GuestReviewDTO>.Fail("Review not found.", 404);
+
+                _map.Map(dto, existingReview);
+
                 await UOW.SaveChangesAsync();
 
-                GuestReviewDTO reviewDTO = _map.Map<GuestReviewDTO>(review);
+                GuestReviewDTO reviewDTO = _map.Map<GuestReviewDTO>(existingReview);
                 return Result<GuestReviewDTO>.Success(reviewDTO);
             }
             catch (Exception)

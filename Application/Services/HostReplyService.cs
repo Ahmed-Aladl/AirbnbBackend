@@ -126,7 +126,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<HostReviewReplyDto>> Edit(int id, HostReviewReplyDto dto)
+        public async Task<Result<HostReviewReplyDto>> Edit(int id, HostReviewEditReplyDTO dto)
         {
             try
             {
@@ -140,7 +140,7 @@ namespace Application.Services
                 if (existingReply == null)
                     return Result<HostReviewReplyDto>.Fail("Host reply not found.", 404);
 
-                if (existingReply.UserId != dto.HostId)
+                if (existingReply.UserId != dto.UserId)
                     return Result<HostReviewReplyDto>.Fail("You can only edit your own replies.", 403);
 
                 existingReply.Comment = dto.Comment;

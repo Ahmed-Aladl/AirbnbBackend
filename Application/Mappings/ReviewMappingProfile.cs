@@ -14,8 +14,11 @@ namespace Application.Mappings
 
         public ReviewMappingProfile()
         {
-            CreateMap<Review, GuestReviewDTO>().ReverseMap();
-            CreateMap<Review, GuestReviewDTO>().ReverseMap();
+
+
+            CreateMap<Review, GuestReviewDTO>()
+                .AfterMap((src, dest) => { dest.UserId = src.UserId; })
+                .ReverseMap();
             CreateMap<Review, AddReviewByGuestDTO>().ReverseMap();
             CreateMap<Review, EditReviewByGuestDTO>().ReverseMap();
         }
