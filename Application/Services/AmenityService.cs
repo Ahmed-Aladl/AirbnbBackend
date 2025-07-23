@@ -166,4 +166,28 @@ public class AmenityService
 
         return Result<string>.Success("Amenity deleted successfully");
     }
+
+
+    public async Task<Result<bool>> Toggle(int amenityId, int propertyId)
+    {
+        var amentiy = _unitOfWork.AmenitiesRepo.GetById(amenityId);
+        if (amentiy == null)
+            return Result<bool>.Fail("Amentiy not found.",(int) HttpStatusCode.NotFound);
+        
+        var property = await _unitOfWork.PropertyRepo.GetByIdWithAmenitiesAsync(propertyId);
+        if (property == null)
+            return Result<bool>.Fail("Property not found.",(int) HttpStatusCode.NotFound);
+        if (property.Amenities.Any(a => a.Id == amenityId))
+        {
+            await _unitOfWork.AmenitiesRepo.RemoveFromProperty(amenityId);
+            await _unitOfWork.SaveChangesAsync();
+            return Result<bool>.Success(true,(int) HttpStatusCode.NoContent, "amentiy removed.");
+        }
+
+        var propAmenity = new PropertyAmenity() { AmenityId= amenityId , PropertyId = propertyId};
+        await _unitOfWork.AmenitiesRepo.Assign(propAmenity);
+        await _unitOfWork.SaveChangesAsync();
+        return Result<bool>.Success(true,(int) HttpStatusCode.NoContent, "Amenity added.");
+
+    }
 }

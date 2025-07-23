@@ -7,7 +7,7 @@ namespace Airbnb.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AmenityController : ControllerBase
+public class AmenityController : BaseController
 {
     private readonly AmenityService _amenityService;
 
@@ -93,6 +93,13 @@ public class AmenityController : ControllerBase
             return StatusCode(result.StatusCode ?? 400, result);
 
         return Ok(result);
+    }
+
+    [HttpPost("assign/{amenityId}/porperty/{propertyId}")]
+    public async Task<IActionResult> TogglePropertyAmenity(int amenityId, int propertyId)
+    {
+        var result = await _amenityService.Toggle(amenityId, propertyId);
+        return ToActionResult(result);
     }
 
 }
