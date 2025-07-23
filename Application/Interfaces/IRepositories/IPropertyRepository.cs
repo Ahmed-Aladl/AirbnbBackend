@@ -19,5 +19,6 @@ namespace Application.Interfaces.IRepositories
         Task<Property> GetByIdWithCalendarAsync(int id);
         Task<List<Property>> GetByHostIdAsync(string hostId);
         Task<List<Property>> GetByHostIdWithCoverAsync(string hostId);
+
     }
 }
