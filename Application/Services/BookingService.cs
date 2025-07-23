@@ -112,6 +112,47 @@ namespace Application.Services
             }
         }
 
+        public async Task<Result<List<BookingDetailsDTO>>> GetBookingsByPropertyIdAsync(int propertyId)
+        {
+            try
+            {
+
+                var bookings = await uow.Bookings.GetBookingByPropertyIdAsync(propertyId);
+
+                if (bookings == null || !bookings.Any())
+                    return Result<List<BookingDetailsDTO>>.Fail("No bookings found for this property.", 404);
+
+                var bookingDtos = bookings.Select(b => new BookingDetailsDTO
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    FirstName = b.User?.FirstName,
+                    LastName = b.User?.LastName,
+                    PhoneNumber = b.User?.PhoneNumber,
+                    UserCountry = b.User?.Country,
+
+                    CheckInDate = b.CheckInDate,
+                    CheckOutDate = b.CheckOutDate,
+                    NumberOfGuests = b.NumberOfGuests,
+                    TotalPrice = b.TotalPrice,
+                    BookingStatus = b.BookingStatus.ToString(),
+
+                    PropertyId = b.Property.Id,
+                    PropertyTitle = b.Property.Title,
+                    City = b.Property.City,
+                    Country = b.Property.Country
+                }).ToList();
+
+                return Result<List<BookingDetailsDTO>>.Success(bookingDtos);
+            }
+            catch (Exception)
+            {
+                return Result<List<BookingDetailsDTO>>.Fail("Failed to retrieve bookings for this property.", 500);
+            }
+        }
+
+
+
 
 
         public async Task<Result<string>> DeleteBookingAsync(int id)

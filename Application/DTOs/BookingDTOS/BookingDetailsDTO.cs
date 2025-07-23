@@ -16,12 +16,18 @@ namespace Application.DTOs.BookingDTOS
         public decimal TotalPrice { get; set; }
         public string BookingStatus { get; set; }
         public string UserId { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? UserCountry { get; set; }
 
 
         public int PropertyId { get; set; }
         public string PropertyTitle { get; set; }
         public string City { get; set; }
         public string Country { get; set; }
+
+
 
     }
 }
