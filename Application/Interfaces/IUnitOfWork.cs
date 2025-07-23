@@ -19,8 +19,9 @@ namespace Application.Interfaces
         IWishlistRepository Wishlist { get; }
         IPaymentRepository paymentRepository { get; }
         IReviewRepo ReviewRepo { get; }
+        IPropertyTypeRepository propertyType { get; }
         INotificationRepository NotificationRepo { get; }
-
+        IHostReviewRepo HostReviewRepo { get; }
         Task<int> SaveChangesAsync();
         int SaveChanges();
     }

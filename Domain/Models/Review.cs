@@ -21,6 +21,8 @@ namespace Domain.Models
         public int Location { get; set; } = 0;
         public int Value { get; set; } = 0;
 
+        public HostReply? HostReply { get; set; } =null ;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         //

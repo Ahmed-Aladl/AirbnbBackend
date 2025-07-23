@@ -9,6 +9,7 @@ using Infrastructure.Common.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.SignalR;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Domain.Models;
 
 namespace Airbnb.DependencyInjection.PresentationDI
 {
@@ -66,6 +67,9 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<BookingService>();
             services.AddScoped<CalendarService>();
             services.AddScoped<AmenityService>();
+            services.AddScoped<PropertyTypeService>();
+            services.AddScoped<HostReplyService>();
+
 
             services.AddScoped<IStripeService, StripeService>();
             services.AddScoped<PaymentService>();

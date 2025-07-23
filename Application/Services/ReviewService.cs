@@ -215,6 +215,62 @@ namespace Application.Services
         }
 
 
+        public async Task<Result<List<GuestReviewDTO>>> GetReviewsByUserId(string userId)
+        {
+            try
+            {                
+                List<Review> reviews = await UOW.ReviewRepo.GetByUserIdAsync(userId);
+
+                if (reviews == null || reviews.Count == 0)
+                    return Result<List<GuestReviewDTO>>.Success(new List<GuestReviewDTO>()); 
+
+                List<GuestReviewDTO> reviewsDTO = _map.Map<List<GuestReviewDTO>>(reviews);
+
+                return Result<List<GuestReviewDTO>>.Success(reviewsDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving reviews for user {userId}: {ex.Message}");
+                return Result<List<GuestReviewDTO>>.Fail("Failed to retrieve user reviews.", 500);
+            }
+        }
+
+        public async Task<Result<List<GuestReviewDTO>>> GetReviewsByPropertyId(int propertyId)
+        {
+            try
+            {
+                var property = await UOW.PropertyRepo.GetByIdAsync(propertyId);
+                if (property == null)
+                    return Result<List<GuestReviewDTO>>.Fail("Property not found.", 404);
+
+                List<Review> reviews = await UOW.ReviewRepo.GetByPropertyIdAsync(propertyId);
+
+                if (reviews == null || reviews.Count == 0)
+                    return Result<List<GuestReviewDTO>>.Success(new List<GuestReviewDTO>()); // Return empty list instead of error
+
+                List<GuestReviewDTO> reviewsDTO = _map.Map<List<GuestReviewDTO>>(reviews);
+
+                return Result<List<GuestReviewDTO>>.Success(reviewsDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving reviews for property {propertyId}: {ex.Message}");
+                return Result<List<GuestReviewDTO>>.Fail("Failed to retrieve property reviews.", 500);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         //public async Task<Result<List<GuestReviewDTO>>> GetByHostId(int hostId)

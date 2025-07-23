@@ -75,6 +75,7 @@ namespace Airbnb.Controllers
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
+
         {
             Result<GuestReviewDTO> result = await reviewservice.GetById(id);
 
@@ -82,9 +83,32 @@ namespace Airbnb.Controllers
                 return StatusCode(result.StatusCode ?? 500, result.Message); 
             else
             {
-                return Ok(result);
+                return ToActionResult(result);
             }
         }
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetReviewsByUserId(string userId)
+        {
+            Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByUserId(userId);
+
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode ?? 500, result.Message);
+            else
+                return ToActionResult(result);
+        }
+        //property
+        [HttpGet("property/{propertyId}")]
+        public async Task<IActionResult> GetReviewsByPropertyId(int propertyId)
+        {
+            Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByPropertyId(propertyId);
+
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode ?? 500, result.Message);
+            else
+                return ToActionResult(result);
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> Add(AddReviewByGuestDTO dto)

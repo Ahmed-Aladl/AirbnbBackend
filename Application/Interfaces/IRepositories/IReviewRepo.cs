@@ -14,7 +14,11 @@ namespace Application.Interfaces.IRepositories
         Task<Review?> GetByIdAsync(int id);
         Task AddAsync(Review entity);
         Task AddRangeAsync(ICollection<Review> entities);
-        Task<Review?> GetByBookingIdAsync(int BookingId); 
+        Task<Review?> GetByBookingIdAsync(int BookingId);
+
+        Task<List<Review>> GetByPropertyIdAsync(int propertyId);
+        Task<List<Review>> GetByUserIdAsync(string userId);
+
 
     }
 }
