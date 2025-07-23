@@ -39,6 +39,19 @@ namespace Infrastructure.Common.Repositories
          .ToListAsync();
         }
 
+        public async Task<List<Booking>> GetBookingByPropertyIdAsync(int propertyId)
+        {
+            return await _db.Bookings
+        .Include(b => b.Property)
+        .Include(b => b.User) 
+        .Where(b => b.PropertyId == propertyId && !b.IsDeleted)
+        .ToListAsync();
+        }    
+
+
+
+
+         
 
         public async Task AddAsync(Booking entity)
         {
