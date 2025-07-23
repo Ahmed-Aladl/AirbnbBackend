@@ -32,12 +32,13 @@ namespace Infrastructure.Data
             //{
             //    return; // Database has been seeded
             //}
+            // Create roles
             if (!await context.Roles.AnyAsync())
-                // Create roles
                 await CreateRoles(roleManager);
+            else return;
 
-            // Create users
-            List<User> users = new();
+                // Create users
+                List<User> users = new();
             if (!await context.Users.AnyAsync())
                 users = await CreateUsers(userManager);
 
@@ -113,6 +114,22 @@ namespace Infrastructure.Data
         {
             var users = new List<User>
             {
+                new User
+                {
+                    Id = "1",
+                    UserName = "3ssam",
+                    Email = "3ssam@airbnb.com",
+                    FirstName = "Ahmed",
+                    LastName = "Essam",
+                    PasswordHash = "AQAAAAIAAYagAAAAEGaV0nt6IfcPGeBxxtYdpGgRyA78UovJ3DehwHOuUFu+AvPiivzEwMwR01un6oewnA==",
+                    CreateAt = DateTime.Now.AddYears(-1),
+                    UpdatedAt = DateTime.Now,
+                    ProfilePictureURL = "https://example.com/admin-profile.jpg",
+                    Bio = "System Administrator",
+                    Country = "USA",
+                    BirthDate = new DateOnly(1990, 1, 1),
+                    EmailConfirmed = true,
+                },
                 new User
                 {
                     UserName = "admin@airbnb.com",

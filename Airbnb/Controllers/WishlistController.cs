@@ -12,7 +12,7 @@ namespace Airbnb.Controllers
     [ApiController]
     public class WishlistController : BaseController
     {
-        private string UserId { get; set; } = "7d791eb5-6116-4994-9870-0344563546d4";
+        private string UserId { get; set; } = "1";
         public WishlistService WishlistService { get; }
 
         public WishlistController(WishlistService wishlistService)

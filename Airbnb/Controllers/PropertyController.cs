@@ -21,20 +21,27 @@ namespace Airbnb.Controllers
     [ApiController]
     public class PropertyController : BaseController
     {
+        
         public PropertyService PropertyService { get; }
+        public UserManager<User> UserManager { get; }
+
         private readonly IWebHostEnvironment _env;
         private readonly IFileService _fileService;
+        private readonly string userId = "1";
 
         public PropertyController(
                                     PropertyService _propertyService,
                                     UserManager<User> user,
                                     IWebHostEnvironment env, 
-                                    IFileService fileService
+                                    IFileService fileService,
+                                    IConfiguration config
                                 )
         {
             _env = env;
             _fileService = fileService;
             PropertyService = _propertyService;
+            UserManager = user;
+            userId = config["userId"];
         }
 
 
@@ -49,11 +56,27 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Get All Properties")]
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult>GetAll()
         {
-
-            return PropertyService.GetAll()
-                                  .ToActionResult();
+            //var user = new User
+            //{
+            //    Id = "1",
+            //    UserName = "3ssam",
+            //    Email = "3ssam@airbnb.com",
+            //    FirstName = "Ahmed",
+            //    LastName = "Essam",
+            //    CreateAt = DateTime.Now.AddYears(-1),
+            //    UpdatedAt = DateTime.Now,
+            //    ProfilePictureURL = "https://example.com/admin-profile.jpg",
+            //    Bio = "System Administrator",
+            //    Country = "USA",
+            //    BirthDate = new DateOnly(1990, 1, 1),
+            //    EmailConfirmed = true,
+            //};
+            //await UserManager.CreateAsync(user,"3ssaM@asd");
+            //Console.WriteLine("\n\n\n*******************************************user created *******************************************\n\n\n");
+            var result = PropertyService.GetAll();
+            return ToActionResult(result);
 
         }
 
