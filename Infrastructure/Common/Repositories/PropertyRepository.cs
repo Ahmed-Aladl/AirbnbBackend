@@ -17,7 +17,13 @@ namespace Infrastructure.Common.Repositories
             : base(context) { }
 
         
-
+        //public async  Task<Property> GetAllWithFavourite(string userId="1")
+        //{
+        //    var x = Db.Properties
+        //                .Include(p => p.Images.Where(i => !i.IsDeleted && i.IsCover))
+        //                .Include(p => p.WishlistProperties.Where(wp => wp.Wishlist.UserId == userId))
+                        
+        //}
         public async Task<Property> GetByIdAsync(int id)
         {
             return await Db.Set<Property>()
@@ -63,7 +69,7 @@ namespace Infrastructure.Common.Repositories
                                     .ToListAsync();
         }
 
-        public async Task<PaginatedResult<Property>> GetPageWithCoverAsync(int page, int pageSize)
+        public async Task<PaginatedResult<Property>> GetPageWithCoverAsync(int page, int pageSize, string userId="1")
         {
             var filtered = Db.Properties
                                     .Where(p => !p.IsDeleted && p.IsActive);
@@ -74,7 +80,7 @@ namespace Infrastructure.Common.Repositories
                                 .Take(pageSize)
                                 .Include (p => p.Images.Where(i=> !i.IsDeleted && i.IsCover))
                                 .ToListAsync();
-
+            
             return new PaginatedResult<Property>()
             {
                 Items = pageData,
@@ -127,7 +133,7 @@ namespace Infrastructure.Common.Repositories
         }
 
 
-        public async Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto)
+        public async Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto, string userId = "1")
         {
             var query = Db.Properties
                 //.Include(p => p.Reservations)
@@ -174,7 +180,13 @@ namespace Infrastructure.Common.Repositories
                                     .Include(p=> p.Images.Where(i=> !i.IsDeleted && i.IsCover))
                                     .Skip((filterDto.Page - 1) * filterDto.PageSize)
                                     .Take(filterDto.PageSize)
+                                    .Include(p => p.WishlistProperties.Where(wp => wp.Wishlist.UserId == userId))
                                     .ToListAsync();
+
+            foreach( var item in pageData)
+            {
+                Console.WriteLine($"from filter {item.WishlistProperties.Count}");
+            }
 
             return new() 
                     { 

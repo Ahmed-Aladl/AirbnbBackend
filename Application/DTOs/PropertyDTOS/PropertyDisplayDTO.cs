@@ -37,6 +37,7 @@ namespace Application.DTOs.PropertyDTOS
         public float AverageRating { get; set; }
         public int ReviewCount { get; set; }
 
+        public bool isFavourite { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 

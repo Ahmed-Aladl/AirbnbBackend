@@ -72,7 +72,10 @@ namespace Application.Services
         public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetPageAsync(int page=1, int pageSize = 7)
         {
             var paginatedResult = await UnitOfWork.PropertyRepo.GetPageWithCoverAsync(page, pageSize);
-
+            foreach (var item in paginatedResult.Items)
+            {
+                Console.WriteLine($"from getPageWithCover {item.WishlistProperties.Count}");
+            }
             var mapped = Mapper.Map<PaginatedResult<PropertyDisplayDTO>>(paginatedResult);
 
             return Result<PaginatedResult<PropertyDisplayDTO>>.Success(mapped);
