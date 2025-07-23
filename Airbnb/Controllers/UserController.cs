@@ -127,23 +127,25 @@ public class UserController : ControllerBase
         if (user == null)
             return NotFound("User not found");
 
-        var otp = await _context
-            .UsersOtp.Where(x =>
-                x.UserId == user.Id
-                && x.Code == dto.Code
-                && !x.IsUsed
-                && x.ExpiresAt > DateTime.UtcNow
-            )
-            .FirstOrDefaultAsync();
+        var otp = await _context.UsersOtp.FirstOrDefaultAsync(x =>
+            x.UserId == user.Id &&
+            x.Code == dto.Code &&
+            !x.IsUsed &&
+            x.ExpiresAt > DateTime.UtcNow);
 
         if (otp == null)
             return BadRequest("Invalid or expired OTP");
 
         otp.IsUsed = true;
+
+        var allUserOtps = _context.UsersOtp.Where(x => x.UserId == user.Id);
+        _context.UsersOtp.RemoveRange(allUserOtps);
+
         await _context.SaveChangesAsync();
 
         return Ok("OTP verified");
     }
+
 
     [HttpPost("logout")]
     public IActionResult Logout()
@@ -168,7 +170,7 @@ public class UserController : ControllerBase
                 UserId = user.Id,
                 Code = otp,
                 IsUsed = false,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(1),
             }
         );
 
