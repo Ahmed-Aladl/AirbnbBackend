@@ -15,6 +15,7 @@ namespace Application.Interfaces.IRepositories
         Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto);
         Task<PaginatedResult<Property>> GetNearestPageWithCoverAsync(IpLocation ipLocation, int page, int pageSize, double maxDistanceKm);
         Task<Property> GetByIdAsync(int id);
+        Task<Property> GetByIdWithAmenitiesAsync(int id);
         Task<Property> GetByIdWithCoverAsync(int id);
         Task<Property> GetByIdWithCalendarAsync(int id);
         Task<List<Property>> GetByHostIdAsync(string hostId);

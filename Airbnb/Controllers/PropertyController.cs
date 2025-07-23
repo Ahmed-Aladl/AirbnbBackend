@@ -204,6 +204,7 @@ namespace Airbnb.Controllers
         [HttpPost("property-images/upload")]
         public async Task<IActionResult> UploadPropertyImages([FromForm] PropertyImagesUploadContainerDTO dto)
         {
+            Console.WriteLine("\n\n\n\n\n\n******************************************************uploading photos******************************************************");
             if (dto.Files == null || !dto.Files.Any())
                 return BadRequest("No files uploaded");
 

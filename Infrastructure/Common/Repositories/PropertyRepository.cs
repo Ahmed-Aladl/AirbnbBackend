@@ -25,6 +25,15 @@ namespace Infrastructure.Common.Repositories
                 .Include(p => p.Host)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
+
+        public async Task<Property> GetByIdWithAmenitiesAsync(int id)
+        {
+            return 
+               await Db.Set<Property>()
+                  .Include(p => p.Amenities)
+                  .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
         public async Task<Property> GetByIdWithCoverAsync(int id)
         {
             return await Db.Set<Property>()
@@ -182,9 +191,6 @@ namespace Infrastructure.Common.Repositories
 
 
         }
-
-
-
 
 
     }

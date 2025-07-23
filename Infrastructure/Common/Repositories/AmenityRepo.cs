@@ -47,4 +47,14 @@ public class AmenityRepo : Repository<Amenity, int>, IAmenityRepo
     {
         return await _context.Amenities.OrderBy(a => a.Id).ToListAsync();
     }
+
+    public async Task Assign(PropertyAmenity propertyAmenity)
+    {
+        await Db.PropertyAmenities.AddAsync(propertyAmenity);
+    }
+
+    public async Task RemoveFromProperty(PropertyAmenity propertyAmenity)
+    {
+        Db.PropertyAmenities.Remove(propertyAmenity);
+    }
 }
