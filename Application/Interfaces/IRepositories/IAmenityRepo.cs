@@ -10,5 +10,5 @@ public interface IAmenityRepo : IRepository<Amenity, int>
     //Task<IEnumerable<Amenity>> GetByIdAsync(int propertyId);
 
     Task Assign(PropertyAmenity propertyAmenity);
-    Task RemoveFromProperty(int amenityId);
+    Task RemoveFromProperty(PropertyAmenity propertyAmenity);
 }

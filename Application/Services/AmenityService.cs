@@ -177,14 +177,14 @@ public class AmenityService
         var property = await _unitOfWork.PropertyRepo.GetByIdWithAmenitiesAsync(propertyId);
         if (property == null)
             return Result<bool>.Fail("Property not found.",(int) HttpStatusCode.NotFound);
+        var propAmenity = new PropertyAmenity() { AmenityId= amenityId , PropertyId = propertyId};
         if (property.Amenities.Any(a => a.Id == amenityId))
         {
-            await _unitOfWork.AmenitiesRepo.RemoveFromProperty(amenityId);
+            await _unitOfWork.AmenitiesRepo.RemoveFromProperty(propAmenity);
             await _unitOfWork.SaveChangesAsync();
             return Result<bool>.Success(true,(int) HttpStatusCode.NoContent, "amentiy removed.");
         }
 
-        var propAmenity = new PropertyAmenity() { AmenityId= amenityId , PropertyId = propertyId};
         await _unitOfWork.AmenitiesRepo.Assign(propAmenity);
         await _unitOfWork.SaveChangesAsync();
         return Result<bool>.Success(true,(int) HttpStatusCode.NoContent, "Amenity added.");
