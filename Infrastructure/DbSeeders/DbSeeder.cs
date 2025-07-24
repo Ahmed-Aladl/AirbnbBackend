@@ -91,8 +91,8 @@ namespace Infrastructure.Data
                 await CreateNotifications(context, users);
 
             // Create messages
-            if (!await context.Messages.AnyAsync())
-                await CreateMessages(context, users, properties);
+            //if (!await context.Messages.AnyAsync())
+            //    await CreateMessages(context, users, properties);
 
             await context.SaveChangesAsync();
         }
@@ -697,65 +697,65 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreateMessages(
-            AirbnbContext context,
-            List<User> users,
-            List<Property> properties
-        )
-        {
-            var messages = new List<Message>();
-            var hosts = users.Where(u => u.Email.Contains("host")).ToList();
-            var guests = users.Where(u => u.Email.Contains("guest")).ToList();
+        //private static async Task CreateMessages(
+        //    AirbnbContext context,
+        //    List<User> users,
+        //    List<Property> properties
+        //)
+        //{
+        //    var messages = new List<Message>();
+        //    var hosts = users.Where(u => u.Email.Contains("host")).ToList();
+        //    var guests = users.Where(u => u.Email.Contains("guest")).ToList();
 
-            // Create conversations between hosts and guests
-            foreach (var host in hosts)
-            {
-                foreach (var guest in guests.Take(2)) // Each host talks to 2 guests
-                {
-                    var property = properties.FirstOrDefault(p => p.HostId == host.Id);
-                    if (property != null)
-                    {
-                        // Create a conversation thread
-                        var conversationMessages = new[]
-                        {
-                            new Message
-                            {
-                                SenderId = guest.Id,
-                                ReceiverId = host.Id,
-                                PropertyId = property.Id,
-                                MesageText =
-                                    "Hi, I'm interested in booking your property. Is it available for next weekend?",
-                                SentAt = DateTime.Now.AddHours(-24),
-                                Isread = true,
-                            },
-                            new Message
-                            {
-                                SenderId = host.Id,
-                                ReceiverId = guest.Id,
-                                PropertyId = property.Id,
-                                MesageText =
-                                    "Hello! Yes, it's available. I'd be happy to host you. Do you have any questions about the property?",
-                                SentAt = DateTime.Now.AddHours(-23),
-                                Isread = true,
-                            },
-                            new Message
-                            {
-                                SenderId = guest.Id,
-                                ReceiverId = host.Id,
-                                PropertyId = property.Id,
-                                MesageText = "Great! What's the check-in process like?",
-                                SentAt = DateTime.Now.AddHours(-22),
-                                Isread = false,
-                            },
-                        };
+        //    // Create conversations between hosts and guests
+        //    foreach (var host in hosts)
+        //    {
+        //        foreach (var guest in guests.Take(2)) // Each host talks to 2 guests
+        //        {
+        //            var property = properties.FirstOrDefault(p => p.HostId == host.Id);
+        //            if (property != null)
+        //            {
+        //                // Create a conversation thread
+        //                var conversationMessages = new[]
+        //                {
+        //                    new Message
+        //                    {
+        //                        SenderId = guest.Id,
+        //                        ReceiverId = host.Id,
+        //                        PropertyId = property.Id,
+        //                        MesageText =
+        //                            "Hi, I'm interested in booking your property. Is it available for next weekend?",
+        //                        SentAt = DateTime.Now.AddHours(-24),
+        //                        Isread = true,
+        //                    },
+        //                    new Message
+        //                    {
+        //                        SenderId = host.Id,
+        //                        ReceiverId = guest.Id,
+        //                        PropertyId = property.Id,
+        //                        MesageText =
+        //                            "Hello! Yes, it's available. I'd be happy to host you. Do you have any questions about the property?",
+        //                        SentAt = DateTime.Now.AddHours(-23),
+        //                        Isread = true,
+        //                    },
+        //                    new Message
+        //                    {
+        //                        SenderId = guest.Id,
+        //                        ReceiverId = host.Id,
+        //                        PropertyId = property.Id,
+        //                        MesageText = "Great! What's the check-in process like?",
+        //                        SentAt = DateTime.Now.AddHours(-22),
+        //                        Isread = false,
+        //                    },
+        //                };
 
-                        messages.AddRange(conversationMessages);
-                    }
-                }
-            }
+        //                messages.AddRange(conversationMessages);
+        //            }
+        //        }
+        //    }
 
-            context.Messages.AddRange(messages);
-            await context.SaveChangesAsync();
-        }
+        //    context.Messages.AddRange(messages);
+        //    await context.SaveChangesAsync();
+        //}
     }
 }

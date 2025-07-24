@@ -4,6 +4,7 @@ using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AirbnbContext))]
-    partial class AirbnbContextModelSnapshot : ModelSnapshot
+    [Migration("20250724003333_RemoveOldMessage")]
+    partial class RemoveOldMessage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,202 +115,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("PropertyId");
 
                     b.ToTable("calendarAvailabilities");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.ChatSession", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HostId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("LastActivityAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastMessageAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastMessageText")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("PropertyId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UnreadCountForHost")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UnreadCountForUser")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HostId", "LastActivityAt");
-
-                    b.HasIndex("PropertyId", "UserId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId", "LastActivityAt");
-
-                    b.ToTable("ChatSessions");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.Message", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ChatSessionId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EditedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsEdited")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsHost")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("MessageText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("SenderId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChatSessionId", "CreatedAt");
-
-                    b.HasIndex("SenderId", "CreatedAt");
-
-                    b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.MessageReaction", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("MessageId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ReactionType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("MessageId", "UserId", "ReactionType")
-                        .IsUnique();
-
-                    b.ToTable("MessageReactions");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.MessageReadStatus", b =>
-                {
-                    b.Property<string>("MessageId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("ReadAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("MessageId", "UserId");
-
-                    b.ToTable("MessageReadStatuses");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.ReservationRequest", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ChatSessionId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CheckInDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CheckOutDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("GuestCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MessageId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("RequestStatus")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("RespondedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ResponseMessage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChatSessionId");
-
-                    b.HasIndex("MessageId")
-                        .IsUnique()
-                        .HasFilter("[MessageId] IS NOT NULL");
-
-                    b.HasIndex("RequestStatus");
-
-                    b.ToTable("ReservationRequests");
                 });
 
             modelBuilder.Entity("Domain.Models.HostReply", b =>
@@ -974,92 +781,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Property");
                 });
 
-            modelBuilder.Entity("Domain.Models.Chat.ChatSession", b =>
-                {
-                    b.HasOne("Domain.Models.User", "Host")
-                        .WithMany()
-                        .HasForeignKey("HostId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.Property", "Property")
-                        .WithMany("ChatSessions")
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Host");
-
-                    b.Navigation("Property");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.Message", b =>
-                {
-                    b.HasOne("Domain.Models.Chat.ChatSession", "ChatSession")
-                        .WithMany("Messages")
-                        .HasForeignKey("ChatSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChatSession");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.MessageReaction", b =>
-                {
-                    b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithMany("Reactions")
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Message");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.MessageReadStatus", b =>
-                {
-                    b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithMany("ReadStatuses")
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Message");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.ReservationRequest", b =>
-                {
-                    b.HasOne("Domain.Models.Chat.ChatSession", "ChatSession")
-                        .WithMany()
-                        .HasForeignKey("ChatSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithOne("ReservationRequest")
-                        .HasForeignKey("Domain.Models.Chat.ReservationRequest", "MessageId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("ChatSession");
-
-                    b.Navigation("Message");
-                });
-
             modelBuilder.Entity("Domain.Models.HostReply", b =>
                 {
                     b.HasOne("Domain.Models.Review", "Review")
@@ -1289,28 +1010,11 @@ namespace Infrastructure.Migrations
                     b.Navigation("PropertyAmenities");
                 });
 
-            modelBuilder.Entity("Domain.Models.Chat.ChatSession", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.Message", b =>
-                {
-                    b.Navigation("Reactions");
-
-                    b.Navigation("ReadStatuses");
-
-                    b.Navigation("ReservationRequest")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Domain.Models.Property", b =>
                 {
                     b.Navigation("Bookings");
 
                     b.Navigation("CalendarAvailabilities");
-
-                    b.Navigation("ChatSessions");
 
                     b.Navigation("Images");
 

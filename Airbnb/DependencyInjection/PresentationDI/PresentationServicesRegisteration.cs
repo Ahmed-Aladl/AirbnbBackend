@@ -10,6 +10,8 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.SignalR;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Domain.Models;
+using Application.Interfaces.Services;
+using Application.Services.Chat;
 
 namespace Airbnb.DependencyInjection.PresentationDI
 {
@@ -55,13 +57,16 @@ namespace Airbnb.DependencyInjection.PresentationDI
         {
             AddCors(services, configuration);
 
+            services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IEmailService, GmailEmailService>();
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IStripeService, StripeService>();
+            services.AddScoped<PaymentService>();
 
 
             services.AddScoped<WishlistService>();
-            services.AddScoped<IFileService, FileService>();
             services.AddScoped<ReviewService>();
             services.AddScoped<PropertyService>();
             services.AddScoped<BookingService>();
@@ -71,12 +76,9 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<HostReplyService>();
 
 
-            services.AddScoped<IStripeService, StripeService>();
-            services.AddScoped<PaymentService>();
 
             services.AddAutoMapper(c => c.AddProfile<PropertyProfile>(), typeof(CalendarMappingProfile).Assembly);
 
-            services.AddScoped<IFileService, FileService>();
             services.AddSwaggerGen(c => c.OperationFilter<FileUploadOperationFilter>());
 
             services.AddSignalR();
@@ -94,8 +96,6 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app)
         {
-            app.MapHub<NotificationHub>("/notificationHub");
-
 
             //app.MapOpenApi();
             app.UseSwagger();
