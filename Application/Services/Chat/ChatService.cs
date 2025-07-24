@@ -269,8 +269,8 @@ namespace Application.Services.Chat
         private async Task<MessageDto> MapMessageToDto(Message message, string currentUserId)
         {
             var sender = UnitOfWork.UserRepo.GetById(message.SenderId);
-            var isRead = message.ReadStatuses?.Any(rs => rs.UserId == currentUserId) ?? false;
-
+            var isRead = message.ReadStatuses?.Any(rs => rs.UserId != currentUserId) ?? false;
+            
             return new MessageDto
             {
                 Id = message.Id,
