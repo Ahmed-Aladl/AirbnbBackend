@@ -5,6 +5,7 @@ using Application.Interfaces.Services;
 using Application.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Bcpg;
 
 namespace Airbnb.Controllers
 {
@@ -15,7 +16,8 @@ namespace Airbnb.Controllers
 
         private readonly IChatService _chatService;
         private readonly ILogger<ChatController> _logger;
-        string userId = "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";// host of property "1" 
+        //string userId = "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";// host of property "1" 
+        string userId = "1";
         public ChatController(
             IChatService chatService,
             ILogger<ChatController> logger)
