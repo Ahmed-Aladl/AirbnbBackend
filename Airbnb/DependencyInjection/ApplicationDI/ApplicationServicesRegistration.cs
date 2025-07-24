@@ -1,4 +1,6 @@
+using Airbnb.Hubs;
 using Application.Interfaces;
+using Application.Interfaces.Hubs;
 using Application.Interfaces.IRepositories;
 using Application.Mappings;
 using Application.Services;
@@ -14,6 +16,8 @@ namespace Airbnb.DependencyInjection.ApplicationDI
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+            // ChatNotifier for chat hub
+            services.AddScoped<IChatNotifier, ChatNotifier>();
             services.AddScoped<ICalendarAvailabilityRepo, CalendarAvailabilityRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
 

@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
+using Application.Interfaces.IRepositories.Chat;
 using Infrastructure.Common;
 using Infrastructure.Common.Repositories;
+using Infrastructure.Common.Repositories.Chat;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +16,12 @@ namespace Infrastructure.Common
 {
     public class UnitOfWork : IUnitOfWork
     {
+        private IChatSessionRepository _chatSessionRepo;
+        private IMessageRepository _messageRepo;
+        private IMessageReactionRepository _messageReactionRepo;
+        private IMessageReadStatusRepository _messageReadStatusRepo;
+        private IReservationRequestRepository _reservationRepo ;
+
         private IPropertyRepository _propertyRepo;
         private IPropertyImageRepository _propertyImageRepo;
         private INotificationRepository _notificationRepo;
@@ -39,6 +47,12 @@ namespace Infrastructure.Common
                 return _bookingRepo;
             }
         }
+        public IChatSessionRepository ChatSessionRepo => _chatSessionRepo ?? new ChatSessionRepository(Context);
+        public IMessageRepository MessageRepo => _messageRepo ?? new MessageRepository(Context);
+        public IMessageReadStatusRepository MessageReadRepo => _messageReadStatusRepo ?? new MessageReadStatusRepository(Context);
+        public IReservationRequestRepository ReservationRepo => _reservationRepo ?? new ReservationRequestRepository(Context);
+        public IMessageReactionRepository ReactionRepo => _messageReactionRepo ?? new MessageReactionRepository(Context);
+
         public IPropertyRepository PropertyRepo => _propertyRepo ?? new PropertyRepository(Context);
         public INotificationRepository NotificationRepo =>
             _notificationRepo ?? new NotificationRepository(Context);

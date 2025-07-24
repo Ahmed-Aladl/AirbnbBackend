@@ -4,6 +4,7 @@ using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AirbnbContext))]
-    partial class AirbnbContextModelSnapshot : ModelSnapshot
+    [Migration("20250724012828_NewChatSchema")]
+    partial class NewChatSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -301,9 +304,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ChatSessionId");
 
-                    b.HasIndex("MessageId")
-                        .IsUnique()
-                        .HasFilter("[MessageId] IS NOT NULL");
+                    b.HasIndex("MessageId");
 
                     b.HasIndex("RequestStatus");
 
@@ -979,19 +980,19 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Models.User", "Host")
                         .WithMany()
                         .HasForeignKey("HostId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Models.Property", "Property")
                         .WithMany("ChatSessions")
                         .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Host");
@@ -1015,7 +1016,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Chat.MessageReaction", b =>
                 {
                     b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithMany("Reactions")
+                        .WithMany()
                         .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1034,7 +1035,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Chat.MessageReadStatus", b =>
                 {
                     b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithMany("ReadStatuses")
+                        .WithMany()
                         .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1051,8 +1052,8 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithOne("ReservationRequest")
-                        .HasForeignKey("Domain.Models.Chat.ReservationRequest", "MessageId")
+                        .WithMany()
+                        .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("ChatSession");
@@ -1292,16 +1293,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Chat.ChatSession", b =>
                 {
                     b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("Domain.Models.Chat.Message", b =>
-                {
-                    b.Navigation("Reactions");
-
-                    b.Navigation("ReadStatuses");
-
-                    b.Navigation("ReservationRequest")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Models.Property", b =>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Models.Chat;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Models
@@ -53,5 +54,7 @@ namespace Domain.Models
         public ICollection<WishlistProperty> WishlistProperties { get; set; }
         public ICollection<PropertyImage> Images { get; set; }
         public ICollection<Booking> Bookings { get; set; }
+
+        public ICollection<ChatSession> ChatSessions{ get; set; }
     }
 }
