@@ -73,7 +73,24 @@ namespace Airbnb
             app.MapHub<ChatHub>("/chatHub");
             app.MapHub<NotificationHub>("/notificationHub");
             app.MapControllers();
+            app.Use(async (context, next) =>
+            {
+                var user = context.User;
 
+                if (user?.Identity?.IsAuthenticated == true)
+                {
+                    Console.WriteLine($"User: {user.Identity.Name}");
+
+                    foreach (var claim in user.Claims)
+                    {
+                        Console.WriteLine($"Claim: {claim.Type} = {claim.Value}");
+                    }
+                }
+                else
+                    Console.WriteLine("******\n\n8\n8\n8\n8\n8\n8\n8 not data found\n8n\n8\n8\n8\n8\n8\n8\n\n\n");
+
+                await next();
+            });
 
             app.Run();
         }
