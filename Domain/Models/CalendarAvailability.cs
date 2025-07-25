@@ -15,6 +15,8 @@ namespace Domain.Models
 
         public bool IsAvailable { get; set; } = true;
 
+        public bool IsBooked { get; set; } = false;
+
         [Precision(18, 2)]
         [Range(0, double.MaxValue)]
         public decimal Price { get; set; }

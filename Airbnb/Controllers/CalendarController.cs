@@ -35,13 +35,5 @@ namespace API.Controllers
             var result = await _calendarService.UpdatePropertyCalendar(propertyId, updates);
             return StatusCode(result.StatusCode ?? 200, result);
         }
-
-        [HttpGet("property/{propertyId}/availability")]
-        public async Task<ActionResult<Result<AvailabilityCheckDto>>> CheckAvailability(
-            int propertyId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] int guests = 1)
-        {
-            var result = await _calendarService.CheckAvailability(propertyId, startDate, endDate, guests);
-            return StatusCode(result.StatusCode ?? 200, result);
-        }
     }
 }
