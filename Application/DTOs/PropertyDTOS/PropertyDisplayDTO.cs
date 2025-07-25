@@ -45,5 +45,6 @@ namespace Application.DTOs.PropertyDTOS
         public int PropertyTypeId { get; set; }
         public string HostId { get; set; }
         public List<PropertyImageDisplayDTO>? Images { get; set; }
+        public string? HostPicture { get; set; }
     }
 }

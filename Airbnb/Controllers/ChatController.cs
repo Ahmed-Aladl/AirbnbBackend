@@ -50,8 +50,8 @@ namespace Airbnb.Controllers
 
 
 
-        [HttpPost("sessions")]
-        public async Task<ActionResult<ChatSessionDto>> CreateOrGetChatSession([FromBody] int propertyId)
+        [HttpPost("reserve")]
+        public async Task<ActionResult<ChatSessionDto>> CreateOrGetChatSession([FromBody] CreateReservationRequestDto createRequest)
         {
             try
             {
@@ -61,29 +61,29 @@ namespace Airbnb.Controllers
                 }
 
                 var currentUserId = userId;
-                var session = await _chatService.GetOrCreateChatSessionAsync(propertyId, currentUserId);
+                var responseResult = await _chatService.Reserve(createRequest.propertyId, currentUserId,createRequest);
 
                 // Check if this is a new session or existing one
-                var isNew = session?.Data?.LastMessageText == null;
+                var isNew = responseResult?.Data?.ChatSession?.LastMessageText == null;
 
                 _logger.LogInformation("Chat session {ChatSessionId} {Action} for property {PropertyId} and user {UserId}",
-                    session?.Data?.Id, isNew ? "created" : "retrieved", propertyId, currentUserId);
+                    responseResult?.Data?.ChatSession?.Id, isNew ? "created" : "retrieved", responseResult?.Data?.ChatSession?.PropertyId, currentUserId);
 
-                return Ok(session);
+                return Ok(responseResult);
             }
             catch (NotFoundException ex)
             {
-                _logger.LogWarning(ex, "Property {PropertyId} not found for user {UserId}", propertyId, userId);
+                _logger.LogWarning(ex, "Property {PropertyId} not found for user {UserId}", createRequest.propertyId , userId);
                 return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Invalid operation for property {PropertyId} and user {UserId}", propertyId, userId);
+                _logger.LogWarning(ex, "Invalid operation for property {PropertyId} and user {UserId}", createRequest.propertyId, userId);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating/getting chat session for property {PropertyId}", propertyId);
+                _logger.LogError(ex, "Error creating/getting chat session for property {PropertyId}", createRequest.propertyId);
                 return StatusCode(500, new { message = "Internal server error occurred while creating chat session" });
             }
         }
@@ -122,7 +122,6 @@ namespace Airbnb.Controllers
 
 
 
-
         [HttpPost("sessions/{chatSessionId}/messages")]
         public async Task<ActionResult<MessageDto>> SendMessage(
         string chatSessionId,
@@ -144,7 +143,7 @@ namespace Airbnb.Controllers
                 }
 
                 var currentUserId = userId;
-                var message = await _chatService.SendMessageAsync(chatSessionId, currentUserId, request.MessageText);
+                var message = await _chatService.SendMessageAsync(request, currentUserId);
 
 
                 return CreatedAtAction(nameof(GetChatMessages),
@@ -168,7 +167,7 @@ namespace Airbnb.Controllers
             }
         }
 
-
+        [EndpointSummary("Mark chat as read by user")]
         [HttpPost("sessions/{chatSessionId}/mark-read")]
         public async Task<ActionResult> MarkMessagesAsRead(string chatSessionId)
         {
@@ -191,5 +190,8 @@ namespace Airbnb.Controllers
                 return StatusCode(500, new { message = "Internal server error occurred while marking messages as read" });
             }
         }
+
+
+
     }
 }
