@@ -18,6 +18,7 @@ namespace Application.Interfaces.IRepositories
 
         Task<List<Review>> GetByPropertyIdAsync(int propertyId);
         Task<List<Review>> GetByUserIdAsync(string userId);
+        Task<Review> GetByIdWithUserAsync(int id);
 
 
     }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.DTOs.ReviewDTOs;
+using Application.DTOs.UserDto;
 using Application.Interfaces;
 using Application.Result;
 using AutoMapper;
@@ -130,12 +131,10 @@ namespace Application.Services
 
         public async Task<Result<GuestReviewDTO>> Add(AddReviewByGuestDTO dto)
         {
-
-
-
             try
             {
-                if (dto == null)
+            
+            if (dto == null)
                 return Result<GuestReviewDTO>.Fail("Review data is required.", 400);
 
             Review existingReview = await UOW.ReviewRepo.GetByBookingIdAsync(dto.BookingId);
@@ -146,7 +145,7 @@ namespace Application.Services
             if (booking == null)
                 return Result<GuestReviewDTO>.Fail("Booking not found.", 404);
 
-            if (booking.UserId != dto.userId)
+            if (booking.UserId != dto.User.UserId)
                 return Result<GuestReviewDTO>.Fail("You are not authorized to review this booking.", 403);
 
 
@@ -154,19 +153,37 @@ namespace Application.Services
                 return Result<GuestReviewDTO>.Fail("You can only review completed bookings.", 400);
 
             Review review = _map.Map<Review>(dto);
+            
             await UOW.ReviewRepo.AddAsync(review);
+
             await UOW.SaveChangesAsync();
 
 
-            GuestReviewDTO reviewDTO = _map.Map<GuestReviewDTO>(review);
-            return Result<GuestReviewDTO>.Success(reviewDTO);
+
+                //var reviewWithUser = await UOW.ReviewRepo.getbyid(review.Id);
+
+                //GuestReviewDTO reviewDTO = _map.Map<GuestReviewDTO>(review);
+
+                // var reviewWithUser = await UOW.ReviewRepo.GetByIdWithUserAsync(review.Id);
+
+                // var reviewWithUser = await UOW.ReviewRepo.GetByIdWithUserAsync(review.Id);
+
+
+                //reviewDTO.User = _map.Map<UserProfileDto>(booking.User);
+
+
+
+
+                GuestReviewDTO reviewDTO = _map.Map<GuestReviewDTO>(review);
+                reviewDTO.User = _map.Map<UserProfileDto>(booking.User); //i can get it from user too 
+                return Result<GuestReviewDTO>.Success(reviewDTO);
             
             } 
                 catch (Exception e)
                  {
                    Console.WriteLine(e.Message);
                    return Result<GuestReviewDTO>.Fail("An error occurred while adding the review.", 500);
-               }
+            }
 
 
         }

@@ -13,6 +13,11 @@ namespace Domain.Models
         public int Id { get; set; }
         public string Comment { get; set; }
         public string PrivateComment { get; set; } = string.Empty;
+
+        //origin country 
+
+
+        //rating categories
         public int Rating { get; set; } 
         public int Cleanliness { get; set; } = 0;
         public int Accuracy { get; set; } = 0;
@@ -21,11 +26,12 @@ namespace Domain.Models
         public int Location { get; set; } = 0;
         public int Value { get; set; } = 0;
 
+
         public HostReply? HostReply { get; set; } =null ;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        //
+
 
         [ForeignKey(nameof(User))]
         public string UserId { get; set; }

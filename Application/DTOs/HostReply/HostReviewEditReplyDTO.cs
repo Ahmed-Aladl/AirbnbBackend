@@ -9,11 +9,10 @@ namespace Application.DTOs.HostReply
 {
     public class HostReviewEditReplyDTO
     {
-        public int Id { get; set; }
 
+        public int Id { get; set; }        
         public string UserId { get; set; }
-
-        public int ReviewId { get; set; }
+        public int ReviewId { get; set; }        
         public string Comment { get; set; }
 
     }

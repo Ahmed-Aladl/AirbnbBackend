@@ -9,13 +9,11 @@ namespace Infrastructure.Common.Repositories
     {
         public ReviewRepo(AirbnbContext db) : base(db) { }
      
-        
-
-
         public async Task<List<Review>> GetAllAsync()
         {
             return await Db.Reviews
                 .Include(r => r.User)
+                .Include(r => r.Booking)
                 .Include(r => r.Property)
                 .ToListAsync();
         }
@@ -25,6 +23,7 @@ namespace Infrastructure.Common.Repositories
         {
             return await Db.Reviews
                 .Include(r => r.User)
+                .Include(r => r.Booking)
                 .Include(r => r.Property)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
@@ -34,9 +33,16 @@ namespace Infrastructure.Common.Repositories
         {
             return await Db.Reviews.Include(r => r.Booking).FirstOrDefaultAsync(r => r.BookingId == BookingId);
 
-        } 
+        }
 
 
+        //not used for now 
+        public async Task<Review> GetByIdWithUserAsync(int id)
+        {
+            return await Db.Reviews
+                .Include(r => r.User) 
+                .FirstOrDefaultAsync(r => r.Id == id);
+        }
 
         public async Task AddAsync(Review entity)
         {

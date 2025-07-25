@@ -21,7 +21,7 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<HostReply?> GetByReviewIdAsync(int reviewId)
         {
-            return await _context.HOST
+            return await _context.HostReply
                 .Include(hr => hr.User)
                 .Include(hr => hr.Review)
                     .ThenInclude(r => r.User)
@@ -30,7 +30,7 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<List<HostReply>> GetByHostIdAsync(string hostId)
         {
-            return await _context.HOST
+            return await _context.HostReply
                 .Where(hr => hr.UserId == hostId)
                 .Include(hr => hr.User)
                 .Include(hr => hr.Review)
@@ -43,7 +43,7 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<List<HostReply>> GetByPropertyIdAsync(int propertyId)
         {
-            return await _context.HOST
+            return await _context.HostReply
                 .Where(hr => hr.Review.PropertyId == propertyId)
                 .Include(hr => hr.User)
                 .Include(hr => hr.Review)
@@ -54,7 +54,7 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<List<HostReply>> GetAllAsync()
         {
-            return await _context.HOST
+            return await _context.HostReply
                 .Include(hr => hr.User)
                 .Include(hr => hr.Review)
                     .ThenInclude(r => r.User)
@@ -66,7 +66,7 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<HostReply?> GetByIdAsync(int id)
         {
-            return await _context.HOST
+            return await _context.HostReply
                 .Include(hr => hr.User)
                 .Include(hr => hr.Review)
                     .ThenInclude(r => r.User)
@@ -77,12 +77,12 @@ namespace Infrastructure.Common.Repositories
 
         public async Task AddAsync(HostReply reply)
         {
-            await _context.HOST.AddAsync(reply);
+            await _context.HostReply.AddAsync(reply);
         }
 
         public void Delete(HostReply reply)
         {
-            _context.HOST.Remove(reply);
+            _context.HostReply.Remove(reply);
         }
 
         public List<HostReply> GetAll()

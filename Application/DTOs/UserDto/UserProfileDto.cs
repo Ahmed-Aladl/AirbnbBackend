@@ -13,5 +13,6 @@ namespace Application.DTOs.UserDto
         public string? Bio { get; set; }
         public DateOnly? BirthDate { get; set; }
         public string? Country { get; set; }
+
     }
 }

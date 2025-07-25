@@ -16,7 +16,7 @@ namespace Infrastructure.Contexts
         public DbSet<Property> Properties { get; set; }
         public DbSet<Amenity> Amenities { get; set; }
         public DbSet<PropertyType> propertyTypes { get; set; }
-        public DbSet<HostReply> HOST { get; set; }
+        public DbSet<HostReply> HostReply { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Message> Messages { get; set; }
