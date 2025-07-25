@@ -7,16 +7,19 @@ using Application.Interfaces;
 using Application.Result;
 using Domain.Enums.Booking;
 using Domain.Models;
+using Application.Services;
 
 namespace Application.Services
 {
     public class BookingService
     {
         private readonly IUnitOfWork uow;
+        private readonly CalendarService _calendarService;
 
-        public BookingService(IUnitOfWork unitOfWork)
+        public BookingService(IUnitOfWork unitOfWork, CalendarService calendarService)
         {
             this.uow = unitOfWork;
+            _calendarService = calendarService;
         }
 
         public async Task<Result<List<BookingDetailsDTO>>> GetAllBookingsAsync()
@@ -92,11 +95,17 @@ namespace Application.Services
                 {
                     Id = b.Id,
                     UserId = b.UserId,
+                    FirstName = b.User?.FirstName,
+                    LastName = b.User?.LastName,
+                    PhoneNumber = b.User?.PhoneNumber,
+                    UserCountry = b.User?.Country,
+
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
                     NumberOfGuests = b.NumberOfGuests,
                     TotalPrice = b.TotalPrice,
                     BookingStatus = b.BookingStatus.ToString(),
+
                     PropertyId = b.Property.Id,
                     PropertyTitle = b.Property.Title,
                     City = b.Property.City,
@@ -105,7 +114,7 @@ namespace Application.Services
                 }).ToList();
 
                 return Result<List<BookingDetailsDTO>>.Success(bookingDtos);
-            } 
+            }
             catch (Exception)
             {
                 return Result<List<BookingDetailsDTO>>.Fail("Failed to retrieve bookings.", 500);
@@ -151,10 +160,6 @@ namespace Application.Services
             }
         }
 
-
-
-
-
         public async Task<Result<string>> DeleteBookingAsync(int id)
         {
             try
@@ -164,6 +169,19 @@ namespace Application.Services
                     return Result<string>.Fail("Booking not found", 404);
 
                 uow.Bookings.Delete(booking);
+                await uow.SaveChangesAsync();
+
+                // Update CalendarAvailability for each date in the booking
+                for (var date = booking.CheckInDate.Date; date <= booking.CheckOutDate.Date; date = date.AddDays(1))
+                {
+                    var existing = (await uow.CalendarAvailabilities.GetAvailabilityRangeAsync(booking.PropertyId, date, date)).FirstOrDefault();
+                    if (existing != null)
+                    {
+                        existing.IsAvailable = true;
+                        existing.IsBooked = false;
+                        uow.CalendarAvailabilities.Update(existing);
+                    }
+                }
                 await uow.SaveChangesAsync();
 
                 return Result<string>.Success("Booking deleted successfully");
@@ -190,7 +208,7 @@ namespace Application.Services
                     return Result<bool>.Fail("Property does not exist.", 404);
                 }
 
-                if (property.HostId == userId) 
+                if (property.HostId == userId)
                 {
                     return Result<bool>.Fail("You cannot reserve your own property.", 403);
                 }
@@ -212,30 +230,28 @@ namespace Application.Services
         {
             try
             {
-                var checkResult = await CheckClientAndPropertyAsync(propertyId, userId);
+                var checkClientPropertyResult = await CheckClientAndPropertyAsync(propertyId, userId);
+                if (!checkClientPropertyResult.IsSuccess)
+                {
+                    return Result<bool>.Fail(checkClientPropertyResult.Message, checkClientPropertyResult.StatusCode ?? 500);
+                }
 
-                if (!checkResult.IsSuccess)
-                    return Result<bool>.Fail(checkResult.Message, checkResult.StatusCode ?? 500);
-
-                var bookings = await uow.Bookings.GetAllAsync();
-
-                var propertyBookings = bookings
-                    .Where(b => b.PropertyId == propertyId && !b.IsDeleted)
-                    .ToList();
-
-                bool isAvailable = propertyBookings.All(b =>
-                    checkOutDate <= b.CheckInDate || checkInDate >= b.CheckOutDate
+                var bookabilityResult = await _calendarService.IsPropertyBookableAsync(
+                    propertyId,
+                    checkInDate,
+                    checkOutDate
                 );
 
-                string message = isAvailable
-                    ? "Property is available"
-                    : "Property is not available";
+                if (!bookabilityResult.IsSuccess)
+                {
+                    return Result<bool>.Fail(bookabilityResult.Message, bookabilityResult.StatusCode ?? 500);
+                }
 
-                return Result<bool>.Success(isAvailable, 200, message);
+                return Result<bool>.Success(bookabilityResult.Data, 200, bookabilityResult.Message);
             }
             catch (Exception ex)
             {
-                return Result<bool>.Fail("Failed to check availability.", 500);
+                return Result<bool>.Fail($"An error occurred during availability check: {ex.Message}", 500);
             }
         }
 
@@ -287,12 +303,38 @@ namespace Application.Services
                 await uow.Bookings.AddAsync(booking);
                 await uow.SaveChangesAsync();
 
+                // Update CalendarAvailability for each booked date
+                for (var date = dto.CheckInDate.Date; date <= dto.CheckOutDate.Date; date = date.AddDays(1))
+                {
+                    var existing = (await uow.CalendarAvailabilities.GetAvailabilityRangeAsync(dto.PropertyId, date, date)).FirstOrDefault();
+                    if (existing != null)
+                    {
+                        existing.IsAvailable = false;
+                        existing.IsBooked = true;
+                        existing.Price = property.PricePerNight;
+                        uow.CalendarAvailabilities.Update(existing);
+                    }
+                    else
+                    {
+                        var ca = new CalendarAvailability
+                        {
+                            PropertyId = dto.PropertyId,
+                            Date = date,
+                            IsAvailable = false,
+                            IsBooked = true,
+                            Price = property.PricePerNight
+                        };
+                        uow.CalendarAvailabilities.Add(ca);
+                    }
+                }
+                await uow.SaveChangesAsync();
+
                 return Result<bool>.Success(true, 201, "Booking created successfully.");
             }
             catch (Exception ex)
             {
                 return Result<bool>.Fail(
-                    "An unexpected error occurred while creating the booking.",
+                    $"An unexpected error occurred while creating the booking: {ex.Message}",
                     500
                 );
             }

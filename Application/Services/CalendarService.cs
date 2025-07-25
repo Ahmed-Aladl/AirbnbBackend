@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Application.DTOs.Calendar;
+﻿using Application.DTOs.Calendar;
 using Application.Interfaces;
 using Application.Result;
 using AutoMapper;
@@ -78,71 +74,36 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<AvailabilityCheckDto>> CheckAvailability(
+        public async Task<Result<bool>> IsPropertyBookableAsync(
             int propertyId,
-            DateTime startDate,
-            DateTime endDate,
-            int guests
+            DateTime checkInDate,
+            DateTime checkOutDate
         )
         {
             try
             {
-                var property = await _unitOfWork.PropertyRepo.GetByIdAsync(propertyId);
-                if (property == null)
-                    return Result<AvailabilityCheckDto>.Fail("Property not found", 404);
+                if (checkInDate >= checkOutDate)
+                {
+                    return Result<bool>.Fail("Check-in date must be before check-out date.", 400);
+                }
 
-                if (guests > property.MaxGuests)
-                    return Result<AvailabilityCheckDto>.Success(
-                        new AvailabilityCheckDto
-                        {
-                            IsAvailable = false,
-                            Message = $"Property can only accommodate {property.MaxGuests} guests",
-                        },
-                        statusCode: 200
-                    );
-
-                var dates = Enumerable
-                    .Range(0, (endDate - startDate).Days + 1)
-                    .Select(offset => startDate.AddDays(offset))
+                var propertyBookings = (await _unitOfWork.Bookings.GetAllAsync())
+                    .Where(b => b.PropertyId == propertyId && !b.IsDeleted)
                     .ToList();
 
-                var availabilities =
-                    await _unitOfWork.CalendarAvailabilities.GetAvailabilityRangeAsync(
-                        propertyId,
-                        startDate,
-                        endDate
-                    );
-
-                var unavailableDates = dates
-                    .Where(date =>
-                        !availabilities.Any(a => a.Date == date && a.IsAvailable)
-                        || date < DateTime.Today
-                    )
-                    .ToList();
-
-                var isAvailable = !unavailableDates.Any();
-                decimal totalPrice = availabilities
-                    .Where(a => dates.Contains(a.Date))
-                    .Sum(a => a.Price);
-
-                return Result<AvailabilityCheckDto>.Success(
-                    new AvailabilityCheckDto
-                    {
-                        IsAvailable = isAvailable,
-                        UnavailableDates = unavailableDates,
-                        TotalPrice = totalPrice,
-                        Message = isAvailable
-                            ? "Property is available"
-                            : "Property is not available for selected dates",
-                    }
+                bool isAvailable = propertyBookings.All(b =>
+                    checkOutDate <= b.CheckInDate || checkInDate >= b.CheckOutDate
                 );
+
+                string message = isAvailable
+                    ? "Property is available for booking."
+                    : "Property is not available for the selected dates due to existing bookings.";
+
+                return Result<bool>.Success(isAvailable, 200, message);
             }
             catch (Exception ex)
             {
-                return Result<AvailabilityCheckDto>.Fail(
-                    $"Error checking availability: {ex.Message}",
-                    500
-                );
+                return Result<bool>.Fail($"An error occurred while checking property bookability: {ex.Message}", 500);
             }
         }
     }
