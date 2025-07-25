@@ -48,6 +48,11 @@ namespace Domain.Models.Chat
         [ForeignKey(nameof(Message))]
         public string? MessageId { get; set; }
         public Message? Message { get; set; }
+
+
+        [ForeignKey(nameof(UserId))]
+        public string? UserId { get; set; }
+        public User? User { get; set; }
     }
 
 }

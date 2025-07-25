@@ -8,11 +8,10 @@ namespace Application.DTOs.Chat.Requests
 {
     public class CreateReservationRequestDto
     {
-        public string ChatSessionId { get; set; }
+        public int propertyId { get; set; }
         public DateTime CheckInDate { get; set; }
         public DateTime CheckOutDate { get; set; }
         public int GuestCount { get; set; }
-        public decimal TotalAmount { get; set; }
         public string Message { get; set; }
     }
 

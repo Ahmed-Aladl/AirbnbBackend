@@ -53,5 +53,16 @@ namespace Infrastructure.Common.Repositories.Chat
             Db.ReservationRequests.Update(request);
             return;
         }
+        public async Task<List<ReservationRequest>> GetByChatIdAsync(string chatSessionId)
+        {
+            return await Db.ReservationRequests.Where(req=> req.Id == chatSessionId).ToListAsync();
+        }
+        public async Task<ReservationRequest> GetLatestByChatSessionIdAsync(string chatSessionId)
+        {
+
+           return await Db.ReservationRequests
+                    .OrderByDescending(req => req.RequestedAt)
+                    .FirstOrDefaultAsync(req => req.ChatSessionId == chatSessionId);
+        }
     }
 }

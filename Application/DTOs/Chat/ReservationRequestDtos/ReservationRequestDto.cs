@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.UserDto;
 using Domain.Enums.Chat;
 
 namespace Application.DTOs.Chat.ReservationRequestDtos
@@ -21,6 +22,9 @@ namespace Application.DTOs.Chat.ReservationRequestDtos
         public string ResponseMessage { get; set; }
         public int NightCount { get; set; }
         public decimal PricePerNight { get; set; }
+
+        public string? UserId { get; set; }
+        public UserProfileDto User {  get; set; }
     }
 
 }
