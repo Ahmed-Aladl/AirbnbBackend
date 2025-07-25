@@ -1,17 +1,17 @@
-using Airbnb.Services;
-
+using Airbnb.Hubs;
 using Airbnb.Middleware;
+using Airbnb.Services;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
+using Application.Interfaces.Services;
 using Application.Mappings;
 using Application.Services;
+using Application.Services.Chat;
+using Domain.Models;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.SignalR;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Domain.Models;
-using Application.Interfaces.Services;
-using Application.Services.Chat;
 
 namespace Airbnb.DependencyInjection.PresentationDI
 {
@@ -47,7 +47,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
                 {
                     policy.WithOrigins("http://localhost:4200")
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod().AllowCredentials();
                 });
             });
         }
@@ -56,7 +56,8 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         {
             AddCors(services, configuration);
-
+            
+            services.AddSingleton<IUserConnectionService, UserConnectionService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFileService, FileService>();
@@ -96,7 +97,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app)
         {
-
+            
             //app.MapOpenApi();
             app.UseSwagger();
             app.UseSwaggerUI(op =>

@@ -23,10 +23,17 @@ namespace Application.Services
 {
     public class PropertyService
     {
-        public PropertyService(IUnitOfWork _unitOfWork, IMapper mapper)
+        private readonly IFileService fileService;
+
+        public PropertyService(
+                IUnitOfWork _unitOfWork,
+                IMapper mapper,
+                IFileService _fileService
+            )
         {
             UnitOfWork = _unitOfWork;
             Mapper = mapper;
+            fileService = _fileService;
         }
 
         public IUnitOfWork UnitOfWork { get; }
@@ -308,6 +315,26 @@ namespace Application.Services
         }
 
 
+
+        public async Task<Result<bool>> DeleteImages(int[] imgIds, int propertyId, string userId, string rootPath, string webPath )
+        {
+            var property = await UnitOfWork.PropertyRepo.GetByIdAsync( propertyId );
+            if(property == null )
+                return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
+            if(property.HostId != userId)
+                return Result<bool>.Fail("not allowed", (int)HttpStatusCode.Unauthorized);
+
+            var imgs = await UnitOfWork.PropertyImageRepo.GetRangeAsync(imgIds, propertyId);
+
+            foreach(var img in imgs)
+            {
+                await fileService.MoveAsync(webPath + img.ImageUrl, Path.Combine(rootPath, "private", "uploads"));
+                img.ImageUrl = Path.GetFileName(img.ImageUrl);
+            }
+            await UnitOfWork.PropertyImageRepo.DeleteRangeAsync(imgs);
+            await UnitOfWork.SaveChangesAsync();
+            return Result<bool>.Success(true, 204);
+        }
 
     }
 }
