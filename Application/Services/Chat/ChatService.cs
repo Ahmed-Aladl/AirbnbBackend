@@ -196,7 +196,10 @@ namespace Application.Services.Chat
                     createdMessage.Id, chatSessionId, senderId);
 
                 var messageDto = await MapMessageToDto(createdMessage, senderId);
-                await chatNotifier.NotifyMessageSentAsync(chatSessionId, messageDto);
+
+                var receiverId = chatSession.UserId == senderId ? chatSession.HostId : chatSession.UserId;
+                if(receiverId !=null)
+                    await chatNotifier.NotifyMessageSentAsync(receiverId, messageDto);
 
                 return messageDto; 
             }

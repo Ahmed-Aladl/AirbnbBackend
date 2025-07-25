@@ -126,8 +126,11 @@ namespace Airbnb.Controllers
         [HttpPost("sessions/{chatSessionId}/messages")]
         public async Task<ActionResult<MessageDto>> SendMessage(
         string chatSessionId,
-        [FromBody] SendMessageRequest request)
+        [FromBody] SendMessageRequest request,
+        bool isUser =true
+        )
         {
+            userId = isUser ? userId : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
             try
             {
                 if (!ModelState.IsValid)
@@ -142,6 +145,7 @@ namespace Airbnb.Controllers
 
                 var currentUserId = userId;
                 var message = await _chatService.SendMessageAsync(chatSessionId, currentUserId, request.MessageText);
+
 
                 return CreatedAtAction(nameof(GetChatMessages),
                     new { chatSessionId = chatSessionId }, message);

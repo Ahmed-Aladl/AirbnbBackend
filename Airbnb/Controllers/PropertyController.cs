@@ -41,7 +41,7 @@ namespace Airbnb.Controllers
             _fileService = fileService;
             PropertyService = _propertyService;
             UserManager = user;
-            userId = config["userId"];
+            userId = config["userId"]??"1";
         }
 
 
@@ -204,7 +204,6 @@ namespace Airbnb.Controllers
         [HttpPost("property-images/upload")]
         public async Task<IActionResult> UploadPropertyImages([FromForm] PropertyImagesUploadContainerDTO dto)
         {
-            Console.WriteLine("\n\n\n\n\n\n******************************************************uploading photos******************************************************");
             if (dto.Files == null || !dto.Files.Any())
                 return BadRequest("No files uploaded");
 
@@ -242,6 +241,27 @@ namespace Airbnb.Controllers
                 if (!result.IsSuccess)
                     return ToActionResult(result);
                 return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId }, new {});
+            }
+            catch
+            {
+
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+
+        }
+
+
+
+        [EndpointSummary("Deletes images for a Property")]
+        [HttpDelete("property-images/delete/{propertyId}")]
+        public async Task<IActionResult> DeletePropertyImages([FromForm] int[] imgIds,int propertyId)
+        {
+            if (imgIds == null || imgIds.Length==0)
+                return BadRequest("No files uploaded");
+            try 
+            {
+                var result = await PropertyService.DeleteImages(imgIds, propertyId,userId, _env.ContentRootPath, _env.WebRootPath);
+                return ToActionResult(result);
             }
             catch
             {
