@@ -75,37 +75,37 @@ namespace Airbnb
             app.MapHub<ChatHub>("/chatHub");
             app.MapHub<NotificationHub>("/notificationHub");
             app.MapControllers();
-            //app.Use(async (context, next) =>
-            //{
-            //    Console.WriteLine($"\n\nRequest Path: {context.Request.Path}");
-            //    var user = context.User;
-            //    if (user?.Identity?.IsAuthenticated == true)
-            //    {
-            //        Console.WriteLine($"User: {user.Identity.Name}");
+            app.Use(async (context, next) =>
+            {
+                Console.WriteLine($"\n\nRequest Path: {context.Request.Path}");
+                var user = context.User;
+                if (user?.Identity?.IsAuthenticated == true)
+                {
+                    Console.WriteLine($"User: {user.Identity.Name}");
 
-            //        foreach (var claim in user.Claims)
-            //        {
-            //            Console.WriteLine($"\nClaim: {claim.Type} = {claim.Value}");
-            //        }
-            //    }
-            //    else
-            //        Console.WriteLine("******\n\n8\n8\n8\n8\n8\n8\n no data found\n8\n8\n8\n8\n8\n8\n8\n\n\n");
-            //    Console.WriteLine("==== Request Headers ====");
-            //    foreach (var header in context.Request.Headers)
-            //    {
-            //        Console.WriteLine($"\n{header.Key}: {header.Value}");
-            //    }
-            //    Console.WriteLine("\n\n");
+                    foreach (var claim in user.Claims)
+                    {
+                        Console.WriteLine($"\nClaim: {claim.Type} = {claim.Value}");
+                    }
+                }
+                else
+                    Console.WriteLine("******\n\n8\n8\n8\n8\n8\n8\n no data found\n8\n8\n8\n8\n8\n8\n8\n\n\n");
+                Console.WriteLine("==== Request Headers ====");
+                foreach (var header in context.Request.Headers)
+                {
+                    Console.WriteLine($"\n{header.Key}: {header.Value}");
+                }
+                Console.WriteLine("\n\n");
 
-            //    Console.WriteLine("==== Request Cookies ====");
-            //    foreach (var cookie in context.Request.Cookies)
-            //    {
-            //        Console.WriteLine($"\n{cookie.Key}: {cookie.Value}");
-            //    }
-            //    Console.WriteLine("\n\n");
+                Console.WriteLine("==== Request Cookies ====");
+                foreach (var cookie in context.Request.Cookies)
+                {
+                    Console.WriteLine($"\n{cookie.Key}: {cookie.Value}");
+                }
+                Console.WriteLine("\n\n");
 
-            //    await next(context);
-            //});
+                await next(context);
+            });
 
             app.Run();
         }

@@ -69,7 +69,7 @@ namespace Infrastructure.Common.Repositories
                                     .ToListAsync();
         }
 
-        public async Task<PaginatedResult<Property>> GetPageWithCoverAsync(int page, int pageSize, string userId="1")
+        public async Task<PaginatedResult<Property>> GetPageWithCoverAsync(int page, int pageSize, string userId)
         {
             var filtered = Db.Properties
                                     .Where(p => !p.IsDeleted && p.IsActive);
@@ -133,15 +133,14 @@ namespace Infrastructure.Common.Repositories
         }
 
 
-        public async Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto, string userId = "1")
+        public async Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto, string userId )
         {
             var query = Db.Properties
                 //.Include(p => p.Reservations)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(filterDto.Country))
+            if (!string.IsNullOrEmpty(filterDto.Country) )
                 query = query.Where(p => p.Country.ToLower() == filterDto.Country.ToLower());
-
             if (filterDto.Longitude.HasValue && filterDto.Latitude.HasValue)
             {
                 
@@ -168,7 +167,7 @@ namespace Infrastructure.Common.Repositories
             if (filterDto.StartDate.HasValue)
             {
                 var start = filterDto.StartDate.Value.Date;
-                var end = filterDto.EndDate?.Date ?? start.AddDays(1); // if end not provided, use start only
+                var end = filterDto.EndDate?.Date ?? start.AddDays(1);
 
                 query = query.Where(p =>
                     !p.Bookings.Any(r =>
@@ -176,17 +175,15 @@ namespace Infrastructure.Common.Repositories
             }
 
             var totalCount = await query.CountAsync();
-            var pageData = await query
-                                    .Include(p=> p.Images.Where(i=> !i.IsDeleted && i.IsCover))
+            query =  query
+                                    .Include(p => p.Images.Where(i => !i.IsDeleted && i.IsCover))
                                     .Skip((filterDto.Page - 1) * filterDto.PageSize)
-                                    .Take(filterDto.PageSize)
-                                    .Include(p => p.WishlistProperties.Where(wp => wp.Wishlist.UserId == userId))
-                                    .ToListAsync();
+                                    .Take(filterDto.PageSize);
+            if (userId != null)
+                query = query.Include(p => p.WishlistProperties.Where(wp => wp.Wishlist.UserId == userId));
 
-            foreach( var item in pageData)
-            {
-                Console.WriteLine($"from filter {item.WishlistProperties.Count}");
-            }
+            var pageData = await query.ToListAsync();
+
 
             return new() 
                     { 

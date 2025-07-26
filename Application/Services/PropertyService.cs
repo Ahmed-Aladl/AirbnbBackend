@@ -76,9 +76,9 @@ namespace Application.Services
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
 
-        public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetPageAsync(int page=1, int pageSize = 7)
+        public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetPageAsync(int page=1, int pageSize = 7, string userId=null)
         {
-            var paginatedResult = await UnitOfWork.PropertyRepo.GetPageWithCoverAsync(page, pageSize);
+            var paginatedResult = await UnitOfWork.PropertyRepo.GetPageWithCoverAsync(page, pageSize,userId);
             foreach (var item in paginatedResult.Items)
             {
                 Console.WriteLine($"from getPageWithCover {item.WishlistProperties.Count}");
@@ -87,6 +87,7 @@ namespace Application.Services
 
             return Result<PaginatedResult<PropertyDisplayDTO>>.Success(mapped);
         }
+
 
 
         public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetNearestPageAsync(IpLocation ipLocation ,int page=1, int pageSize = 7, double maxDistanceKm = 10)
@@ -99,9 +100,9 @@ namespace Application.Services
         }
 
 
-        public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetFilteredPageAsync(PropertyFilterDto filterDto)
+        public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetFilteredPageAsync(PropertyFilterDto filterDto,string userId)
         {
-            var paginatedResult = await UnitOfWork.PropertyRepo.GetFilteredPageAsync(filterDto);
+            var paginatedResult = await UnitOfWork.PropertyRepo.GetFilteredPageAsync(filterDto,userId);
 
             var mapped = Mapper.Map<PaginatedResult<PropertyDisplayDTO>>(paginatedResult);
 
@@ -202,12 +203,13 @@ namespace Application.Services
             }
         }
 
-        public Result<PropertyDisplayDTO> Delete(int id)
+        public Result<PropertyDisplayDTO> Delete(int id, string hostId)
         {
             var property = UnitOfWork.PropertyRepo.GetById(id);
             if (property == null)
                 return Fail("Property not found!", (int)HttpStatusCode.NotFound);
-
+            if (property.HostId != hostId)
+                return Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
             try
             {
                 property.IsDeleted = true;

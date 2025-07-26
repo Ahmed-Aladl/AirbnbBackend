@@ -9,6 +9,7 @@ using Application.Services;
 using Application.Shared;
 using Azure;
 using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,7 @@ namespace Airbnb.Controllers
 
         private readonly IWebHostEnvironment _env;
         private readonly IFileService _fileService;
-        private readonly string userId = "1";
+        //private readonly string userId = "1";
 
         public PropertyController(
                                     PropertyService _propertyService,
@@ -42,7 +43,7 @@ namespace Airbnb.Controllers
             _fileService = fileService;
             PropertyService = _propertyService;
             UserManager = user;
-            userId = config["userId"]??"1";
+            //userId = config["userId"]??"1";
         }
 
 
@@ -59,23 +60,6 @@ namespace Airbnb.Controllers
         [HttpGet]
         public async Task<IActionResult>GetAll()
         {
-            //var user = new User
-            //{
-            //    Id = "1",
-            //    UserName = "3ssam",
-            //    Email = "3ssam@airbnb.com",
-            //    FirstName = "Ahmed",
-            //    LastName = "Essam",
-            //    CreateAt = DateTime.Now.AddYears(-1),
-            //    UpdatedAt = DateTime.Now,
-            //    ProfilePictureURL = "https://example.com/admin-profile.jpg",
-            //    Bio = "System Administrator",
-            //    Country = "USA",
-            //    BirthDate = new DateOnly(1990, 1, 1),
-            //    EmailConfirmed = true,
-            //};
-            //await UserManager.CreateAsync(user,"3ssaM@asd");
-            //Console.WriteLine("\n\n\n*******************************************user created *******************************************\n\n\n");
             var result = PropertyService.GetAll();
             return ToActionResult(result);
 
@@ -90,10 +74,10 @@ namespace Airbnb.Controllers
         {
 
             if (page< 0)
-                page = 1; // Default
+                page = 1; 
 
             if (pageSize < 1)
-                pageSize = 10; // Default
+                pageSize = 10; 
             
 
             pageSize = Math.Min(pageSize, 100);
@@ -131,6 +115,13 @@ namespace Airbnb.Controllers
             var response = await client.GetFromJsonAsync<IpLocation>("http://ip-api.com/json/" + ip);
             if (response == null)
                 return Fail("Internal Server Error");
+            PropertyFilterDto filterDto= new()
+            {
+                Latitude = (decimal?) response.Lat ,
+                Longitude= (decimal?) response.Lon,
+
+                
+            };
             var result = await PropertyService.GetNearestPageAsync(response, page, pageSize, maxDistanceKm);
 
             return ToActionResult(result);
@@ -139,7 +130,8 @@ namespace Airbnb.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> GetNearestPagintedAsync([FromQuery]PropertyFilterDto filterDto)
         {
-            var result = await PropertyService.GetFilteredPageAsync(filterDto);
+            var userId = User.GetUserId();
+            var result = await PropertyService.GetFilteredPageAsync(filterDto,userId);
 
             return ToActionResult(result);
         }
@@ -174,40 +166,71 @@ namespace Airbnb.Controllers
         }
 
         [EndpointSummary("Add a new Property")]
-        [HttpPost("{id}")]
-        public IActionResult Add(PropertyDisplayDTO propertyDTO, int id)
+        [HttpPost]
+        [Authorize(Roles =("Host"))]
+        public IActionResult Add(PropertyDisplayDTO propertyDTO)
         {
-            return PropertyService.Add(propertyDTO)
-                                  .ToActionResult();
+
+            var hostId = User.GetUserId();
+            if (hostId == null)
+            {
+                Console.WriteLine("*****\n\nUser.hostId is Null");
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+            }
+            propertyDTO.HostId = hostId;
+
+            return ToActionResult(PropertyService.Add(propertyDTO));
+                                  ;
         }
 
+
         [EndpointSummary("Update existing Property")]
-        [HttpPut("{id}")]
-        public IActionResult Put(PropertyDisplayDTO propertyDTO, int id)
+        [HttpPut]
+        [Authorize(Roles =("Host"))]
+        public IActionResult Put(PropertyDisplayDTO propertyDTO)
         {
+            var hostId = User.GetUserId();
+            if (hostId == null || hostId != propertyDTO.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
             var result = PropertyService.Update(propertyDTO);
 
             return ToActionResult(result); ;
         }
 
+
         [EndpointSummary("Deletes existing Property")]
         [HttpDelete("{id}")]
+        [Authorize(Roles ="Host")]
         public IActionResult Delete(int id)
         {
+            var hostId= User.GetUserId();
+            if (hostId == null)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
 
-            return PropertyService.Delete(id)
-                                  .ToActionResult();
+            return ToActionResult( PropertyService.Delete(id, hostId) );
         }
 
 
         [EndpointSummary("Upload images for a Property")]
         [Consumes("multipart/form-data")]
         [HttpPost("property-images/upload")]
+        [Authorize(Roles ="Host")]
         public async Task<IActionResult> UploadPropertyImages([FromForm] PropertyImagesUploadContainerDTO dto)
         {
+            var hostId = User.GetUserId();
+            if(hostId == null || hostId != dto.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+            
+            var property = await PropertyService.GetByIdWithCoverAsync(dto.PropertyId);
+            if(hostId != property?.Data?.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
+
             if (dto.Files == null || !dto.Files.Any())
                 return BadRequest("No files uploaded");
 
+            
             var imageDtos = new List<PropertyImageCreateDTO>();
 
             for (int i = 0; i < dto.Files.Count; i++)
@@ -255,13 +278,23 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Deletes images for a Property")]
         [HttpDelete("property-images/delete/{propertyId}")]
+        [Authorize(Roles ="Host")]
         public async Task<IActionResult> DeletePropertyImages([FromForm] int[] imgIds,int propertyId)
         {
+            var hostId = User.GetUserId();
+            if (hostId == null)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
+            var property = await PropertyService.GetByIdWithCoverAsync(propertyId);
+            if (hostId != property?.Data?.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
+
             if (imgIds == null || imgIds.Length==0)
                 return BadRequest("No files uploaded");
             try 
             {
-                var result = await PropertyService.DeleteImages(imgIds, propertyId,userId, _env.ContentRootPath, _env.WebRootPath);
+                var result = await PropertyService.DeleteImages(imgIds, propertyId,hostId, _env.ContentRootPath, _env.WebRootPath);
                 return ToActionResult(result);
             }
             catch

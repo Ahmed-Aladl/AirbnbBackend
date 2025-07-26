@@ -57,4 +57,9 @@ public class AmenityRepo : Repository<Amenity, int>, IAmenityRepo
     {
         Db.PropertyAmenities.Remove(propertyAmenity);
     }
+
+    public Task RemoveFromProperty(int amenityId)
+    {
+        throw new NotImplementedException();
+    }
 }
