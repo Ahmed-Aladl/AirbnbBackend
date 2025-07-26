@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Security.Claims;
 using Airbnb.Extensions;
 using Application.DTOs.PropertyDTOS;
 using Application.DTOs.PropertyImageDTOs;
@@ -21,29 +22,62 @@ namespace Airbnb.Controllers
     [ApiController]
     public class PropertyController : BaseController
     {
+        
         public PropertyService PropertyService { get; }
+        public UserManager<User> UserManager { get; }
+
         private readonly IWebHostEnvironment _env;
         private readonly IFileService _fileService;
+        private readonly string userId = "1";
 
         public PropertyController(
                                     PropertyService _propertyService,
                                     UserManager<User> user,
                                     IWebHostEnvironment env, 
-                                    IFileService fileService
+                                    IFileService fileService,
+                                    IConfiguration config
                                 )
         {
             _env = env;
             _fileService = fileService;
             PropertyService = _propertyService;
+            UserManager = user;
+            userId = config["userId"]??"1";
         }
+
+
+        [EndpointSummary("Get images by property id")]
+        [HttpGet("{id}/images")]
+        public IActionResult GetPropertyImages(int id)
+        {
+            var result = PropertyService.GetImagesByPropertyId(id);
+            return ToActionResult(result);
+        }
+
 
         [EndpointSummary("Get All Properties")]
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult>GetAll()
         {
-
-            return PropertyService.GetAll()
-                                  .ToActionResult();
+            //var user = new User
+            //{
+            //    Id = "1",
+            //    UserName = "3ssam",
+            //    Email = "3ssam@airbnb.com",
+            //    FirstName = "Ahmed",
+            //    LastName = "Essam",
+            //    CreateAt = DateTime.Now.AddYears(-1),
+            //    UpdatedAt = DateTime.Now,
+            //    ProfilePictureURL = "https://example.com/admin-profile.jpg",
+            //    Bio = "System Administrator",
+            //    Country = "USA",
+            //    BirthDate = new DateOnly(1990, 1, 1),
+            //    EmailConfirmed = true,
+            //};
+            //await UserManager.CreateAsync(user,"3ssaM@asd");
+            //Console.WriteLine("\n\n\n*******************************************user created *******************************************\n\n\n");
+            var result = PropertyService.GetAll();
+            return ToActionResult(result);
 
         }
 
@@ -207,7 +241,7 @@ namespace Airbnb.Controllers
 
                 if (!result.IsSuccess)
                     return ToActionResult(result);
-                return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId });
+                return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId }, new {});
             }
             catch
             {
@@ -216,6 +250,28 @@ namespace Airbnb.Controllers
             }
 
         }
+
+
+
+        [EndpointSummary("Deletes images for a Property")]
+        [HttpDelete("property-images/delete/{propertyId}")]
+        public async Task<IActionResult> DeletePropertyImages([FromForm] int[] imgIds,int propertyId)
+        {
+            if (imgIds == null || imgIds.Length==0)
+                return BadRequest("No files uploaded");
+            try 
+            {
+                var result = await PropertyService.DeleteImages(imgIds, propertyId,userId, _env.ContentRootPath, _env.WebRootPath);
+                return ToActionResult(result);
+            }
+            catch
+            {
+
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+
+        }
+
 
 
     }

@@ -19,21 +19,39 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<List<Booking>> GetAllAsync()
         {
-            return await _db.Bookings.ToListAsync();
+            return await _db.Bookings
+                   .Include(b => b.Property)
+                   .ToListAsync();
         }
 
         public async Task<Booking?> GetByIdAsync(int id)
         {
-            return await _db.Bookings.FindAsync(id);
+            return await _db.Bookings
+                   .Include(b => b.Property)
+                   .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public async Task<List<Booking>> GetBookingByUserIdAsync(string userId)
         {
             return await _db.Bookings
-                .Where(b => b.UserId == userId && !b.IsDeleted)
-                .ToListAsync();
+         .Include(b => b.Property)
+         .Where(b => b.UserId == userId && !b.IsDeleted)
+         .ToListAsync();
         }
 
+        public async Task<List<Booking>> GetBookingByPropertyIdAsync(int propertyId)
+        {
+            return await _db.Bookings
+        .Include(b => b.Property)
+        .Include(b => b.User) 
+        .Where(b => b.PropertyId == propertyId && !b.IsDeleted)
+        .ToListAsync();
+        }    
+
+
+
+
+         
 
         public async Task AddAsync(Booking entity)
         {

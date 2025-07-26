@@ -1,15 +1,18 @@
-using Airbnb.Services;
-
+using System.Text;
+using Airbnb.Hubs;
 using Airbnb.Middleware;
+using Airbnb.Services;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
+using Application.Interfaces.Services;
 using Application.Mappings;
 using Application.Services;
+using Application.Services.Chat;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Domain.Models;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Airbnb.DependencyInjection.PresentationDI
 {
@@ -45,7 +48,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
                 {
                     policy.WithOrigins("http://localhost:4200")
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod().AllowCredentials();
                 });
             });
         }
@@ -53,15 +56,22 @@ namespace Airbnb.DependencyInjection.PresentationDI
         public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
 
         {
-            AddCors(services, configuration);
 
+            AddCors(services, configuration);
+            ConfigureJwt(services, configuration);
+
+
+            services.AddSingleton<IUserConnectionService, UserConnectionService>();
+            services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IEmailService, GmailEmailService>();
-            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IStripeService, StripeService>();
+            services.AddScoped<PaymentService>();
 
 
             services.AddScoped<WishlistService>();
-            services.AddScoped<IFileService, FileService>();
             services.AddScoped<ReviewService>();
             services.AddScoped<PropertyService>();
             services.AddScoped<BookingService>();
@@ -71,12 +81,9 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<HostReplyService>();
 
 
-            services.AddScoped<IStripeService, StripeService>();
-            services.AddScoped<PaymentService>();
 
             services.AddAutoMapper(c => c.AddProfile<PropertyProfile>(), typeof(CalendarMappingProfile).Assembly);
 
-            services.AddScoped<IFileService, FileService>();
             services.AddSwaggerGen(c => c.OperationFilter<FileUploadOperationFilter>());
 
             services.AddSignalR();
@@ -94,9 +101,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app)
         {
-            app.MapHub<NotificationHub>("/notificationHub");
-
-
+            
             //app.MapOpenApi();
             app.UseSwagger();
             app.UseSwaggerUI(op =>
@@ -108,6 +113,32 @@ namespace Airbnb.DependencyInjection.PresentationDI
             app.UseCors("AllowAngularApp");
 
             return app;
+        }
+
+        // private methods 
+        private static IServiceCollection ConfigureJwt(IServiceCollection services, IConfiguration config)
+        {
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = config["Jwt:Issuer"],
+                    ValidAudience = config["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]))
+                };
+            });
+
+            services.AddHttpContextAccessor();
+            return services;
         }
     }
 }

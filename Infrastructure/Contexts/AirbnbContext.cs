@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Domain.Models;
+using Domain.Models.Chat;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Asn1;
@@ -19,7 +20,7 @@ namespace Infrastructure.Contexts
         public DbSet<HostReply> HostReply { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Message> Messages { get; set; }
+        //public DbSet<Message> Messages { get; set; }
         public DbSet<PropertyImage> PropertyImages { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Review> Reviews { get; set; }
@@ -30,6 +31,14 @@ namespace Infrastructure.Contexts
         public DbSet<WishlistProperty> WishlistProperties { get; set; }
 
         public DbSet<PropertyAmenity> PropertyAmenities { get; set; }
+
+
+        public DbSet<ChatSession> ChatSessions { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<MessageReaction> MessageReactions { get; set; }
+        public DbSet<MessageReadStatus> MessageReadStatuses { get; set; }
+        public DbSet<ReservationRequest> ReservationRequests { get; set; }
+
 
         public AirbnbContext(DbContextOptions<AirbnbContext> options)
             : base(options) { }

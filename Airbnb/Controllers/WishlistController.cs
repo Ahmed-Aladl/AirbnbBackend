@@ -12,7 +12,7 @@ namespace Airbnb.Controllers
     [ApiController]
     public class WishlistController : BaseController
     {
-        private string UserId { get; set; } = "1a8e2c26-d117-4ac6-a796-e57fa4dd83ac";
+        private string UserId { get; set; } = "1";
         public WishlistService WishlistService { get; }
 
         public WishlistController(WishlistService wishlistService)
@@ -37,7 +37,7 @@ namespace Airbnb.Controllers
         {
             //var userId = "1d1afe4d-301c-4f72-9e41-5773d0d27fa2"; //User.GetUserId();
             var userId =UserId; //User.GetUserId();
-            return (await WishlistService.CreateWishlist(userId, dto.Name, dto.Notes)).ToActionResult();
+            return (await WishlistService.CreateWishlist(userId, dto.Name, dto.Notes, dto.PropertyIds)).ToActionResult();
         }
 
 
@@ -75,6 +75,19 @@ namespace Airbnb.Controllers
             return (await WishlistService.DeleteWishlist(userId, wishlistId)).ToActionResult();
         }
 
+
+
+
+        // GET: api/wishlist/{wishlistId}/properties
+        [EndpointSummary("show properties by wishlist")]
+        [HttpGet("{wishlistId}/properties")]
+        public async Task<IActionResult> GetPropertiesInWishlist(int wishlistId)
+        {
+            var userId = UserId;
+
+            var result = await WishlistService.GetPropertiesInWishlist(userId, wishlistId);
+            return ToActionResult(result);
+        }
 
     }
 }

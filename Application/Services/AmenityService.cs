@@ -58,7 +58,7 @@ public class AmenityService
             await dto.IconUrl.CopyToAsync(stream);
         }
 
-        string iconUrl = $"/uploads/amenities/{fileName}";
+        string iconUrl = $"/AmenitiesIcons/{fileName}";
 
         var amenity = new Amenity { AmenityName = dto.AmenityName, IconURL = iconUrl };
 
@@ -165,5 +165,29 @@ public class AmenityService
             return Result<string>.Fail("Failed to delete amenity", 400);
 
         return Result<string>.Success("Amenity deleted successfully");
+    }
+
+
+    public async Task<Result<bool>> Toggle(int amenityId, int propertyId)
+    {
+        var amentiy = _unitOfWork.AmenitiesRepo.GetById(amenityId);
+        if (amentiy == null)
+            return Result<bool>.Fail("Amentiy not found.",(int) HttpStatusCode.NotFound);
+        
+        var property = await _unitOfWork.PropertyRepo.GetByIdWithAmenitiesAsync(propertyId);
+        if (property == null)
+            return Result<bool>.Fail("Property not found.",(int) HttpStatusCode.NotFound);
+        var propAmenity = new PropertyAmenity() { AmenityId= amenityId , PropertyId = propertyId};
+        if (property.Amenities.Any(a => a.Id == amenityId))
+        {
+            await _unitOfWork.AmenitiesRepo.RemoveFromProperty(propAmenity);
+            await _unitOfWork.SaveChangesAsync();
+            return Result<bool>.Success(true,(int) HttpStatusCode.NoContent, "amentiy removed.");
+        }
+
+        await _unitOfWork.AmenitiesRepo.Assign(propAmenity);
+        await _unitOfWork.SaveChangesAsync();
+        return Result<bool>.Success(true,(int) HttpStatusCode.NoContent, "Amenity added.");
+
     }
 }

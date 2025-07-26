@@ -16,5 +16,8 @@ namespace Application.Interfaces.IRepositories
         void Update(Booking entity);
 
         Task<List<Booking>> GetBookingByUserIdAsync(string userId);
+        Task<List<Booking>> GetBookingByPropertyIdAsync(int propertyId);
+
+
     }
 }

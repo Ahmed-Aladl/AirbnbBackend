@@ -20,6 +20,7 @@ namespace Infrastructure.Common.Repositories
             return await Db.Set<Wishlist>()
                 .Include(w => w.WishlistProperties)
                 .ThenInclude(wp => wp.Property)
+                .ThenInclude(p => p.Images)
                 .FirstOrDefaultAsync(w => w.Id == id);
         }
 
@@ -110,5 +111,7 @@ namespace Infrastructure.Common.Repositories
                 await Db.SaveChangesAsync();
             }
         }
+
+
     }
 }

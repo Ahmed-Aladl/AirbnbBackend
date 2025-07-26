@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.PropertyDTOS;
 using Application.DTOs.WishlistDTOs;
 using Application.Interfaces;
 using Application.Result;
@@ -28,12 +29,24 @@ namespace Application.Services
         {
             var wishlists = await UnitOfWork.Wishlist.GetByUserIdAsync(userId);
             if (wishlists == null || !wishlists.Any())
-                return Result<List<WishlistDTO>>.Fail(
-                    "No wishlists found",
-                    (int)HttpStatusCode.NotFound
+                return Result<List<WishlistDTO>>.Success(new List<WishlistDTO>(),
+                    (int)HttpStatusCode.NoContent,
+                    "No wishlists found"
                 );
 
             var mapped = Mapper.Map<List<WishlistDTO>>(wishlists);
+
+            foreach (var wishlist in mapped)
+            {
+                var firstPropertyId = wishlist.PropertyIds.FirstOrDefault();
+                if (firstPropertyId != 0)
+                {
+                    var prop = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(firstPropertyId);
+                    var coverImage = prop?.Images?.FirstOrDefault(i => i.IsCover) ?? prop?.Images?.FirstOrDefault();
+                    wishlist.CoverImageUrl = coverImage?.ImageUrl;
+                }
+            }
+
             return Result<List<WishlistDTO>>.Success(mapped);
         }
 
@@ -106,15 +119,24 @@ namespace Application.Services
         public async Task<Result<WishlistDTO>> CreateWishlist(
             string userId,
             string name,
-            string notes
+            string notes,
+            List<int> propertyIds
         )
         {
+
+            if (propertyIds == null || !propertyIds.Any())
+                return Result<WishlistDTO>.Fail("At least one property is required", (int)HttpStatusCode.BadRequest);
+
             var wishlist = new Wishlist
             {
                 Name = name,
                 Notes = notes,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                WishlistProperties = propertyIds.Select(id => new WishlistProperty
+                {
+                    PropertyId = id
+                }).ToList()
             };
 
             UnitOfWork.Wishlist.Add(wishlist);
@@ -147,5 +169,33 @@ namespace Application.Services
 
             return Result<WishlistDTO>.Success(Mapper.Map<WishlistDTO>(wishlist));
         }
+
+
+
+
+
+
+
+
+        public async Task<Result<WishlistWithPropertiesDTO>> GetPropertiesInWishlist(string userId, int wishlistId)
+        {
+            var wishlist = await UnitOfWork.Wishlist.GetByIdAsync(wishlistId);
+
+            if (wishlist == null || wishlist.UserId != userId)
+                return Result<WishlistWithPropertiesDTO>.Fail("Wishlist not found or unauthorized", (int)HttpStatusCode.NotFound);
+
+            var properties = wishlist.WishlistProperties?.Select(wp => wp.Property)?.ToList();
+
+            var dto = new WishlistWithPropertiesDTO
+            {
+                Id = wishlist.Id,
+                Name = wishlist.Name,
+                Notes = wishlist.Notes,
+                Properties = properties != null ? Mapper.Map<List<PropertyDisplayDTO>>(properties) : new()
+            };
+
+            return Result<WishlistWithPropertiesDTO>.Success(dto);
+        }
+
     }
 }

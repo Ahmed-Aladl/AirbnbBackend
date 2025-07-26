@@ -32,12 +32,13 @@ namespace Infrastructure.Data
             //{
             //    return; // Database has been seeded
             //}
+            // Create roles
             if (!await context.Roles.AnyAsync())
-                // Create roles
                 await CreateRoles(roleManager);
+            else return;
 
-            // Create users
-            List<User> users = new();
+                // Create users
+                List<User> users = new();
             if (!await context.Users.AnyAsync())
                 users = await CreateUsers(userManager);
 
@@ -90,8 +91,8 @@ namespace Infrastructure.Data
                 await CreateNotifications(context, users);
 
             // Create messages
-            if (!await context.Messages.AnyAsync())
-                await CreateMessages(context, users, properties);
+            //if (!await context.Messages.AnyAsync())
+            //    await CreateMessages(context, users, properties);
 
             await context.SaveChangesAsync();
         }
@@ -113,6 +114,22 @@ namespace Infrastructure.Data
         {
             var users = new List<User>
             {
+                new User
+                {
+                    Id = "1",
+                    UserName = "3ssam",
+                    Email = "3ssam@airbnb.com",
+                    FirstName = "Ahmed",
+                    LastName = "Essam",
+                    PasswordHash = "AQAAAAIAAYagAAAAEGaV0nt6IfcPGeBxxtYdpGgRyA78UovJ3DehwHOuUFu+AvPiivzEwMwR01un6oewnA==",
+                    CreateAt = DateTime.Now.AddYears(-1),
+                    UpdatedAt = DateTime.Now,
+                    ProfilePictureURL = "https://example.com/admin-profile.jpg",
+                    Bio = "System Administrator",
+                    Country = "USA",
+                    BirthDate = new DateOnly(1990, 1, 1),
+                    EmailConfirmed = true,
+                },
                 new User
                 {
                     UserName = "admin@airbnb.com",
@@ -680,65 +697,65 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task CreateMessages(
-            AirbnbContext context,
-            List<User> users,
-            List<Property> properties
-        )
-        {
-            var messages = new List<Message>();
-            var hosts = users.Where(u => u.Email.Contains("host")).ToList();
-            var guests = users.Where(u => u.Email.Contains("guest")).ToList();
+        //private static async Task CreateMessages(
+        //    AirbnbContext context,
+        //    List<User> users,
+        //    List<Property> properties
+        //)
+        //{
+        //    var messages = new List<Message>();
+        //    var hosts = users.Where(u => u.Email.Contains("host")).ToList();
+        //    var guests = users.Where(u => u.Email.Contains("guest")).ToList();
 
-            // Create conversations between hosts and guests
-            foreach (var host in hosts)
-            {
-                foreach (var guest in guests.Take(2)) // Each host talks to 2 guests
-                {
-                    var property = properties.FirstOrDefault(p => p.HostId == host.Id);
-                    if (property != null)
-                    {
-                        // Create a conversation thread
-                        var conversationMessages = new[]
-                        {
-                            new Message
-                            {
-                                SenderId = guest.Id,
-                                ReceiverId = host.Id,
-                                PropertyId = property.Id,
-                                MesageText =
-                                    "Hi, I'm interested in booking your property. Is it available for next weekend?",
-                                SentAt = DateTime.Now.AddHours(-24),
-                                Isread = true,
-                            },
-                            new Message
-                            {
-                                SenderId = host.Id,
-                                ReceiverId = guest.Id,
-                                PropertyId = property.Id,
-                                MesageText =
-                                    "Hello! Yes, it's available. I'd be happy to host you. Do you have any questions about the property?",
-                                SentAt = DateTime.Now.AddHours(-23),
-                                Isread = true,
-                            },
-                            new Message
-                            {
-                                SenderId = guest.Id,
-                                ReceiverId = host.Id,
-                                PropertyId = property.Id,
-                                MesageText = "Great! What's the check-in process like?",
-                                SentAt = DateTime.Now.AddHours(-22),
-                                Isread = false,
-                            },
-                        };
+        //    // Create conversations between hosts and guests
+        //    foreach (var host in hosts)
+        //    {
+        //        foreach (var guest in guests.Take(2)) // Each host talks to 2 guests
+        //        {
+        //            var property = properties.FirstOrDefault(p => p.HostId == host.Id);
+        //            if (property != null)
+        //            {
+        //                // Create a conversation thread
+        //                var conversationMessages = new[]
+        //                {
+        //                    new Message
+        //                    {
+        //                        SenderId = guest.Id,
+        //                        ReceiverId = host.Id,
+        //                        PropertyId = property.Id,
+        //                        MesageText =
+        //                            "Hi, I'm interested in booking your property. Is it available for next weekend?",
+        //                        SentAt = DateTime.Now.AddHours(-24),
+        //                        Isread = true,
+        //                    },
+        //                    new Message
+        //                    {
+        //                        SenderId = host.Id,
+        //                        ReceiverId = guest.Id,
+        //                        PropertyId = property.Id,
+        //                        MesageText =
+        //                            "Hello! Yes, it's available. I'd be happy to host you. Do you have any questions about the property?",
+        //                        SentAt = DateTime.Now.AddHours(-23),
+        //                        Isread = true,
+        //                    },
+        //                    new Message
+        //                    {
+        //                        SenderId = guest.Id,
+        //                        ReceiverId = host.Id,
+        //                        PropertyId = property.Id,
+        //                        MesageText = "Great! What's the check-in process like?",
+        //                        SentAt = DateTime.Now.AddHours(-22),
+        //                        Isread = false,
+        //                    },
+        //                };
 
-                        messages.AddRange(conversationMessages);
-                    }
-                }
-            }
+        //                messages.AddRange(conversationMessages);
+        //            }
+        //        }
+        //    }
 
-            context.Messages.AddRange(messages);
-            await context.SaveChangesAsync();
-        }
+        //    context.Messages.AddRange(messages);
+        //    await context.SaveChangesAsync();
+        //}
     }
 }

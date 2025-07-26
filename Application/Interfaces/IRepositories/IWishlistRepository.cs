@@ -16,5 +16,6 @@ namespace Application.Interfaces.IRepositories
         Task RemovePropertyFromWishlistAsync(string userId, int wishlistId, int propertyId);
         Task CreateWishlistAsync(string userId, string name, string notes);
         Task DeleteWishlistAsync(string userId, int wishlistId);
+
     }
 }

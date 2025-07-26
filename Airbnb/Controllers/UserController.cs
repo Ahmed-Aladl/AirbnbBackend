@@ -28,7 +28,7 @@ public class UserController : ControllerBase
     private readonly IHubContext<NotificationHub> _hub;
 
     public UserController(
-    UserManager<User> userManager,
+        UserManager<User> userManager,
         AirbnbContext context,
         ITokenService tokenService,
         IEmailService emailService,
@@ -47,11 +47,15 @@ public class UserController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
+        var userIsExist = await _userManager.FindByEmailAsync(dto.Email);
+        if (userIsExist != null)
+            return BadRequest(new { error = "User already exists" });
+
+        var username = dto.Email.Split('@')[0];
         var user = new User
         {
             Email = dto.Email,
-            UserName = dto.Email,
-            PasswordHash = dto.Password,
+            UserName = username,
             CreateAt = DateTime.UtcNow,
         };
 
@@ -65,30 +69,28 @@ public class UserController : ControllerBase
 
         await _emailService.SendEmailAsync(dto.Email, "OTP Verification", $"Your OTP is: {otp}");
 
-        await _context.UsersOtp.AddAsync(
-            new UserOtp
-            {
-                UserId = user.Id,
-                Code = otp,
-                IsUsed = false,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
-            }
-        );
+        await _context.UsersOtp.AddAsync(new UserOtp
+        {
+            UserId = user.Id,
+            Code = otp,
+            IsUsed = false,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+        });
 
         await _context.SaveChangesAsync();
-        return Ok("OTP sent successfully");
+        return Ok(new { message = "OTP sent successfully" });
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
+        
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-            return Unauthorized("Invalid credentials");
+            return BadRequest(new { error = "Invalid credentials" });
 
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
-        var userId = user.Id;
 
         var roles = await _userManager.GetRolesAsync(user);
 
@@ -97,83 +99,89 @@ public class UserController : ControllerBase
             UserId = user.Id,
             Message = "Welcome",
             CreatedAt = DateTime.UtcNow,
-            isRead = false
+            isRead = false,
         };
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", "Welcome");
 
-
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
+        Response.Cookies.Append("/api/", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, 
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddDays(7),
+            Path = "/api/user/refresh-token" 
+        });
+        Response.Cookies.Append("accessToken", accessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,  
+            SameSite = SameSiteMode.None, 
+            Expires = DateTimeOffset.UtcNow.AddMinutes(30),
+            Path = "/"  
+        });
 
-        return Ok(
-            new TokenDto
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                UserId = userId,
-                Roles = identityRoles
-            }
-        );
-
+        return Ok(new TokenDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            UserId = user.Id,
+            Roles = identityRoles,
+        });
     }
-
 
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOtp(OtpDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null)
-            return NotFound("User not found");
+            return BadRequest(new { error = "User not found" });
 
-        var otp = await _context
-            .UsersOtp.Where(x =>
-                x.UserId == user.Id
-                && x.Code == dto.Code
-                && !x.IsUsed
-                && x.ExpiresAt > DateTime.UtcNow
-            )
-            .FirstOrDefaultAsync();
+        var otp = await _context.UsersOtp.FirstOrDefaultAsync(x =>
+            x.UserId == user.Id && x.Code == dto.Code && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow);
 
         if (otp == null)
-            return BadRequest("Invalid or expired OTP");
+            return BadRequest(new { error = "Invalid or expired OTP" });
 
         otp.IsUsed = true;
+        var allUserOtps = _context.UsersOtp.Where(x => x.UserId == user.Id);
+        _context.UsersOtp.RemoveRange(allUserOtps);
+
         await _context.SaveChangesAsync();
 
-        return Ok("OTP verified");
+        return Ok(new { message = "OTP verified" });
     }
 
     [HttpPost("logout")]
     public IActionResult Logout()
     {
         Response.Cookies.Delete("access_token");
-        return Ok("Logged out successfully");
+        return Ok(new { message = "Logged out successfully" });
     }
 
     [HttpPost("send-reset-otp")]
-    public async Task<IActionResult> SendResetOtp([FromBody] string email)
+    public async Task<IActionResult> SendResetOtp(SendResetOtpDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null)
-            return NotFound("Email not found");
+            return NotFound(new { error = "User not Found" });
 
         var otp = GenerateOtp();
-        await _emailService.SendEmailAsync(email, "Reset Password", $"Your reset code is: {otp}");
+        await _emailService.SendEmailAsync(dto.Email, "Reset Password", $"Your reset code is: {otp}");
 
-        await _context.UsersOtp.AddAsync(
-            new UserOtp
-            {
-                UserId = user.Id,
-                Code = otp,
-                IsUsed = false,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
-            }
-        );
+        await _context.UsersOtp.AddAsync(new UserOtp
+        {
+            UserId = user.Id,
+            Code = otp,
+            IsUsed = false,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+        });
 
         await _context.SaveChangesAsync();
-        return Ok("OTP sent");
+        return Ok(new { message = "OTP sent" });
     }
 
     [HttpPost("reset-password")]
@@ -181,19 +189,13 @@ public class UserController : ControllerBase
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null)
-            return NotFound("User not found");
+            return NotFound(new { error = "User not found" });
 
-        var otp = await _context
-            .UsersOtp.Where(x =>
-                x.UserId == user.Id
-                && x.Code == dto.Code
-                && !x.IsUsed
-                && x.ExpiresAt > DateTime.UtcNow
-            )
-            .FirstOrDefaultAsync();
+        var otp = await _context.UsersOtp.FirstOrDefaultAsync(x =>
+            x.UserId == user.Id && x.Code == dto.Code && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow);
 
         if (otp == null)
-            return BadRequest("Invalid OTP");
+            return BadRequest(new { error = "Invalid OTP" });
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
@@ -204,16 +206,16 @@ public class UserController : ControllerBase
         otp.IsUsed = true;
         await _context.SaveChangesAsync();
 
-        return Ok("Password reset successfully");
+        return Ok(new { message = "Password reset successfully" });
     }
 
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == dto.RefreshToken);
 
         if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
-            return BadRequest("Invalid or expired refresh token");
+            return BadRequest(new { error = "Invalid or expired refresh token" });
 
         var newAccessToken = _tokenService.GenerateAccessToken(user);
         var newRefreshToken = _tokenService.GenerateRefreshToken(user);
@@ -237,21 +239,33 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("profile")]
+    [HttpGet("profile/{id}")]
     public async Task<IActionResult> GetProfile(string id)
     {
         var user = _userRepository.GetById(id);
         if (user == null)
-            return NotFound("User not found");
-        return Ok(user);
+            return BadRequest(new { error = "User not found" });
+
+        return Ok(new UserProfileDto
+        {
+            UserId = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Bio = user.Bio,
+            BirthDate = user.BirthDate,
+            Country = user.Country,
+            ProfilePictureURL = user.ProfilePictureURL
+        });
     }
 
-    [HttpPut("profile")]
+    [HttpPut("profile/{id}")]
     public async Task<IActionResult> UpdatedProfile(string id, [FromBody] UpdateUserProfileDto dto)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
-            return NotFound("User not found");
+            return BadRequest(new { error = "User not found" });
 
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;
@@ -271,16 +285,10 @@ public class UserController : ControllerBase
     {
         var user = await _userManager.FindByIdAsync(dto.UserId);
         if (user == null)
-            return NotFound("User not found");
+            return BadRequest(new { error = "User not found" });
 
         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.File.FileName);
-        var path = Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "wwwroot",
-            "images",
-            "profile",
-            fileName
-        );
+        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profile", fileName);
 
         using (var stream = new FileStream(path, FileMode.Create))
         {
@@ -293,12 +301,12 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("profile/role")]
+    [HttpPost("profile/{id}/role")]
     public async Task<IActionResult> UpdateRole(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
-            return NotFound("User not found");
+            return BadRequest(new { error = "User not found" });
 
         await _userManager.AddToRoleAsync(user, "host");
         await _userManager.UpdateAsync(user);
@@ -306,15 +314,14 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("delete-account")]
+    [HttpDelete("delete-account/{id}")]
     public async Task<IActionResult> DeleteAccount(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
-            return NotFound("User not found");
+            return BadRequest(new { error = "User not found" });
 
         await _userManager.DeleteAsync(user);
-        await _context.SaveChangesAsync();
         return Ok();
     }
 }

@@ -15,6 +15,9 @@ namespace Infrastructure.DbConfigs
         )
         {
             builder
+        .HasIndex(u => u.Email)
+        .IsUnique();
+            builder
                 .HasMany(u => u.Bookings)
                 .WithOne(b => b.User)
                 .HasForeignKey(b => b.UserId)

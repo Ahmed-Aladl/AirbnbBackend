@@ -14,6 +14,11 @@ namespace Application.DTOs.WishlistDTOs
         public DateTime CreatedAt { get; set; }
         public string UserId { get; set; }
         public List<int> PropertyIds { get; set; }
+
+        public string CoverImageUrl { get; set; }
+
+
+
     }
 
 }

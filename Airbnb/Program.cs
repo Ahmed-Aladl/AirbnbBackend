@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Airbnb.DependencyInjection.ApplicationDI;
 using Airbnb.DependencyInjection.DomainDI;
 using Airbnb.DependencyInjection.InfrastructureDI;
 using Airbnb.DependencyInjection.PresentationDI;
+using Airbnb.Hubs;
 using Airbnb.Middleware;
 using Application.Interfaces.IRepositories;
 using Application.Mappings;
@@ -37,10 +39,6 @@ namespace Airbnb
                 //options.Filters.Add<ErrorHandlingFilter>();
             });
 
-            //builder.Services.Configure<ApiBehaviorOptions>(options =>
-            //{
-            //    options.SuppressModelStateInvalidFilter = true;
-            //});
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             //builder.Services.AddOpenApi();
@@ -55,26 +53,59 @@ namespace Airbnb
 
 
             StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
-            //builder.Services.AddIdentity<User, IdentityRole>()
-            //.AddEntityFrameworkStores<AirbnbContext>()
-            //     .AddDefaultTokenProviders();
+
 
             var app = builder.Build();
+            app.UseStaticFiles();
             app.UseIpRateLimiting();
+
             await DbSeeder.SeedAsync(app);
+
+
 
             if (app.Environment.IsDevelopment())
             {
                 app.AddPresentationDevelopmentDI();
             }
 
-
             app.UseHttpsRedirection();
+            app.UseMiddleware<JwtFromCookieMiddleware>();
+            app.UseAuthentication();
             app.UseAuthorization();
-
-
+            app.MapHub<ChatHub>("/chatHub");
+            app.MapHub<NotificationHub>("/notificationHub");
             app.MapControllers();
+            //app.Use(async (context, next) =>
+            //{
+            //    Console.WriteLine($"\n\nRequest Path: {context.Request.Path}");
+            //    var user = context.User;
+            //    if (user?.Identity?.IsAuthenticated == true)
+            //    {
+            //        Console.WriteLine($"User: {user.Identity.Name}");
 
+            //        foreach (var claim in user.Claims)
+            //        {
+            //            Console.WriteLine($"\nClaim: {claim.Type} = {claim.Value}");
+            //        }
+            //    }
+            //    else
+            //        Console.WriteLine("******\n\n8\n8\n8\n8\n8\n8\n no data found\n8\n8\n8\n8\n8\n8\n8\n\n\n");
+            //    Console.WriteLine("==== Request Headers ====");
+            //    foreach (var header in context.Request.Headers)
+            //    {
+            //        Console.WriteLine($"\n{header.Key}: {header.Value}");
+            //    }
+            //    Console.WriteLine("\n\n");
+
+            //    Console.WriteLine("==== Request Cookies ====");
+            //    foreach (var cookie in context.Request.Cookies)
+            //    {
+            //        Console.WriteLine($"\n{cookie.Key}: {cookie.Value}");
+            //    }
+            //    Console.WriteLine("\n\n");
+
+            //    await next(context);
+            //});
 
             app.Run();
         }

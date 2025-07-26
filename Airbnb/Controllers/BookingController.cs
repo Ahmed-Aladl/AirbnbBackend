@@ -32,6 +32,17 @@ namespace Airbnb.Controllers
         }
 
 
+        [HttpGet("PropertyBooking/{id}")]
+        public async Task<IActionResult> GetAllByPropertyID(int id)
+        {
+            var result = await book.GetBookingsByPropertyIdAsync(id);
+            return result.ToActionResult();
+
+        } 
+
+
+
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)

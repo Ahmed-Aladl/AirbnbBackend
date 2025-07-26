@@ -206,6 +206,18 @@ namespace Application.Services
                     {
                         payment.StripePaymentIntentId = session.PaymentIntentId;
                         payment.Status = "Succeeded";
+
+                        var booking = await _unitOfWork.Bookings.GetByIdAsync(payment.BookingId);
+                        if (booking != null)
+                        {
+                            booking.BookingStatus = Domain.Enums.Booking.BookingStatus.Confirmed;
+                            _logger.LogInformation($"Booking {booking.Id} status updated to Confirmed.");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Booking not found for Payment {payment.Id}");
+                        }
+
                         await _unitOfWork.SaveChangesAsync();
                         _logger.LogInformation($"Updated payment with PaymentIntentId: {session.PaymentIntentId}");
                     }

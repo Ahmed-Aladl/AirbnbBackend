@@ -14,8 +14,14 @@ namespace Application.Mappings
     {
         public PropertyProfile()
         {
-            CreateMap<Property, PropertyDisplayDTO>().ReverseMap();
-            CreateMap<PaginatedResult<Property>, PaginatedResult<PropertyDisplayDTO>>().ReverseMap();
+            CreateMap<Property, PropertyDisplayDTO>()
+                .ForMember(dest => dest.isFavourite, opt => opt.MapFrom((src, dest, destMember, context) =>
+                {
+                    return src.WishlistProperties?.Count> 0;
+                })
+                ).ReverseMap();
+            CreateMap<PaginatedResult<Property>, PaginatedResult<PropertyDisplayDTO>>()
+                .ReverseMap();
         }
     }
 }
