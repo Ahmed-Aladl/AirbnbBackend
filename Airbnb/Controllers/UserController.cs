@@ -83,6 +83,7 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
+        
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             return BadRequest(new { errer = "Invalid credentials" });
@@ -106,6 +107,22 @@ public class UserController : ControllerBase
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", "Welcome");
 
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
+        Response.Cookies.Append("/api/", refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, 
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddDays(7),
+            Path = "/api/user/refresh-token" 
+        });
+        Response.Cookies.Append("accessToken", accessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,  
+            SameSite = SameSiteMode.None, 
+            Expires = DateTimeOffset.UtcNow.AddMinutes(30),
+            Path = "/"  
+        });
 
         return Ok(
             new TokenDto
