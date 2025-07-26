@@ -54,18 +54,43 @@ namespace Application.Services
         {
             try
             {
-                var availabilities = _mapper.Map<List<CalendarAvailability>>(updates);
-                foreach (var availability in availabilities)
+                var blockedDates = new List<DateTime>();
+                foreach (var update in updates)
                 {
-                    availability.PropertyId = propertyId;
+                    // Only update the single date provided in CalendarUpdateDto
+                    var date = update.Date.Date;
+                    var existing = (await _unitOfWork.CalendarAvailabilities.GetAvailabilityRangeAsync(propertyId, date, date)).FirstOrDefault();
+                    if (existing != null)
+                    {
+                        if (existing.IsBooked)
+                        {
+                            blockedDates.Add(date);
+                            continue;
+                        }
+                        existing.IsAvailable = update.IsAvailable;
+                        existing.Price = update.Price;
+                        _unitOfWork.CalendarAvailabilities.Update(existing);
+                    }
+                    else
+                    {
+                        var ca = new CalendarAvailability
+                        {
+                            PropertyId = propertyId,
+                            Date = date,
+                            IsAvailable = update.IsAvailable,
+                            IsBooked = false,
+                            Price = update.Price
+                        };
+                        _unitOfWork.CalendarAvailabilities.Add(ca);
+                    }
                 }
-
-                await _unitOfWork.CalendarAvailabilities.UpdateAvailabilityRangeAsync(
-                    propertyId,
-                    availabilities
-                );
                 await _unitOfWork.SaveChangesAsync();
 
+                if (blockedDates.Count > 0)
+                {
+                    var msg = $"Some dates were booked and could not be updated: {string.Join(", ", blockedDates.Select(d => d.ToString("yyyy-MM-dd")))}";
+                    return Result<bool>.Success(true, message: msg);
+                }
                 return Result<bool>.Success(true, message: "Calendar updated successfully");
             }
             catch (Exception ex)
