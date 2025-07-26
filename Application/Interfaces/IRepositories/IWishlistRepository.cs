@@ -17,5 +17,12 @@ namespace Application.Interfaces.IRepositories
         Task CreateWishlistAsync(string userId, string name, string notes);
         Task DeleteWishlistAsync(string userId, int wishlistId);
 
+        Task<bool> IsPropertyInUserWishlistsAsync(string userId, int propertyId);
+        Task RemovePropertyFromAllUserWishlistsAsync(string userId, int propertyId);
+
+
+
+
+
     }
 }

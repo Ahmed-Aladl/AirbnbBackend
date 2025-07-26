@@ -113,5 +113,25 @@ namespace Infrastructure.Common.Repositories
         }
 
 
+
+
+
+        public async Task<bool> IsPropertyInUserWishlistsAsync(string userId, int propertyId)
+        {
+            return await Db.Set<WishlistProperty>()
+                .AnyAsync(wp => wp.Wishlist.UserId == userId && wp.PropertyId == propertyId);
+        }
+
+        public async Task RemovePropertyFromAllUserWishlistsAsync(string userId, int propertyId)
+        {
+            var wishlistProperties = await Db.Set<WishlistProperty>()
+                .Where(wp => wp.Wishlist.UserId == userId && wp.PropertyId == propertyId)
+                .ToListAsync();
+
+            if (wishlistProperties.Any())
+            {
+                Db.Set<WishlistProperty>().RemoveRange(wishlistProperties);
+            }
+        }
     }
 }
