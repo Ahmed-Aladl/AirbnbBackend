@@ -164,24 +164,6 @@ namespace Application.Services
                 if (!success)
                     return Fail("Couldn't add a new property", (int)HttpStatusCode.BadRequest);
 
-                // Initialize CalendarAvailability for 6 months
-                var availabilities = new List<CalendarAvailability>();
-                for (int days = 0; days < 180; days++)
-                {
-                    var date = DateTime.Today.AddDays(days);
-                    availabilities.Add(new CalendarAvailability
-                    {
-                        PropertyId = prop.Id,
-                        Date = date,
-                        IsAvailable = true,
-                        IsBooked = false,
-                        Price = prop.PricePerNight
-                    });
-                }
-                foreach (var ca in availabilities)
-                {
-                    UnitOfWork.CalendarAvailabilities.Add(ca);
-                }
                 UnitOfWork.SaveChanges();
 
                 Mapper.Map(prop,propertyDTO);

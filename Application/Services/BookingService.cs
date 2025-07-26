@@ -181,6 +181,7 @@ namespace Application.Services
                         existing.IsBooked = false;
                         uow.CalendarAvailabilities.Update(existing);
                     }
+                    // If not found, do nothing
                 }
                 await uow.SaveChangesAsync();
 
@@ -259,24 +260,18 @@ namespace Application.Services
         {
             try
             {
-                var availabilityResult = await CheckAvailabilityAsync(
-                    dto.UserId,
-                    dto.PropertyId,
-                    dto.CheckInDate,
-                    dto.CheckOutDate
-                );
-
-                if (!availabilityResult.IsSuccess)
-                    return Result<bool>.Fail(
-                        availabilityResult.Message,
-                        availabilityResult.StatusCode ?? 500
-                    );
-
-                if (!availabilityResult.Data)
-                    return Result<bool>.Fail(
-                        "The property is not available for the selected dates.",
-                        400
-                    );
+                // Check calendar availability for each date in the range
+                for (var date = dto.CheckInDate.Date; date <= dto.CheckOutDate.Date; date = date.AddDays(1))
+                {
+                    var existing = (await uow.CalendarAvailabilities.GetAvailabilityRangeAsync(dto.PropertyId, date, date)).FirstOrDefault();
+                    if (existing != null)
+                    {
+                        if (!existing.IsAvailable || existing.IsBooked)
+                        {
+                            return Result<bool>.Fail($"The property is not available for {date:yyyy-MM-dd}.", 400);
+                        }
+                    }
+                }
 
                 var property = await uow.PropertyRepo.GetByIdAsync(dto.PropertyId);
                 if (property == null)
@@ -303,7 +298,7 @@ namespace Application.Services
                 await uow.Bookings.AddAsync(booking);
                 await uow.SaveChangesAsync();
 
-                // Update CalendarAvailability for each booked date
+                // Add or update CalendarAvailability for each booked date
                 for (var date = dto.CheckInDate.Date; date <= dto.CheckOutDate.Date; date = date.AddDays(1))
                 {
                     var existing = (await uow.CalendarAvailabilities.GetAvailabilityRangeAsync(dto.PropertyId, date, date)).FirstOrDefault();
