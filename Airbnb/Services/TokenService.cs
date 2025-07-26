@@ -27,6 +27,7 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName ?? ""),
             new Claim(ClaimTypes.Role, "User"),
+            new Claim(ClaimTypes.Role, "Guest"),
         };
         foreach (var role in roles)
             claims.Append(new Claim(ClaimTypes.Role, role));
