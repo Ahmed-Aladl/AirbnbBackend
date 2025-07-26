@@ -9,6 +9,7 @@ using Application.Services;
 using Application.Shared;
 using Azure;
 using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -174,40 +175,71 @@ namespace Airbnb.Controllers
         }
 
         [EndpointSummary("Add a new Property")]
-        [HttpPost("{id}")]
-        public IActionResult Add(PropertyDisplayDTO propertyDTO, int id)
+        [HttpPost]
+        [Authorize(Roles =("host"))]
+        public IActionResult Add(PropertyDisplayDTO propertyDTO)
         {
-            return PropertyService.Add(propertyDTO)
-                                  .ToActionResult();
+
+            var hostId = User.GetUserId();
+            if (hostId == null)
+            {
+                Console.WriteLine("*****\n\nUser.hostId is Null");
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+            }
+            propertyDTO.HostId = hostId;
+
+            return ToActionResult(PropertyService.Add(propertyDTO));
+                                  ;
         }
 
+
         [EndpointSummary("Update existing Property")]
-        [HttpPut("{id}")]
-        public IActionResult Put(PropertyDisplayDTO propertyDTO, int id)
+        [HttpPut]
+        [Authorize(Roles =("host"))]
+        public IActionResult Put(PropertyDisplayDTO propertyDTO)
         {
+            var hostId = User.GetUserId();
+            if (hostId == null || hostId != propertyDTO.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
             var result = PropertyService.Update(propertyDTO);
 
             return ToActionResult(result); ;
         }
 
+
         [EndpointSummary("Deletes existing Property")]
         [HttpDelete("{id}")]
+        [Authorize(Roles ="host")]
         public IActionResult Delete(int id)
         {
+            var hostId= User.GetUserId();
+            if (hostId == null)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
 
-            return PropertyService.Delete(id)
-                                  .ToActionResult();
+            return ToActionResult( PropertyService.Delete(id, hostId) );
         }
 
 
         [EndpointSummary("Upload images for a Property")]
         [Consumes("multipart/form-data")]
         [HttpPost("property-images/upload")]
+        [Authorize(Roles ="host")]
         public async Task<IActionResult> UploadPropertyImages([FromForm] PropertyImagesUploadContainerDTO dto)
         {
+            var hostId = User.GetUserId();
+            if(hostId == null || hostId != dto.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+            
+            var property = await PropertyService.GetByIdWithCoverAsync(dto.PropertyId);
+            if(hostId != property?.Data?.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
+
             if (dto.Files == null || !dto.Files.Any())
                 return BadRequest("No files uploaded");
 
+            
             var imageDtos = new List<PropertyImageCreateDTO>();
 
             for (int i = 0; i < dto.Files.Count; i++)
@@ -255,8 +287,18 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Deletes images for a Property")]
         [HttpDelete("property-images/delete/{propertyId}")]
+        [Authorize(Roles ="host")]
         public async Task<IActionResult> DeletePropertyImages([FromForm] int[] imgIds,int propertyId)
         {
+            var hostId = User.GetUserId();
+            if (hostId == null)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
+            var property = await PropertyService.GetByIdWithCoverAsync(propertyId);
+            if (hostId != property?.Data?.HostId)
+                return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
+
+
             if (imgIds == null || imgIds.Length==0)
                 return BadRequest("No files uploaded");
             try 

@@ -202,12 +202,13 @@ namespace Application.Services
             }
         }
 
-        public Result<PropertyDisplayDTO> Delete(int id)
+        public Result<PropertyDisplayDTO> Delete(int id, string hostId)
         {
             var property = UnitOfWork.PropertyRepo.GetById(id);
             if (property == null)
                 return Fail("Property not found!", (int)HttpStatusCode.NotFound);
-
+            if (property.HostId != hostId)
+                return Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
             try
             {
                 property.IsDeleted = true;

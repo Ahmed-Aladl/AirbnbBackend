@@ -101,6 +101,7 @@ public class UserController : ControllerBase
             CreatedAt = DateTime.UtcNow,
             isRead = false,
         };
+
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
