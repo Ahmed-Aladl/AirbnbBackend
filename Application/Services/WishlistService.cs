@@ -197,5 +197,27 @@ namespace Application.Services
             return Result<WishlistWithPropertiesDTO>.Success(dto);
         }
 
+
+
+
+        public async Task<Result<bool>> RemoveFromAllWishlists(string userId, int propertyId)
+        {
+            if (!await UnitOfWork.Wishlist.IsPropertyInUserWishlistsAsync(userId, propertyId))
+                return Result<bool>.Fail(
+                    "Property not found in any wishlist",
+                    (int)HttpStatusCode.NotFound
+                );
+
+            await UnitOfWork.Wishlist.RemovePropertyFromAllUserWishlistsAsync(userId, propertyId);
+
+            var success = await UnitOfWork.SaveChangesAsync() > 0;
+            if (!success)
+                return Result<bool>.Fail(
+                    "Failed to remove property from favorites",
+                    (int)HttpStatusCode.BadRequest
+                );
+
+            return Result<bool>.Success(true, (int)HttpStatusCode.OK, "Property removed from favorites");
+        }
     }
 }

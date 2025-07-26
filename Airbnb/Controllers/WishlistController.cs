@@ -54,15 +54,23 @@ namespace Airbnb.Controllers
 
 
         // DELETE: api/<WishlistController>/remove/{wishlistId}/{propertyId}
-        [HttpDelete("remove/{wishlistId}/{propertyId}")]
-        //[Authorize]
-        public async Task<IActionResult> RemoveFromWishlist(int wishlistId, int propertyId)
-        {
-            var userId = "1d1afe4d-301c-4f72-9e41-5773d0d27fa2"; //User.GetUserId();
-            userId = UserId;
-            return (await WishlistService.RemoveFromWishlist(userId, wishlistId, propertyId)).ToActionResult();
-        }
+        //[HttpDelete("remove/{wishlistId}/{propertyId}")]
+        ////[Authorize]
+        //public async Task<IActionResult> RemoveFromWishlist(int wishlistId, int propertyId)
+        //{
+        //    var userId = "1d1afe4d-301c-4f72-9e41-5773d0d27fa2"; //User.GetUserId();
+        //    userId = UserId;
+        //    return (await WishlistService.RemoveFromWishlist(userId, wishlistId, propertyId)).ToActionResult();
+        //}
 
+        // DELETE: api/wishlist/remove-favorite/{propertyId}
+        [HttpDelete("remove-favorite/{propertyId}")]
+        //[Authorize]
+        public async Task<IActionResult> RemoveFromFavorites(int propertyId)
+        {
+            var userId = UserId;
+            return (await WishlistService.RemoveFromAllWishlists(userId, propertyId)).ToActionResult();
+        }
 
 
         // DELETE: api/<WishlistController>/{wishlistId}
