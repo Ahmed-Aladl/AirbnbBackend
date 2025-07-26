@@ -15,7 +15,7 @@ public class TokenService : ITokenService
         _config = config;
     }
 
-    public string GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user, IList<string> roles)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -26,8 +26,10 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName ?? ""),
-            new Claim(ClaimTypes.Role, "User")
+            new Claim(ClaimTypes.Role, "User"),
         };
+        foreach (var role in roles)
+            claims.Append(new Claim(ClaimTypes.Role, role));
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],

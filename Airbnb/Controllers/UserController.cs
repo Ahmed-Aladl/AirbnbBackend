@@ -63,7 +63,7 @@ public class UserController : ControllerBase
         if (!result.Succeeded)
             return BadRequest(result.Errors.Select(e => e.Description));
 
-        await _userManager.AddToRoleAsync(user, "guest");
+        await _userManager.AddToRoleAsync(user, "Guest");
 
         var otp = GenerateOtp();
 
@@ -89,10 +89,10 @@ public class UserController : ControllerBase
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             return BadRequest(new { error = "Invalid credentials" });
 
-        var accessToken = _tokenService.GenerateAccessToken(user);
+        var roles = await _userManager.GetRolesAsync(user);
+        var accessToken = _tokenService.GenerateAccessToken(user,roles);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
 
-        var roles = await _userManager.GetRolesAsync(user);
 
         var notification = new Notification
         {
@@ -101,13 +101,14 @@ public class UserController : ControllerBase
             CreatedAt = DateTime.UtcNow,
             isRead = false,
         };
+
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", "Welcome");
 
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
-        Response.Cookies.Append("/api/", refreshToken, new CookieOptions
+        Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = true, 
@@ -217,7 +218,9 @@ public class UserController : ControllerBase
         if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
             return BadRequest(new { error = "Invalid or expired refresh token" });
 
-        var newAccessToken = _tokenService.GenerateAccessToken(user);
+        var roles = await _userManager.GetRolesAsync(user);
+        var newAccessToken = _tokenService.GenerateAccessToken(user, roles);
+
         var newRefreshToken = _tokenService.GenerateRefreshToken(user);
         var expiry = _tokenService.GetRefreshTokenExpiryDate();
 
