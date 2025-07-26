@@ -4,7 +4,7 @@ namespace Airbnb.Services
 {
     public interface ITokenService
     {
-        string GenerateAccessToken(User user);
+        string GenerateAccessToken(User user,IList<string> roles);
         string GenerateRefreshToken(User user);
         DateTime GetRefreshTokenExpiryDate();
     }

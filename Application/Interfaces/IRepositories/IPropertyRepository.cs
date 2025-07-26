@@ -11,8 +11,8 @@ namespace Application.Interfaces.IRepositories
 {
     public interface IPropertyRepository : IRepository<Property, int>
     {
-        Task<PaginatedResult<Property>> GetPageWithCoverAsync(int page, int pageSize,string userId="1");
-        Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto,string userId = "1");
+        Task<PaginatedResult<Property>> GetPageWithCoverAsync(int page, int pageSize,string userId);
+        Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto,string userId );
         Task<PaginatedResult<Property>> GetNearestPageWithCoverAsync(IpLocation ipLocation, int page, int pageSize, double maxDistanceKm);
         Task<Property> GetByIdAsync(int id);
         Task<Property> GetByIdWithAmenitiesAsync(int id);

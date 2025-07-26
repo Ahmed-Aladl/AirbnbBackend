@@ -1,8 +1,11 @@
-﻿using Application.DTOs.Chat.ChatSessionDtos;
+﻿using Airbnb.Extensions;
+using Application.DTOs.Chat.ChatSessionDtos;
 using Application.DTOs.Chat.MessageDtos;
 using Application.DTOs.Chat.Requests;
 using Application.Interfaces.Services;
 using Application.Shared;
+using Domain.Models.Chat;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Bcpg;
@@ -19,21 +22,22 @@ namespace Airbnb.Controllers
         //string userId = "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";// host of property "1" 
         string userId = "1";
         public ChatController(
-            IChatService chatService,
-            ILogger<ChatController> logger)
+                            IChatService chatService,
+                            ILogger<ChatController> logger
+                        )
         {
             _chatService = chatService;
             _logger = logger;
         }
 
         [HttpGet("sessions")]
-        public async Task<ActionResult<List<ChatSessionDto>>> GetChatSessions(
-             [FromQuery] int page = 1,
-             [FromQuery] int pageSize = 20)
+        [Authorize(Roles ="Guest")]
+        public async Task<ActionResult<List<ChatSessionDto>>> GetChatSessions(  [FromQuery] int page = 1,
+                                                                                [FromQuery] int pageSize = 20)
         {
+                var currentUserId = User.GetUserId() ?? userId;
             try
             {
-                var currentUserId = userId;
                 var sessions = await _chatService.GetUserChatSessionsAsync(currentUserId, page, pageSize);
 
                 _logger.LogInformation("Retrieved {Count} chat sessions for user {UserId}, page {Page}",
@@ -43,7 +47,7 @@ namespace Airbnb.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting chat sessions for user {UserId}", userId);
+                _logger.LogError(ex, "Error getting chat sessions for user {UserId}", currentUserId);
                 return StatusCode(500, new { message = "Internal server error occurred while retrieving chat sessions" });
             }
         }
@@ -51,6 +55,7 @@ namespace Airbnb.Controllers
 
 
         [HttpPost("reserve")]
+        [Authorize(Roles ="Guest")]
         public async Task<ActionResult<ChatSessionDto>> CreateOrGetChatSession([FromBody] CreateReservationRequestDto createRequest)
         {
             try
@@ -59,8 +64,10 @@ namespace Airbnb.Controllers
                 {
                     return BadRequest(ModelState);
                 }
+                var currentUserId= User.GetUserId() ?? userId;
+                
 
-                var currentUserId = userId;
+
                 var responseResult = await _chatService.Reserve(createRequest.propertyId, currentUserId,createRequest);
 
                 // Check if this is a new session or existing one
@@ -92,14 +99,17 @@ namespace Airbnb.Controllers
 
 
         [HttpGet("sessions/{chatSessionId}/messages")]
+        [Authorize(Roles ="Guest")]
         public async Task<ActionResult<List<MessageDto>>> GetChatMessages(
-        string chatSessionId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50)
+                                                                    string chatSessionId,
+                                                                    [FromQuery] int page = 1,
+                                                                    [FromQuery] int pageSize = 50)
         {
             try
             {
-                var currentUserId = userId;
+
+                var currentUserId = User.GetUserId() ?? userId;
+                
                 var messages = await _chatService.GetChatMessagesAsync(chatSessionId, currentUserId, page, pageSize);
 
                 _logger.LogInformation("Retrieved {Count} messages for chat session {ChatSessionId}, page {Page}",
@@ -123,13 +133,18 @@ namespace Airbnb.Controllers
 
 
         [HttpPost("sessions/{chatSessionId}/messages")]
+        [Authorize(Roles ="Guest")]
         public async Task<ActionResult<MessageDto>> SendMessage(
         string chatSessionId,
         [FromBody] SendMessageRequest request,
         bool isUser =true
         )
         {
-            userId = isUser ? userId : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
+            
+            userId = isUser ? (User.GetUserId() ?? userId) : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
+            
+            
+
             try
             {
                 if (!ModelState.IsValid)
@@ -142,8 +157,7 @@ namespace Airbnb.Controllers
                     return BadRequest(new { message = "Chat session ID mismatch" });
                 }
 
-                var currentUserId = userId;
-                var message = await _chatService.SendMessageAsync(request, currentUserId);
+                var message = await _chatService.SendMessageAsync(request, userId);
 
 
                 return CreatedAtAction(nameof(GetChatMessages),
@@ -169,11 +183,15 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Mark chat as read by user")]
         [HttpPost("sessions/{chatSessionId}/mark-read")]
+        [Authorize(Roles ="Guest")]
         public async Task<ActionResult> MarkMessagesAsRead(string chatSessionId)
         {
             try
             {
-                var currentUserId = userId;
+                var currentUserId = User.GetUserId()?? userId;
+
+                
+
                 await _chatService.MarkMessagesAsReadAsync(chatSessionId, currentUserId);
 
                 return Ok(new { message = "Messages marked as read" });
