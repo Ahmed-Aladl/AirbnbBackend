@@ -1,3 +1,4 @@
+using System.Text;
 using Airbnb.Hubs;
 using Airbnb.Middleware;
 using Airbnb.Services;
@@ -7,11 +8,11 @@ using Application.Interfaces.Services;
 using Application.Mappings;
 using Application.Services;
 using Application.Services.Chat;
-using Domain.Models;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Airbnb.DependencyInjection.PresentationDI
 {
@@ -55,8 +56,11 @@ namespace Airbnb.DependencyInjection.PresentationDI
         public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
 
         {
+
             AddCors(services, configuration);
-            
+            ConfigureJwt(services, configuration);
+
+
             services.AddSingleton<IUserConnectionService, UserConnectionService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IUserRepository, UserRepository>();
@@ -109,6 +113,32 @@ namespace Airbnb.DependencyInjection.PresentationDI
             app.UseCors("AllowAngularApp");
 
             return app;
+        }
+
+        // private methods 
+        private static IServiceCollection ConfigureJwt(IServiceCollection services, IConfiguration config)
+        {
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = config["Jwt:Issuer"],
+                    ValidAudience = config["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]))
+                };
+            });
+
+            services.AddHttpContextAccessor();
+            return services;
         }
     }
 }
