@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Airbnb.Extensions;
+using Application.DTOs.BookingDTOS;
+using Application.DTOs.HostReply;
 using Application.DTOs.ReviewDTOs;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
@@ -9,17 +12,16 @@ using Application.Result;
 using Application.Result;
 using Application.Services;
 using AutoMapper;
+using Domain.Enums.Booking;
 using Domain.Models;
 using Infrastructure.Common;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Contexts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
-using Application.DTOs.BookingDTOS;
-using Domain.Enums.Booking;
-using Application.DTOs.HostReply;
 namespace Airbnb.Controllers
 {
     [Route("api/[controller]")]
@@ -82,6 +84,37 @@ namespace Airbnb.Controllers
             else
                 return result.ToActionResult();
         }
+
+
+            //[Authorize]  
+            //[HttpGet("{id}")]
+            //public async Task<IActionResult> GetByPropertyAndUserId(int id)
+            //{
+            //    try
+            //    {
+            //        // Get user ID from JWT token claims
+            //        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            //        {
+            //            return Unauthorized("Invalid user token.");
+            //        }
+
+            //        var result = await _hostReviewReplyService.GetByPropertyAndUserId(id);
+
+            //        if (!result.IsSuccess)
+            //        {
+            //            return StatusCode(result.StatusCode, new { message = result.ErrorMessage });
+            //        }
+
+            //        return Ok(result.Data);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        // Log the exception here if you have a logging framework
+            //        return StatusCode(500, new { message = "An internal server error occurred." });
+            //    }
+            //}
+  
 
         [HttpPost]
         public async Task<IActionResult> Add(AddHostReply dto)
