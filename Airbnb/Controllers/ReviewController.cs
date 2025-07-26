@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Airbnb.Extensions;
+using Application.DTOs.BookingDTOS;
 using Application.DTOs.ReviewDTOs;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
@@ -9,16 +11,16 @@ using Application.Result;
 using Application.Result;
 using Application.Services;
 using AutoMapper;
+using Domain.Enums.Booking; 
 using Domain.Models;
 using Infrastructure.Common;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Contexts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
-using Application.DTOs.BookingDTOS;
-using Domain.Enums.Booking; 
 
 namespace Airbnb.Controllers
 {
@@ -88,6 +90,10 @@ namespace Airbnb.Controllers
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetReviewsByUserId(string userId)
         {
+
+
+            string UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByUserId(userId);
 
             if (!result.IsSuccess)
@@ -95,7 +101,8 @@ namespace Airbnb.Controllers
             else
                 return ToActionResult(result);
         }
-        //property
+        
+        
         [HttpGet("property/{propertyId}")]
         public async Task<IActionResult> GetReviewsByPropertyId(int propertyId)
         {
@@ -108,8 +115,26 @@ namespace Airbnb.Controllers
         }
 
 
+        [Authorize]
+        [HttpGet("user/{userId}/{propertyid}")]
+        public async Task<IActionResult> GetReviewsByPropertyIdAndUser(int propertyId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Invalid user token.");
+            }
+
+            Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByPropertyIdAndUser(propertyId, userId);
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode ?? 500, result.Message);
+            else
+                return ToActionResult(result);
+        }
+
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Add(AddReviewByGuestDTO dto)
         {
             if (dto == null)
@@ -118,19 +143,28 @@ namespace Airbnb.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await reviewservice.Add(dto);
 
-            if (result.IsSuccess)
-                return ToActionResult(result);
-            else
-                return StatusCode(result.StatusCode ?? 500, result.Message);
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var result = await reviewservice.Add(dto,userId);
+
+            return ToActionResult(result);
+
+            //if (result.IsSuccess)
+            //    return ToActionResult(result);
+            //else
+            //    return StatusCode(result.StatusCode ?? 500, result.Message);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Edit(int id, EditReviewByGuestDTO dto)
         {
             if (dto == null)
-                return BadRequest();
+                return BadRequest("Review dto is required");
 
             //if (dto.Id != id)
             //    return BadRequest("ID mismatch");
@@ -138,18 +172,27 @@ namespace Airbnb.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await reviewservice.Edit(id, dto);
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (result.IsSuccess)
-                return Ok(result.Data);
-            else
-                return StatusCode(result.StatusCode ?? 500, result.Message);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated");
+
+            var result = await reviewservice.Edit(id, dto,userId);
+
+            return ToActionResult(result);
+
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await reviewservice.Delete(id);
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated");
+
+            var result = await reviewservice.Delete(id,userId);
 
             if (result.IsSuccess)
                 return NoContent();
@@ -157,15 +200,16 @@ namespace Airbnb.Controllers
                 return StatusCode(result.StatusCode ?? 500, result.Message);
         }
 
-        [HttpGet("can-review/{propertyId}/{userId}")]
-        public async Task<IActionResult> CanUserReview(int propertyId, string userId)
+        [HttpGet("/can-review/{propertyId}")]
+        [Authorize]
+        public async Task<IActionResult> CanUserReview(int propertyId)
         {
-            var result = await reviewservice.CanUserReview(userId, propertyId);
+            string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated");
 
-            if (result.IsSuccess)
-                return Ok(result.Data); 
-            else
-                return StatusCode(result.StatusCode ?? 500, result.Message);
+            var result = await reviewservice.CanUserReview(userId, propertyId);
+            return ToActionResult(result);
         }
 
     }

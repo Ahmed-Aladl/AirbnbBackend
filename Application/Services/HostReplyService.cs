@@ -58,6 +58,26 @@ namespace Application.Services
             }
         }
 
+
+        public async Task<Result<List<HostReviewReplyDto>>> GetByPropertyId(int propertyId)
+        {
+            try
+            {
+                var replies = await UnitOfWork.HostReviewRepo.GetByPropertyIdAsync(propertyId);
+                if (replies == null || !replies.Any())
+                    return Result<List<HostReviewReplyDto>>.Fail("No host replies found for this property.", 404);
+
+                var replyDTOs = Mapper.Map<List<HostReviewReplyDto>>(replies);
+                return Result<List<HostReviewReplyDto>>.Success(replyDTOs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetByPropertyId: {ex.Message}");
+                return Result<List<HostReviewReplyDto>>.Fail("An error occurred while retrieving the host replies.", 500);
+            }
+        }
+
+
         public async Task<Result<HostReviewReplyDto>> GetByReviewId(int reviewId)
         {
             try

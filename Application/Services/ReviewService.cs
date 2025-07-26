@@ -127,7 +127,7 @@ namespace Application.Services
         }
 
 
-        public async Task<Result<GuestReviewDTO>> Add(AddReviewByGuestDTO dto)
+        public async Task<Result<GuestReviewDTO>> Add(AddReviewByGuestDTO dto ,string userId)
         {
             try
             {
@@ -137,8 +137,12 @@ namespace Application.Services
 
 
 
+                if (string.IsNullOrEmpty(userId))
+                    return Result<GuestReviewDTO>.Fail("User ID is required.", 400); 
+
+
                 //var userBookings = await UOW.Bookings.GetBookingByUserIdAsync(dto.User.UserId);
-                var userBookings = await UOW.Bookings.GetBookingByUserIdAsync(dto.UserId);
+                var userBookings = await UOW.Bookings.GetBookingByUserIdAsync(userId);
 
                 var booking = userBookings
                     .Where(b => b.PropertyId == dto.PropertyId && b.BookingStatus == BookingStatus.Completed)
@@ -161,7 +165,7 @@ namespace Application.Services
 
 
             // if (booking.UserId != dto.User.UserId)
-            if (booking.UserId != dto.UserId)
+            if (booking.UserId != userId)
                 return Result<GuestReviewDTO>.Fail("You are not authorized to review this booking.", 403);
 
 
@@ -169,8 +173,9 @@ namespace Application.Services
                 return Result<GuestReviewDTO>.Fail("You can only review completed bookings.", 400);
 
             Review review = _map.Map<Review>(dto);
-
-             review.BookingId = booking.Id; 
+                review.UserId = userId; 
+                review.BookingId = booking.Id; 
+                review.PropertyId = dto.PropertyId;
 
 
                 await UOW.ReviewRepo.AddAsync(review);
@@ -230,40 +235,103 @@ namespace Application.Services
 
         }
 
-        public async Task<Result<GuestReviewDTO>> Edit(int id, EditReviewByGuestDTO dto)
+        public async Task<Result<GuestReviewDTO>> Edit(int id, EditReviewByGuestDTO dto,string userId)
         {
             try
             {
-                if (dto == null)
-                    return Result<GuestReviewDTO>.Fail("Review data is required.", 400);
+                
+                    if (dto == null)
+                        return Result<GuestReviewDTO>.Fail("Review data is required.", 400);
 
-                //if (dto.Id != id)
-                //    return Result<GuestReviewDTO>.Fail("Review ID mismatch.", 400);
+                    if (string.IsNullOrEmpty(userId))
+                        return Result<GuestReviewDTO>.Fail("User ID is required.", 400);
 
-                Review existingReview = await UOW.ReviewRepo.GetByIdAsync(id); // _map.Map<Review>(dto);
 
-                if (existingReview == null)
-                    return Result<GuestReviewDTO>.Fail("Review not found.", 404);
+                    //if (dto.Id != id)
+                    //    return Result<GuestReviewDTO>.Fail("Review ID mismatch.", 400);
 
-                var oldRating = existingReview.Rating;
+                    Review existingReview = await UOW.ReviewRepo.GetByIdAsync(id);
+                    // _map.Map<Review>(dto);
 
-                _map.Map(dto, existingReview);
 
-                // Update property rating statistics if rating changed
-                if (oldRating != existingReview.Rating)
+                    if (existingReview == null)
+                        return Result<GuestReviewDTO>.Fail("Review not found.", 404);
+
+                    if (existingReview.UserId != userId)
+                        return Result<GuestReviewDTO>.Fail("You are not authorized to edit this review.", 403);
+
+                    var oldRating = existingReview.Rating;
+
+                    _map.Map(dto, existingReview);
+
+                    // Update property rating statistics if rating changed
+                    if (oldRating != existingReview.Rating)
+                    {
+                        // Get the booking to find the property
+                        var booking = await UOW.Bookings.GetByIdAsync(existingReview.BookingId);
+                        if (booking != null)
+                        {
+                            var property = await UOW.PropertyRepo.GetByIdAsync(booking.PropertyId);
+                            if (property != null)
+                            {
+                                // Get all reviews for this property
+                                var propertyReviews = await UOW.ReviewRepo.GetByPropertyIdAsync(booking.PropertyId);
+
+                                // Calculate new average rating with the updated review
+                                var reviewsWithRating = propertyReviews.Where(r => r.Rating > 0).ToList();
+
+
+                                if (reviewsWithRating.Any())
+                                {
+                                    var totalRating = reviewsWithRating.Sum(r => r.Rating);
+                                    var newAverageRating = (float)totalRating / reviewsWithRating.Count;
+
+                                    property.ReviewCount = reviewsWithRating.Count;
+                                    property.AverageRating = newAverageRating;
+
+                                    UOW.PropertyRepo.Update(property);
+                                }
+                            }
+                        }
+                    }
+
+                    await UOW.SaveChangesAsync();
+
+                    GuestReviewDTO reviewDTO = _map.Map<GuestReviewDTO>(existingReview);
+                    return Result<GuestReviewDTO>.Success(reviewDTO);
+                }
+                 catch (Exception)
+            {
+                return Result<GuestReviewDTO>.Fail("An error occurred while updating the review.", 500);
+            }
+        }
+
+
+        public async Task<Result<bool>> Delete(int id, string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                    return Result<bool>.Fail("User ID is required.", 400);
+
+                Review? review = await UOW.ReviewRepo.GetByIdAsync(id);
+
+                if (review == null)
+                    return Result<bool>.Fail("Review not found.", 404);
+
+                if (review.UserId != userId)
+                    return Result<bool>.Fail("You are not authorized to delete this review.", 403);
+
+                if (review.Rating > 0)
                 {
-                    // Get the booking to find the property
-                    var booking = await UOW.Bookings.GetByIdAsync(existingReview.BookingId);
+                    var booking = await UOW.Bookings.GetByIdAsync(review.BookingId);
                     if (booking != null)
                     {
                         var property = await UOW.PropertyRepo.GetByIdAsync(booking.PropertyId);
                         if (property != null)
                         {
-                            // Get all reviews for this property
                             var propertyReviews = await UOW.ReviewRepo.GetByPropertyIdAsync(booking.PropertyId);
-
-                            // Calculate new average rating with the updated review
-                            var reviewsWithRating = propertyReviews.Where(r => r.Rating > 0).ToList();
+                            var reviewsWithRating = propertyReviews.Where(r => r.Id != id && r.Rating > 0).ToList();
 
                             if (reviewsWithRating.Any())
                             {
@@ -272,32 +340,17 @@ namespace Application.Services
 
                                 property.ReviewCount = reviewsWithRating.Count;
                                 property.AverageRating = newAverageRating;
-
-                                UOW.PropertyRepo.Update(property);
                             }
+                            else
+                            {
+                                property.ReviewCount = 0;
+                                property.AverageRating = 0;
+                            }
+
+                            UOW.PropertyRepo.Update(property);
                         }
                     }
                 }
-
-                await UOW.SaveChangesAsync();
-
-                GuestReviewDTO reviewDTO = _map.Map<GuestReviewDTO>(existingReview);
-                return Result<GuestReviewDTO>.Success(reviewDTO);
-            }
-            catch (Exception)
-            {
-                return Result<GuestReviewDTO>.Fail("An error occurred while updating the review.", 500);
-            }
-        }
-
-        public async Task<Result<bool>> Delete(int id)
-        {
-            try
-            {
-                Review? review = await UOW.ReviewRepo.GetByIdAsync(id);
-
-                if (review == null)
-                    return Result<bool>.Fail("Review not found.", 404);
 
                 UOW.ReviewRepo.Delete(review);
                 await UOW.SaveChangesAsync();
@@ -354,6 +407,35 @@ namespace Application.Services
                 return Result<List<GuestReviewDTO>>.Fail("Failed to retrieve property reviews.", 500);
             }
         }
+
+
+
+        public async Task<Result<List<GuestReviewDTO>>> GetReviewsByPropertyIdAndUser(int propertyId,string userId)
+        {
+            try
+            {
+                var property = await UOW.PropertyRepo.GetByIdAsync(propertyId);
+                if (property == null)
+                    return Result<List<GuestReviewDTO>>.Fail("Property not found.", 404);
+
+                if (property.HostId != userId) 
+                    return Result<List<GuestReviewDTO>>.Fail("You don't have permission to view reviews for this property.", 403);
+
+                List<Review> reviews = await UOW.ReviewRepo.GetByPropertyIdWithUserAsync(propertyId);
+                if (reviews == null || reviews.Count == 0)
+                    return Result<List<GuestReviewDTO>>.Success(new List<GuestReviewDTO>());
+
+                List<GuestReviewDTO> reviewsDTO = _map.Map<List<GuestReviewDTO>>(reviews);
+                return Result<List<GuestReviewDTO>>.Success(reviewsDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving reviews for property {propertyId}: {ex.Message}");
+                return Result<List<GuestReviewDTO>>.Fail("Failed to retrieve property reviews.", 500);
+            }
+        }
+
+
 
         public async Task<Result<bool>> CanUserReview(string userId, int propertyId)
         {

@@ -44,6 +44,19 @@ namespace Infrastructure.Common.Repositories
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
+
+        public async Task<List<Review>> GetByPropertyIdWithUserAsync(int propertyId)
+        {
+            return await Db.Reviews
+                .Include(r => r.User) 
+                .Include(r => r.Property) 
+                .Where(r => r.PropertyId == propertyId)
+                .OrderByDescending(r => r.CreatedAt) 
+                .ToListAsync();
+        }
+
+
+
         public async Task AddAsync(Review entity)
         {
 
