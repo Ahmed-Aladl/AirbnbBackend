@@ -146,9 +146,6 @@ namespace Airbnb.Controllers
                 return StatusCode(result.StatusCode ?? 500, result.Message);
         }
 
-
-
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -160,9 +157,16 @@ namespace Airbnb.Controllers
                 return StatusCode(result.StatusCode ?? 500, result.Message);
         }
 
+        [HttpGet("can-review/{propertyId}/{userId}")]
+        public async Task<IActionResult> CanUserReview(int propertyId, string userId)
+        {
+            var result = await reviewservice.CanUserReview(userId, propertyId);
 
-
-
+            if (result.IsSuccess)
+                return Ok(result.Data); 
+            else
+                return StatusCode(result.StatusCode ?? 500, result.Message);
+        }
 
     }
 }
