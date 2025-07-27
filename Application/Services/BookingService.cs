@@ -32,6 +32,10 @@ namespace Application.Services
                 {
                     Id = b.Id,
                     UserId = b.UserId,
+                    FirstName = b.User?.FirstName,
+                    LastName = b.User?.LastName,
+                    PhoneNumber = b.User?.PhoneNumber,
+                    UserCountry = b.User?.Country,
                     CheckInDate = b.CheckInDate,
                     CheckOutDate = b.CheckOutDate,
                     NumberOfGuests = b.NumberOfGuests,
@@ -41,6 +45,7 @@ namespace Application.Services
                     PropertyTitle = b.Property?.Title ?? "",
                     City = b.Property?.City ?? "",
                     Country = b.Property?.Country ?? ""
+
                 }).ToList();
 
                 return Result<List<BookingDetailsDTO>>.Success(bookingDtos);
@@ -63,6 +68,14 @@ namespace Application.Services
                 {
                     Id = booking.Id,
                     UserId = booking.UserId,
+
+                    FirstName = booking.User?.FirstName,
+                    LastName = booking.User?.LastName,
+                    PhoneNumber = booking.User?.PhoneNumber,
+                    UserCountry = booking.User?.Country,
+
+
+
                     CheckInDate = booking.CheckInDate,
                     CheckOutDate = booking.CheckOutDate,
                     NumberOfGuests = booking.NumberOfGuests,
@@ -72,6 +85,8 @@ namespace Application.Services
                     PropertyTitle = booking.Property?.Title ?? "",
                     City = booking.Property?.City ?? "",
                     Country = booking.Property?.Country ?? ""
+
+
                 };
 
                 return Result<BookingDetailsDTO>.Success(dto);
