@@ -57,6 +57,7 @@ public class UserController : ControllerBase
             Email = dto.Email,
             UserName = username,
             CreateAt = DateTime.UtcNow,
+            IsConfirmed = false,
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -84,13 +85,13 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        
+
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             return BadRequest(new { error = "Invalid credentials" });
 
         var roles = await _userManager.GetRolesAsync(user);
-        var accessToken = _tokenService.GenerateAccessToken(user,roles);
+        var accessToken = _tokenService.GenerateAccessToken(user, roles);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
 
 
@@ -111,27 +112,34 @@ public class UserController : ControllerBase
         Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, 
+            Secure = true,
             SameSite = SameSiteMode.None,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
-            Path = "/api/user/refresh-token" 
+            Path = "/api/user/refresh-token"
         });
         Response.Cookies.Append("accessToken", accessToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,  
-            SameSite = SameSiteMode.None, 
+            Secure = true,
+            SameSite = SameSiteMode.None,
             Expires = DateTimeOffset.UtcNow.AddMinutes(30),
-            Path = "/"  
+            Path = "/"
         });
 
-        return Ok(new TokenDto
+        if (user.IsConfirmed == true)
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            UserId = user.Id,
-            Roles = identityRoles,
-        });
+            return Ok(new TokenDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                UserId = user.Id,
+                Roles = identityRoles,
+            });
+        }
+        else
+        {
+            return BadRequest(new { errer = "you should confirm email go to forget password" });
+        }
     }
 
     [HttpPost("verify-otp")]
@@ -148,6 +156,7 @@ public class UserController : ControllerBase
             return BadRequest(new { error = "Invalid or expired OTP" });
 
         otp.IsUsed = true;
+        user.IsConfirmed = true;
         var allUserOtps = _context.UsersOtp.Where(x => x.UserId == user.Id);
         _context.UsersOtp.RemoveRange(allUserOtps);
 
@@ -205,6 +214,7 @@ public class UserController : ControllerBase
             return BadRequest(result.Errors.Select(e => e.Description));
 
         otp.IsUsed = true;
+        user.IsConfirmed = true;
         await _context.SaveChangesAsync();
 
         return Ok(new { message = "Password reset successfully" });
