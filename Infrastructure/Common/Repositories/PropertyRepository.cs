@@ -66,6 +66,7 @@ namespace Infrastructure.Common.Repositories
                                     .AsNoTracking()
                                     .Where(p=> p.HostId == hostId && !p.IsDeleted )
                                     .Include(p=> p.Images.Where(i=> i.IsCover))
+                                    .Include(p=> p.Host)
                                     .ToListAsync();
         }
 

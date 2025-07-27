@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.PropertyImageDTOs;
+using Application.DTOs.UserDto;
 using Domain.Enums.Property;
-using Domain.Models.Chat;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domain.Models
+namespace Application.DTOs.PropertyDTOS
 {
-    public class Property
+    public class PropertyDisplayWithHostDataDto
     {
         public int Id { get; set; }
         public string Title { get; set; }
+
         public string Description { get; set; }
+
         public string City { get; set; }
         public string Country { get; set; }
         public string State { get; set; }
 
         [Precision(9, 6)]
         public decimal Latitude { get; set; }
-
         [Precision(9, 6)]
         public decimal Longitude { get; set; }
 
@@ -33,30 +34,25 @@ namespace Domain.Models
         public int Bedrooms { get; set; }
         public int Beds { get; set; }
         public int Bathrooms { get; set; }
+
         public float AverageRating { get; set; }
         public int ReviewCount { get; set; }
+
+        public bool isFavourite { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
-        [ForeignKey(nameof(PropertyType))]
-        public int PropertyTypeId { get; set; }
-
-        [ForeignKey(nameof(Host))]
-        public string HostId { get; set; }
         public PropertyAcceptStatus Status { get; set; }
+        public int PropertyTypeId { get; set; }
+        public string HostId { get; set; }
 
-        // Navigation properties
-        public PropertyType PropertyType { get; set; }
-        public User Host { get; set; }
-        public ICollection<Amenity> Amenities { get; set; }
-        public ICollection<PropertyAmenity> PropertyAmenities { get; set; }
-        public ICollection<CalendarAvailability> CalendarAvailabilities { get; set; } =
-            new List<CalendarAvailability>();
+        public List<PropertyImageDisplayDTO>? Images { get; set; }
 
-        public ICollection<WishlistProperty> WishlistProperties { get; set; }
-        public ICollection<PropertyImage> Images { get; set; }
-        public ICollection<Booking> Bookings { get; set; }
-
-        public ICollection<ChatSession> ChatSessions{ get; set; }
+        public UserProfileDto Host { get; set; }
+        //public string? HostPicture { get; set; }
+        //public string? FirstName { get; set; }
+        //public string? LastName { get; set; }
+        //public DateTime CreateAt { get; set; }
+        //public DateTime? UpdatedAt { get; set; }
     }
 }
