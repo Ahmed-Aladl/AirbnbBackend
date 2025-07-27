@@ -84,27 +84,7 @@ namespace Application.Services
 
 
 
-        public async Task<Result<List<GuestReviewDTO>>> GetAll()
-        {
-            try
-            {
-                Console.WriteLine("there's an error here before get all async ");
-                List<Review> reviews = await UOW.ReviewRepo.GetAllAsync();
-                Console.WriteLine("there's an error here after get all async ");
-
-                List<GuestReviewDTO> reviewsDTO = _map.Map<List<GuestReviewDTO>>(reviews);
-
-                Console.WriteLine("there's an error here after mapping async ");
-
-                return Result<List<GuestReviewDTO>>.Success(reviewsDTO);
-            }
-            catch (Exception)
-            {
-                return Result<List<GuestReviewDTO>>.Fail("Failed to retrieve reviews.", 500);
-            }
-        }
-
-
+      
 
 
         public async Task<Result<GuestReviewDTO>> GetById(int id)
@@ -125,6 +105,26 @@ namespace Application.Services
                 return Result<GuestReviewDTO>.Fail("An error occurred while retrieving the review.", 500);
             }
         }
+        public async Task<Result<List<GuestReviewDTO>>> GetAll()
+        {
+            try
+            {
+                Console.WriteLine("there's an error here before get all async ");
+                List<Review> reviews = await UOW.ReviewRepo.GetAllAsync();
+                Console.WriteLine("there's an error here after get all async ");
+
+                List<GuestReviewDTO> reviewsDTO = _map.Map<List<GuestReviewDTO>>(reviews);
+
+                Console.WriteLine("there's an error here after mapping async ");
+
+                return Result<List<GuestReviewDTO>>.Success(reviewsDTO);
+            }
+            catch (Exception)
+            {
+                return Result<List<GuestReviewDTO>>.Fail("Failed to retrieve reviews.", 500);
+            }
+        }
+
 
 
         public async Task<Result<GuestReviewDTO>> Add(AddReviewByGuestDTO dto ,string userId)

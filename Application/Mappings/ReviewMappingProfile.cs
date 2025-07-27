@@ -16,7 +16,7 @@ namespace Application.Mappings
             CreateMap<Review, GuestReviewDTO>().ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User)).ReverseMap();
                 //.AfterMap((src, dest) => { dest.UserId = src.UserId; })
             CreateMap<Review, AddReviewByGuestDTO>()
-                //.ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ReverseMap();
             
             CreateMap<Review, EditReviewByGuestDTO>()

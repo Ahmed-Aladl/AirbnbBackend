@@ -30,7 +30,7 @@ namespace Application.DTOs.ReviewDTOs
         public int? Value { get; set; }
         //public int BookingId { get; set; }
 
-        //public string UserId { get; set; }
+        public string UserId { get; set; }
         public int PropertyId { get; set; }
 
     }
