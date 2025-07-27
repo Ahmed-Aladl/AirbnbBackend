@@ -70,13 +70,15 @@ public class UserController : ControllerBase
 
         await _emailService.SendEmailAsync(dto.Email, "OTP Verification", $"Your OTP is: {otp}");
 
-        await _context.UsersOtp.AddAsync(new UserOtp
-        {
-            UserId = user.Id,
-            Code = otp,
-            IsUsed = false,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(10),
-        });
+        await _context.UsersOtp.AddAsync(
+            new UserOtp
+            {
+                UserId = user.Id,
+                Code = otp,
+                IsUsed = false,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+            }
+        );
 
         await _context.SaveChangesAsync();
         return Ok(new { message = "OTP sent successfully" });
@@ -85,7 +87,6 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             return BadRequest(new { error = "Invalid credentials" });
@@ -93,7 +94,6 @@ public class UserController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         var accessToken = _tokenService.GenerateAccessToken(user, roles);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
-
 
         var notification = new Notification
         {
@@ -109,36 +109,46 @@ public class UserController : ControllerBase
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", "Welcome");
 
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
-        Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTimeOffset.UtcNow.AddDays(7),
-            Path = "/api/user/refresh-token"
-        });
-        Response.Cookies.Append("accessToken", accessToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTimeOffset.UtcNow.AddMinutes(30),
-            Path = "/"
-        });
+        Response.Cookies.Append(
+            "refreshToken",
+            refreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Path = "/api/user/refresh-token",
+            }
+        );
+        Response.Cookies.Append(
+            "accessToken",
+            accessToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(30),
+                Path = "/",
+            }
+        );
 
         if (user.IsConfirmed == true)
         {
-            return Ok(new TokenDto
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                UserId = user.Id,
-                Roles = identityRoles,
-            });
+            return Ok(
+                new TokenDto
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    UserId = user.Id,
+                    Roles = identityRoles,
+                }
+            );
         }
         else
         {
-            return BadRequest(new { errer = "you should confirm email go to forget password" });
+            return BadRequest(new { error = "you should confirm email go to forget password" });
         }
     }
 
@@ -150,7 +160,8 @@ public class UserController : ControllerBase
             return BadRequest(new { error = "User not found" });
 
         var otp = await _context.UsersOtp.FirstOrDefaultAsync(x =>
-            x.UserId == user.Id && x.Code == dto.Code && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow);
+            x.UserId == user.Id && x.Code == dto.Code && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow
+        );
 
         if (otp == null)
             return BadRequest(new { error = "Invalid or expired OTP" });
@@ -180,15 +191,21 @@ public class UserController : ControllerBase
             return NotFound(new { error = "User not Found" });
 
         var otp = GenerateOtp();
-        await _emailService.SendEmailAsync(dto.Email, "Reset Password", $"Your reset code is: {otp}");
+        await _emailService.SendEmailAsync(
+            dto.Email,
+            "Reset Password",
+            $"Your reset code is: {otp}"
+        );
 
-        await _context.UsersOtp.AddAsync(new UserOtp
-        {
-            UserId = user.Id,
-            Code = otp,
-            IsUsed = false,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
-        });
+        await _context.UsersOtp.AddAsync(
+            new UserOtp
+            {
+                UserId = user.Id,
+                Code = otp,
+                IsUsed = false,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            }
+        );
 
         await _context.SaveChangesAsync();
         return Ok(new { message = "OTP sent" });
@@ -202,7 +219,8 @@ public class UserController : ControllerBase
             return NotFound(new { error = "User not found" });
 
         var otp = await _context.UsersOtp.FirstOrDefaultAsync(x =>
-            x.UserId == user.Id && x.Code == dto.Code && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow);
+            x.UserId == user.Id && x.Code == dto.Code && !x.IsUsed && x.ExpiresAt > DateTime.UtcNow
+        );
 
         if (otp == null)
             return BadRequest(new { error = "Invalid OTP" });
@@ -223,7 +241,9 @@ public class UserController : ControllerBase
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == dto.RefreshToken);
+        var user = await _context.Users.FirstOrDefaultAsync(u =>
+            u.RefreshToken == dto.RefreshToken
+        );
 
         if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
             return BadRequest(new { error = "Invalid or expired refresh token" });
@@ -259,18 +279,20 @@ public class UserController : ControllerBase
         if (user == null)
             return BadRequest(new { error = "User not found" });
 
-        return Ok(new UserProfileDto
-        {
-            UserId = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            Bio = user.Bio,
-            BirthDate = user.BirthDate,
-            Country = user.Country,
-            ProfilePictureURL = user.ProfilePictureURL
-        });
+        return Ok(
+            new UserProfileDto
+            {
+                UserId = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Bio = user.Bio,
+                BirthDate = user.BirthDate,
+                Country = user.Country,
+                ProfilePictureURL = user.ProfilePictureURL,
+            }
+        );
     }
 
     [HttpPut("profile/{id}")]
@@ -301,7 +323,13 @@ public class UserController : ControllerBase
             return BadRequest(new { error = "User not found" });
 
         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.File.FileName);
-        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profile", fileName);
+        var path = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "images",
+            "profile",
+            fileName
+        );
 
         using (var stream = new FileStream(path, FileMode.Create))
         {
