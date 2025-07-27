@@ -64,7 +64,7 @@ namespace Infrastructure.Common.Repositories
         {
             return await Db.Properties
                                     .AsNoTracking()
-                                    .Where(p=> p.HostId == hostId && !p.IsDeleted && p.Images.Any(i=> i.IsCover))
+                                    .Where(p=> p.HostId == hostId && !p.IsDeleted )
                                     .Include(p=> p.Images.Where(i=> i.IsCover))
                                     .ToListAsync();
         }
