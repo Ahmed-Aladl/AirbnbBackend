@@ -20,7 +20,8 @@ namespace Infrastructure.Common.Repositories
         public async Task<List<Booking>> GetAllAsync()
         {
             return await _db.Bookings
-                   .Include(b => b.Property)
+                   .Include(b => b.Property).Include(b => b.User)
+
                    .ToListAsync();
         }
 
