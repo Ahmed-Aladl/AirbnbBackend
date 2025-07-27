@@ -68,6 +68,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IEmailService, GmailEmailService>();
             services.AddScoped<IStripeService, StripeService>();
+            services.AddScoped<NotificationService>();
             services.AddScoped<PaymentService>();
 
 
@@ -101,7 +102,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app)
         {
-            
+
             //app.MapOpenApi();
             app.UseSwagger();
             app.UseSwaggerUI(op =>
