@@ -15,7 +15,7 @@ namespace Infrastructure.Migrations
                 table: "Properties",
                 type: "int",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 1);
         }
 
         /// <inheritdoc />

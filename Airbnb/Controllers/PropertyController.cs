@@ -167,7 +167,7 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Add a new Property")]
         [HttpPost]
-        [Authorize(Roles =("Host"))]
+        //[Authorize(Roles =("Host"))]
         public IActionResult Add(PropertyDisplayDTO propertyDTO)
         {
 
