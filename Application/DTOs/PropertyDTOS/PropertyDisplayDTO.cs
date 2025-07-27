@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.DTOs.PropertyImageDTOs;
+using Domain.Enums.Property;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,7 +42,7 @@ namespace Application.DTOs.PropertyDTOS
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
-
+        public PropertyAcceptStatus Status { get; set; }
         public int PropertyTypeId { get; set; }
         public string HostId { get; set; }
         public List<PropertyImageDisplayDTO>? Images { get; set; }
