@@ -4,6 +4,7 @@ using Airbnb.Services;
 using Application.DTOs.UserDto;
 using Application.Interfaces;
 using Application.Interfaces.IRepositories;
+using Azure.Core;
 using Domain.Models;
 using Infrastructure.Common;
 using Infrastructure.Contexts;
@@ -311,7 +312,7 @@ public class UserController : ControllerBase
 
         await _userManager.UpdateAsync(user);
         await _context.SaveChangesAsync();
-        return Ok();
+        return Ok(new { message = "User updated" });
     }
 
     [Consumes("multipart/form-data")]
@@ -339,7 +340,7 @@ public class UserController : ControllerBase
         user.ProfilePictureURL = fileName;
         await _userManager.UpdateAsync(user);
         await _context.SaveChangesAsync();
-        return Ok();
+        return Ok(new { message = "Photo uploaded" });
     }
 
     [HttpPost("profile/{id}/role")]
@@ -350,9 +351,17 @@ public class UserController : ControllerBase
             return BadRequest(new { error = "User not found" });
 
         await _userManager.AddToRoleAsync(user, "host");
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
         await _userManager.UpdateAsync(user);
         await _context.SaveChangesAsync();
-        return Ok();
+
+        return Ok(
+            new
+            {
+                Roles = identityRoles,
+            });
     }
 
     [HttpDelete("delete-account/{id}")]
@@ -363,6 +372,6 @@ public class UserController : ControllerBase
             return BadRequest(new { error = "User not found" });
 
         await _userManager.DeleteAsync(user);
-        return Ok();
+        return Ok(new { message = "User deleted" });
     }
 }
