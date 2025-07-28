@@ -18,6 +18,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using static Application.Result.Result<Application.DTOs.PropertyDTOS.PropertyDisplayDTO>;
+using Domain.Enums.Property;
 
 namespace Application.Services
 {
@@ -216,6 +217,38 @@ namespace Application.Services
             }
         }
 
+        public async Task<Result<bool>> Accept(int propertyId)
+        {
+            var property = await UnitOfWork.PropertyRepo.GetByIdAsync(propertyId);
+            if (property == null)
+                return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
+
+            if (property.Status == PropertyAcceptStatus.Rejected)
+                return Result<bool>.Fail("Property has already been rejected",(int)HttpStatusCode.NotFound);
+
+                property.Status = PropertyAcceptStatus.Accepted;
+            UnitOfWork.PropertyRepo.Update(property);
+            await UnitOfWork.SaveChangesAsync();
+            
+            return Result<bool>.Success(true);
+        }
+        public async Task<Result<bool>> Reject(int propertyId)
+        {
+
+            var property = await UnitOfWork.PropertyRepo.GetByIdAsync(propertyId);
+
+            if (property == null)
+                return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
+            if(property.Status == PropertyAcceptStatus.Accepted)
+                return Result<bool>.Fail("Property has already been accepted",(int)HttpStatusCode.NotFound);
+
+            property.Status = PropertyAcceptStatus.Rejected;
+            UnitOfWork.PropertyRepo.Update(property);
+            await UnitOfWork.SaveChangesAsync();
+            
+            return Result<bool>.Success(true);
+        }
+
         public Result<PropertyDisplayDTO> Delete(int id, string hostId)
         {
             var property = UnitOfWork.PropertyRepo.GetById(id);
@@ -353,6 +386,8 @@ namespace Application.Services
             await UnitOfWork.SaveChangesAsync();
             return Result<bool>.Success(true, 204);
         }
+
+
 
     }
 }

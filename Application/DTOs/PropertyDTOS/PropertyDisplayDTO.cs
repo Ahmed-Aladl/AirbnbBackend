@@ -42,7 +42,7 @@ namespace Application.DTOs.PropertyDTOS
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
-        public PropertyAcceptStatus Status { get; set; }
+        public PropertyAcceptStatus Status { get; set; } = PropertyAcceptStatus.Pending;
         public int PropertyTypeId { get; set; }
         public string HostId { get; set; }
         public List<PropertyImageDisplayDTO>? Images { get; set; }
