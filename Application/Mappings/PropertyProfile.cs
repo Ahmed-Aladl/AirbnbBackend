@@ -22,6 +22,8 @@ namespace Application.Mappings
                 ).ReverseMap();
             CreateMap<PaginatedResult<Property>, PaginatedResult<PropertyDisplayDTO>>()
                 .ReverseMap();
+
+            CreateMap<Property, PropertyDisplayWithHostDataDto>().ReverseMap();
         }
     }
 }

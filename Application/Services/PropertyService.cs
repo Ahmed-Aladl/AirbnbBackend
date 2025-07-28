@@ -75,6 +75,19 @@ namespace Application.Services
 
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
+        public async Task<Result<List<PropertyDisplayWithHostDataDto>>> GetAllForDashboardAsync()
+        {
+            var props = await UnitOfWork.PropertyRepo.GetAllWithHostDataAsync();
+            if (props == null)
+                return Result<List<PropertyDisplayWithHostDataDto>>.Fail(
+                    "No properties found",
+                    (int)HttpStatusCode.NotFound
+                );
+
+            var mapped = Mapper.Map<List<PropertyDisplayWithHostDataDto>>(props);
+
+            return Result<List<PropertyDisplayWithHostDataDto>>.Success(mapped);
+        }
 
         public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetPageAsync(int page=1, int pageSize = 7, string userId=null)
         {
@@ -121,16 +134,16 @@ namespace Application.Services
 
             return Success(mapped);
         }
-        public async Task<Result<PropertyDisplayDTO>> GetByIdWithCoverAsync(int id)
+        public async Task<Result<PropertyDisplayWithHostDataDto>> GetByIdWithCoverAsync(int id)
         {
             var property = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(id);
 
             if (property == null)
-                return Fail("Property not found!", (int)HttpStatusCode.NotFound);
+                return Result<PropertyDisplayWithHostDataDto>.Fail("Property not found!", (int)HttpStatusCode.NotFound);
 
-            var mapped = Mapper.Map<PropertyDisplayDTO>(property);
+            var mapped = Mapper.Map<PropertyDisplayWithHostDataDto>(property);
 
-            return Success(mapped);
+            return Result<PropertyDisplayWithHostDataDto>.Success(mapped);
         }
 
 
@@ -142,12 +155,12 @@ namespace Application.Services
             var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
-        public async Task<Result<List<PropertyDisplayDTO>>> GetByHostIdWithCoverAsync(string hostId)
+        public async Task<Result<List<PropertyDisplayWithHostDataDto>>> GetByHostIdWithCoverAsync(string hostId)
         {
             var host = UnitOfWork.UserRepo.GetById(hostId);
             var properties = await UnitOfWork.PropertyRepo.GetByHostIdWithCoverAsync(hostId);
-            var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
-            return Result<List<PropertyDisplayDTO>>.Success(mapped);
+            var mapped = Mapper.Map<List<PropertyDisplayWithHostDataDto>>(properties);
+            return Result<List<PropertyDisplayWithHostDataDto>>.Success(mapped);
         }
 
         public Result<PropertyDisplayDTO> Add(PropertyDisplayDTO propertyDTO)

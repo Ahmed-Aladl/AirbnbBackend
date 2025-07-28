@@ -65,6 +65,15 @@ namespace Airbnb.Controllers
 
         }
 
+        [EndpointSummary("Get All Properties")]
+        [HttpGet("dashboard")]
+        public async Task<IActionResult>GetAllForDashboard()
+        {
+            var result = await PropertyService.GetAllForDashboardAsync();
+            return ToActionResult(result);
+
+        }
+
         [EndpointSummary("Get Properties Page")]
         [HttpGet("page")]
         public async Task<IActionResult> GetPage(
@@ -167,7 +176,7 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Add a new Property")]
         [HttpPost]
-        [Authorize(Roles =("Host"))]
+        //[Authorize(Roles =("Host"))]
         public IActionResult Add(PropertyDisplayDTO propertyDTO)
         {
 
