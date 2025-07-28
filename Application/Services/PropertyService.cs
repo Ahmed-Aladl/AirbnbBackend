@@ -75,6 +75,19 @@ namespace Application.Services
 
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
+        public async Task<Result<List<PropertyDisplayWithHostDataDto>>> GetAllForDashboardAsync()
+        {
+            var props = await UnitOfWork.PropertyRepo.GetAllWithHostDataAsync();
+            if (props == null)
+                return Result<List<PropertyDisplayWithHostDataDto>>.Fail(
+                    "No properties found",
+                    (int)HttpStatusCode.NotFound
+                );
+
+            var mapped = Mapper.Map<List<PropertyDisplayWithHostDataDto>>(props);
+
+            return Result<List<PropertyDisplayWithHostDataDto>>.Success(mapped);
+        }
 
         public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetPageAsync(int page=1, int pageSize = 7, string userId=null)
         {

@@ -7,6 +7,7 @@ using Application.Shared;
 using Domain.Models;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Stripe.Terminal;
 
 namespace Infrastructure.Common.Repositories
@@ -24,6 +25,16 @@ namespace Infrastructure.Common.Repositories
         //                .Include(p => p.WishlistProperties.Where(wp => wp.Wishlist.UserId == userId))
                         
         //}
+
+        public async Task<List<Property>> GetAllWithHostDataAsync()
+        {
+            return await Db.Properties
+                                   .AsNoTracking()
+                                   .OrderByDescending(p=> p.AverageRating)
+                                   .Include(p => p.Images.Where(i => i.IsCover))
+                                   .Include(p => p.Host)
+                                   .ToListAsync();
+        }
         public async Task<Property> GetByIdAsync(int id)
         {
             return await Db.Set<Property>()
