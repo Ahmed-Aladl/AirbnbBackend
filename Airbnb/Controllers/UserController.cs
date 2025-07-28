@@ -27,7 +27,7 @@ public class UserController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IHubContext<NotificationHub> _hub;
-
+    private readonly int accessTokenExpiresAfterMins = 1; 
     public UserController(
         UserManager<User> userManager,
         AirbnbContext context,
@@ -105,6 +105,9 @@ public class UserController : ControllerBase
         };
 
         _context.Notifications.Add(notification);
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        _context.Update(user);
         await _context.SaveChangesAsync();
 
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", $"Welcome {user.FirstName}");
@@ -119,7 +122,7 @@ public class UserController : ControllerBase
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
-                Path = "/api/user/refresh-token",
+                Path = "/api/user",
             }
         );
         Response.Cookies.Append(
@@ -130,7 +133,7 @@ public class UserController : ControllerBase
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(30),
+                Expires = DateTimeOffset.UtcNow.AddMinutes(accessTokenExpiresAfterMins),
                 Path = "/",
             }
         );
@@ -204,7 +207,7 @@ public class UserController : ControllerBase
                 UserId = user.Id,
                 Code = otp,
                 IsUsed = false,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(2),
             }
         );
 
@@ -240,12 +243,18 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
+    public async Task<IActionResult> RefreshToken()
     {
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (refreshToken == null)
+        {
+            Console.WriteLine("****\n\n\n\nCoundn't find refresh token\n\n\n\n");
+            throw new BadHttpRequestException("no refresh token found");
+        }
         var user = await _context.Users.FirstOrDefaultAsync(u =>
-            u.RefreshToken == dto.RefreshToken
+            u.RefreshToken == refreshToken
         );
-
+        Console.WriteLine($"******\n\n\n\n \t\t\t\t\t\tuser \n{user?.RefreshTokenExpiry} {user?.NormalizedEmail}");
         if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
             return BadRequest(new { error = "Invalid or expired refresh token" });
 
@@ -258,7 +267,34 @@ public class UserController : ControllerBase
         user.RefreshToken = newRefreshToken;
         user.RefreshTokenExpiry = expiry;
 
+        _context.Update(user);
         await _context.SaveChangesAsync();
+
+
+        Response.Cookies.Append(
+            "refreshToken",
+            newRefreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Path = "/api/user",
+            }
+        );
+        Response.Cookies.Append(
+            "accessToken",
+            newAccessToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(accessTokenExpiresAfterMins),
+                Path = "/",
+            }
+        );
 
         return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
     }

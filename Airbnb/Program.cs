@@ -51,7 +51,6 @@ namespace Airbnb
             builder.Services.AddApplication();
             builder.Services.AddPresentation(builder.Configuration);
 
-
             StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 
@@ -70,6 +69,7 @@ namespace Airbnb
 
             app.UseHttpsRedirection();
             app.UseMiddleware<JwtFromCookieMiddleware>();
+            app.UseMiddleware<TokenValidationMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapHub<ChatHub>("/chatHub");
