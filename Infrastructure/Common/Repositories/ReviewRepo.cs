@@ -28,7 +28,6 @@ namespace Infrastructure.Common.Repositories
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
-
         public async Task<Review?> GetByBookingIdAsync(int BookingId)
         {
             return await Db.Reviews.Include(r => r.Booking).FirstOrDefaultAsync(r => r.BookingId == BookingId);
@@ -44,6 +43,32 @@ namespace Infrastructure.Common.Repositories
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
+        //host
+        //public async Task<Review?> GetByHostIdAllProperties(string userId)
+        //{
+        //    return await Db.Reviews
+        //        .Include(r => r.PropertyId)
+        //        .FirstOrDefaultAsync(r => r.Property== userId.FirstOrDefault(userId);
+        //}
+
+        public async Task<List<Review>> GetReviewsByHostIdAsync(string hostId)
+        {
+            try
+            {
+                return await Db.Reviews
+                    .Include(r => r.User)
+                    .Include(r => r.Property)
+                    .Include(r => r.Booking)
+                    .Where(r => r.Property.HostId == hostId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetReviewsByHostIdAsync: {ex.Message}");
+                throw;
+            }
+        }
 
         public async Task<List<Review>> GetByPropertyIdWithUserAsync(int propertyId)
         {

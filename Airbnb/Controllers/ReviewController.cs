@@ -136,6 +136,52 @@ namespace Airbnb.Controllers
         }
 
 
+        //host
+
+
+        [HttpGet("host/my-reviews")]
+         [Authorize]
+        public async Task<IActionResult> GetReviewsForHostProperties()
+        {
+            string hostId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(hostId))
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var result = await reviewservice.GetReviewsForHostProperties(hostId);
+            return ToActionResult(result);
+        }
+
+        [HttpGet("host/my-reviews-with-properties")]
+         [Authorize]
+        public async Task<IActionResult> GetReviewsForHostPropertiesWithPropertyData()
+        {
+            string hostId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(hostId))
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var result = await reviewservice.GetReviewsForHostPropertiesWithPropertyData(hostId);
+            return ToActionResult(result);
+        }
+
+        [HttpGet("host/property/{propertyId}/reviews")]
+         [Authorize]
+        public async Task<IActionResult> GetReviewsForSpecificHostProperty(int propertyId)
+        {
+            string hostId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(hostId))
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var result = await reviewservice.GetReviewsForSpecificHostProperty(hostId, propertyId);
+            return ToActionResult(result);
+        }
+
+
         [HttpPost]
         //[Authorize]
         public async Task<IActionResult> Add(AddReviewByGuestDTO dto)
