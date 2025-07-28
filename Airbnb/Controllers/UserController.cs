@@ -107,7 +107,7 @@ public class UserController : ControllerBase
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();
 
-        await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", $"Welcome{user.FirstName}");
+        await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", $"Welcome {user.FirstName}");
 
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
         Response.Cookies.Append(
