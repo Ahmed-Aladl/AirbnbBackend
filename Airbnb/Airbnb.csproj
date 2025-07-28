@@ -33,5 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="private\uploads\" />
+    <Folder Include="wwwroot\images\profile\" />
   </ItemGroup>
 </Project>
