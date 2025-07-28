@@ -43,7 +43,7 @@ namespace Domain.Models
 
         [ForeignKey(nameof(Host))]
         public string HostId { get; set; }
-        public PropertyAcceptStatus Status { get; set; }
+        public PropertyAcceptStatus Status { get; set; } = PropertyAcceptStatus.Pending;
 
         // Navigation properties
         public PropertyType PropertyType { get; set; }
