@@ -137,6 +137,7 @@ namespace Airbnb.Controllers
         }
         [EndpointSummary("Search Properties Paginated 'Date Range, Location, etc...'")]
         [HttpGet("search")]
+        //[Authorize]
         public async Task<IActionResult> GetNearestPagintedAsync([FromQuery]PropertyFilterDto filterDto)
         {
             var userId = User.GetUserId();

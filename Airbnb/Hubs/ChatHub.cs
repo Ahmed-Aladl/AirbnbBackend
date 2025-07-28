@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Airbnb.Services;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.SignalR;
 
@@ -37,7 +38,14 @@ namespace Airbnb.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatSessionId);
         }
 
-
+        public Task NotifyReconnected()
+        {
+            var userId = Context.UserIdentifier;
+            var connectionId = Context.ConnectionId;
+            if(userId != null )
+            _userConnections.AddConnection(userId, connectionId);
+            return Task.CompletedTask;
+        }
         public override Task OnDisconnectedAsync(Exception? exception)
         {
             var userId = Context?.UserIdentifier;

@@ -20,9 +20,8 @@ namespace Airbnb.Hubs
 
         public async Task NotifyMessageSentAsync(string userId, MessageDto message)
         {
-            Console.WriteLine("*************************************\n\n\n\n\n\nfrom notifier*************************************\\n\\n\\n\\n\\n\\");
+            Console.WriteLine($"*************************************\n\n\n\n\n\nfrom notifier*************************************\n{message?.MessageText}\n\n\\n\n\n");
             var connections = _userConnections.GetConnections(userId);
-
             foreach (var connectionId in connections)
             {
                 await _hubContext.Clients.Client(connectionId)

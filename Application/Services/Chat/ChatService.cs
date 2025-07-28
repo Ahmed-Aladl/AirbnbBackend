@@ -191,6 +191,7 @@ namespace Application.Services.Chat
                 var messageDto = await MapMessageToDto(createdMessage, senderId);
 
                 var receiverId = chatSession.UserId == senderId ? chatSession.HostId : chatSession.UserId;
+                Console.WriteLine($"****\n\n\n\nReceiver Id {receiverId} {chatSession?.Id}");
                 if(receiverId !=null)
                     await chatNotifier.NotifyMessageSentAsync(receiverId, messageDto);
 
@@ -261,7 +262,7 @@ namespace Application.Services.Chat
 
                 var latestRequst = await UnitOfWork.ReservationRepo.GetLatestByChatSessionIdAsync(chatSession.Id);
 
-                if (latestRequst == null || latestRequst.RequestStatus == ReservationRequestStatus.Pending.ToString())
+                if (latestRequst == null || latestRequst.RequestStatus != ReservationRequestStatus.Pending.ToString())
                     latestRequst = await CreateReservationRequest(chatSession, userId, createReqeust);
 
 
