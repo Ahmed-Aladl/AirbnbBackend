@@ -9,15 +9,19 @@ using Domain.Models;
 
 namespace Application.Mappings
 {
-    internal class HostReplyMappingProfile :Profile
+    internal class HostReplyMappingProfile : Profile
     {
 
         public HostReplyMappingProfile()
         {
-        CreateMap<HostReviewReplyDto,HostReply >().ReverseMap();
-        CreateMap<HostReviewEditReplyDTO, HostReply>().ReverseMap();
-        CreateMap<AddHostReply, HostReply>().ReverseMap();
-            
+            CreateMap<HostReviewReplyDto, HostReply>()
+                .AfterMap((src, dest) => { dest.UserId = src.HostId; })
+                .AfterMap((src, dest) => { dest.ReviewId = src.ReviewId; }).ReverseMap();
+
+            CreateMap<HostReviewEditReplyDTO, HostReply>().ReverseMap();
+
+            CreateMap<AddHostReply, HostReply>().AfterMap((src, dest) => { dest.UserId = src.HostId; }).ReverseMap();
+
         }
 
     }
