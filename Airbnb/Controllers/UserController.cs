@@ -317,30 +317,83 @@ public class UserController : ControllerBase
 
     [Consumes("multipart/form-data")]
     [HttpPost("profile/image")]
+    //public async Task<IActionResult> UpdateProfileImage([FromForm] ProfileImageUploadDto dto)
+    //{
+    //    var user = await _userManager.FindByIdAsync(dto.UserId);
+    //    if (user == null)
+    //        return BadRequest(new { error = "User not found" });
+
+    //    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.File.FileName);
+    //    var path = Path.Combine(
+    //        Directory.GetCurrentDirectory(),
+    //        "wwwroot",
+    //        "images",
+    //        "profile",
+    //        fileName
+    //    );
+
+    //    using (var stream = new FileStream(path, FileMode.Create))
+    //    {
+    //        await dto.File.CopyToAsync(stream);
+    //    }
+
+    //    user.ProfilePictureURL = fileName;
+    //    await _userManager.UpdateAsync(user);
+    //    await _context.SaveChangesAsync();
+    //    return Ok(new { message = "Photo uploaded" });
+    //}
     public async Task<IActionResult> UpdateProfileImage([FromForm] ProfileImageUploadDto dto)
     {
+        var profileImage = dto.File;
+        if (profileImage == null || profileImage.Length == 0)
+            return BadRequest(new { isSuccess = false, message = "No file uploaded" });
+
+
         var user = await _userManager.FindByIdAsync(dto.UserId);
         if (user == null)
             return BadRequest(new { error = "User not found" });
 
-        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.File.FileName);
-        var path = Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "wwwroot",
-            "images",
-            "profile",
-            fileName
-        );
+        var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png" };
+        if (!allowedTypes.Contains(profileImage.ContentType.ToLower()))
+            return BadRequest(new { isSuccess = false, message = "Only JPEG and PNG images allowed" });
 
-        using (var stream = new FileStream(path, FileMode.Create))
+        if (profileImage.Length > 5 * 1024 * 1024) // 5MB
+            return BadRequest(new { isSuccess = false, message = "File too large. Max 5MB" });
+
+        // Create directory
+        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profile");
+        if (!Directory.Exists(uploadsPath))
+            Directory.CreateDirectory(uploadsPath);
+
+        // Delete old image
+        if (!string.IsNullOrEmpty(user.ProfilePictureURL))
         {
-            await dto.File.CopyToAsync(stream);
+            var oldPath = Path.Combine(uploadsPath, user.ProfilePictureURL);
+            if (System.IO.File.Exists(oldPath))
+                System.IO.File.Delete(oldPath);
         }
 
+        // Save new image
+        var fileName = $"{dto.UserId}_{Guid.NewGuid()}.jpg";
+        var filePath = Path.Combine(uploadsPath, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await profileImage.CopyToAsync(stream);
+        }
+
+        // Update user
         user.ProfilePictureURL = fileName;
         await _userManager.UpdateAsync(user);
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Photo uploaded" });
+
+        var imageUrl = $"/images/profile/{fileName}";
+
+        return Ok(new
+        {
+            isSuccess = true,
+            message = "Profile image updated successfully",
+            data = new { imageUrl }
+        });
     }
 
     [HttpPost("profile/{id}/role")]
