@@ -552,7 +552,7 @@ namespace Infrastructure.Data
                         BookingId = booking.Id,
                         Amount = (int)(booking.TotalPrice * 100), // Convert to cents
                         PaymentDate = booking.CheckInDate.AddDays(-1),
-                        Status = "Completed",
+                        Status = Domain.Enums.Payment.PaymentStatus.Succeeded,
                     }
                 );
             }

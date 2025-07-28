@@ -69,6 +69,14 @@ namespace Infrastructure.Common.Repositories
             _db.Bookings.Update(entity);
         }
 
-      
+
+        public async Task<Booking?> GetBookingWithPropertyAsync(int id)
+        {
+            return await _db.Bookings
+                .Include(b => b.Property)
+                .FirstOrDefaultAsync(b => b.Id == id);
+        }
+
+
     }
 }

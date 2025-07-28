@@ -18,6 +18,7 @@ namespace Application.Interfaces.IRepositories
         Task<List<Booking>> GetBookingByUserIdAsync(string userId);
         Task<List<Booking>> GetBookingByPropertyIdAsync(int propertyId);
 
+        public Task<Booking?> GetBookingWithPropertyAsync(int id);
 
     }
 }

@@ -75,7 +75,7 @@ namespace Airbnb.Controllers
 
                 _logger.LogInformation("Chat session {ChatSessionId} {Action} for property {PropertyId} and user {UserId}",
                     responseResult?.Data?.ChatSession?.Id, isNew ? "created" : "retrieved", responseResult?.Data?.ChatSession?.PropertyId, currentUserId);
-
+                
                 return Ok(responseResult);
             }
             catch (NotFoundException ex)
