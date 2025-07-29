@@ -200,6 +200,28 @@ namespace Application.Services
 
 
 
+        //public async Task<Result<bool>> RemoveFromAllWishlists(string userId, int propertyId)
+        //{
+        //    if (!await UnitOfWork.Wishlist.IsPropertyInUserWishlistsAsync(userId, propertyId))
+        //        return Result<bool>.Fail(
+        //            "Property not found in any wishlist",
+        //            (int)HttpStatusCode.NotFound
+        //        );
+
+        //    await UnitOfWork.Wishlist.RemovePropertyFromAllUserWishlistsAsync(userId, propertyId);
+
+        //    var success = await UnitOfWork.SaveChangesAsync() > 0;
+        //    if (!success)
+        //        return Result<bool>.Fail(
+        //            "Failed to remove property from favorites",
+        //            (int)HttpStatusCode.BadRequest
+        //        );
+
+        //    return Result<bool>.Success(true, (int)HttpStatusCode.OK, "Property removed from favorites");
+        //}
+
+
+
         public async Task<Result<bool>> RemoveFromAllWishlists(string userId, int propertyId)
         {
             if (!await UnitOfWork.Wishlist.IsPropertyInUserWishlistsAsync(userId, propertyId))
@@ -209,15 +231,21 @@ namespace Application.Services
                 );
 
             await UnitOfWork.Wishlist.RemovePropertyFromAllUserWishlistsAsync(userId, propertyId);
+            await UnitOfWork.SaveChangesAsync();
 
-            var success = await UnitOfWork.SaveChangesAsync() > 0;
-            if (!success)
-                return Result<bool>.Fail(
-                    "Failed to remove property from favorites",
-                    (int)HttpStatusCode.BadRequest
-                );
+            var userWishlists = await UnitOfWork.Wishlist.GetByUserIdAsync(userId);
+            foreach (var wishlist in userWishlists)
+            {
+                if (wishlist.WishlistProperties == null || !wishlist.WishlistProperties.Any())
+                {
+                    UnitOfWork.Wishlist.Delete(wishlist);
+                }
+            }
 
-            return Result<bool>.Success(true, (int)HttpStatusCode.OK, "Property removed from favorites");
+            await UnitOfWork.SaveChangesAsync();
+
+            return Result<bool>.Success(true, 200, "Property removed from favorites");
         }
+
     }
 }
