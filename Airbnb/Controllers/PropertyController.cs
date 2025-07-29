@@ -289,7 +289,14 @@ namespace Airbnb.Controllers
 
                 if (!result.IsSuccess)
                     return ToActionResult(result);
-                return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId }, new {});
+                //return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId }, new {});
+                return Ok(new
+                {
+                    success = true,
+                    message = "Images uploaded successfully",
+                    imageUrls = imageDtos.Select(img => img.ImageUrl).ToList()
+                });
+
             }
             catch
             {
