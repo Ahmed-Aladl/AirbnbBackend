@@ -27,7 +27,7 @@ public class UserController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IHubContext<NotificationHub> _hub;
-
+    private readonly int accessTokenExpiresAfterMins = 1; 
     public UserController(
         UserManager<User> userManager,
         AirbnbContext context,
@@ -105,6 +105,9 @@ public class UserController : ControllerBase
         };
 
         _context.Notifications.Add(notification);
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        _context.Update(user);
         await _context.SaveChangesAsync();
 
         await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", $"Welcome {user.FirstName}");
@@ -119,7 +122,7 @@ public class UserController : ControllerBase
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
-                Path = "/api/user/refresh-token",
+                Path = "/api/user",
             }
         );
         Response.Cookies.Append(
@@ -130,7 +133,7 @@ public class UserController : ControllerBase
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddMinutes(30),
+                Expires = DateTimeOffset.UtcNow.AddMinutes(accessTokenExpiresAfterMins),
                 Path = "/",
             }
         );
@@ -204,7 +207,7 @@ public class UserController : ControllerBase
                 UserId = user.Id,
                 Code = otp,
                 IsUsed = false,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(2),
             }
         );
 
@@ -240,12 +243,18 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
+    public async Task<IActionResult> RefreshToken()
     {
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (refreshToken == null)
+        {
+            Console.WriteLine("****\n\n\n\nCoundn't find refresh token\n\n\n\n");
+            throw new BadHttpRequestException("no refresh token found");
+        }
         var user = await _context.Users.FirstOrDefaultAsync(u =>
-            u.RefreshToken == dto.RefreshToken
+            u.RefreshToken == refreshToken
         );
-
+        Console.WriteLine($"******\n\n\n\n \t\t\t\t\t\tuser \n{user?.RefreshTokenExpiry} {user?.NormalizedEmail}");
         if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
             return BadRequest(new { error = "Invalid or expired refresh token" });
 
@@ -258,7 +267,34 @@ public class UserController : ControllerBase
         user.RefreshToken = newRefreshToken;
         user.RefreshTokenExpiry = expiry;
 
+        _context.Update(user);
         await _context.SaveChangesAsync();
+
+
+        Response.Cookies.Append(
+            "refreshToken",
+            newRefreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Path = "/api/user",
+            }
+        );
+        Response.Cookies.Append(
+            "accessToken",
+            newAccessToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(accessTokenExpiresAfterMins),
+                Path = "/",
+            }
+        );
 
         return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
     }
@@ -317,84 +353,60 @@ public class UserController : ControllerBase
 
     [Consumes("multipart/form-data")]
     [HttpPost("profile/image")]
-    //public async Task<IActionResult> UpdateProfileImage([FromForm] ProfileImageUploadDto dto)
-    //{
-    //    var user = await _userManager.FindByIdAsync(dto.UserId);
-    //    if (user == null)
-    //        return BadRequest(new { error = "User not found" });
-
-    //    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.File.FileName);
-    //    var path = Path.Combine(
-    //        Directory.GetCurrentDirectory(),
-    //        "wwwroot",
-    //        "images",
-    //        "profile",
-    //        fileName
-    //    );
-
-    //    using (var stream = new FileStream(path, FileMode.Create))
-    //    {
-    //        await dto.File.CopyToAsync(stream);
-    //    }
-
-    //    user.ProfilePictureURL = fileName;
-    //    await _userManager.UpdateAsync(user);
-    //    await _context.SaveChangesAsync();
-    //    return Ok(new { message = "Photo uploaded" });
-    //}
     public async Task<IActionResult> UpdateProfileImage([FromForm] ProfileImageUploadDto dto)
     {
-        var profileImage = dto.File;
-        if (profileImage == null || profileImage.Length == 0)
-            return BadRequest(new { isSuccess = false, message = "No file uploaded" });
-
+        if (dto == null || dto.File == null || dto.File.Length == 0)
+            return BadRequest(new { errer = "No file uploaded" });
 
         var user = await _userManager.FindByIdAsync(dto.UserId);
         if (user == null)
-            return BadRequest(new { error = "User not found" });
+            return BadRequest(new { errer = "User not found" });
 
         var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png" };
-        if (!allowedTypes.Contains(profileImage.ContentType.ToLower()))
-            return BadRequest(new { isSuccess = false, message = "Only JPEG and PNG images allowed" });
+        if (!allowedTypes.Contains(dto.File.ContentType.ToLower()))
+            return BadRequest(new { errer = "Only JPEG and PNG images allowed" });
 
-        if (profileImage.Length > 5 * 1024 * 1024) // 5MB
-            return BadRequest(new { isSuccess = false, message = "File too large. Max 5MB" });
+        if (dto.File.Length > 5 * 1024 * 1024)
+            return BadRequest(new { errer = "File too large. Max 5MB" });
 
-        // Create directory
-        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profile");
+        var uploadsPath = Path.Combine("wwwroot", "images", "profile");
         if (!Directory.Exists(uploadsPath))
             Directory.CreateDirectory(uploadsPath);
 
-        // Delete old image
-        if (!string.IsNullOrEmpty(user.ProfilePictureURL))
+        if (!string.IsNullOrWhiteSpace(user.ProfilePictureURL))
         {
-            var oldPath = Path.Combine(uploadsPath, user.ProfilePictureURL);
+            var oldFileName = Path.GetFileName(user.ProfilePictureURL);
+            var oldPath = Path.Combine(uploadsPath, oldFileName);
             if (System.IO.File.Exists(oldPath))
+            {
                 System.IO.File.Delete(oldPath);
+            }
         }
 
-        // Save new image
-        var fileName = $"{dto.UserId}_{Guid.NewGuid()}.jpg";
+        var fileExtension = Path.GetExtension(dto.File.FileName);
+        var fileName = $"{dto.UserId}_{Guid.NewGuid()}{fileExtension}";
         var filePath = Path.Combine(uploadsPath, fileName);
 
         using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            await profileImage.CopyToAsync(stream);
+            await dto.File.CopyToAsync(stream);
         }
 
-        // Update user
-        user.ProfilePictureURL = fileName;
-        await _userManager.UpdateAsync(user);
+        var relativeUrl = $"/images/profile/{fileName}";
 
-        var imageUrl = $"/images/profile/{fileName}";
+        user.ProfilePictureURL = relativeUrl;
+
+        await _userManager.UpdateAsync(user);
+        await _context.SaveChangesAsync();
+
 
         return Ok(new
         {
-            isSuccess = true,
             message = "Profile image updated successfully",
-            data = new { imageUrl }
         });
     }
+
+
 
     [HttpPost("profile/{id}/role")]
     public async Task<IActionResult> UpdateRole(string id)

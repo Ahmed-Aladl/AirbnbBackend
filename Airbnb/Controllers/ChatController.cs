@@ -137,11 +137,11 @@ namespace Airbnb.Controllers
         public async Task<ActionResult<MessageDto>> SendMessage(
         string chatSessionId,
         [FromBody] SendMessageRequest request,
-        bool isUser =true
+        bool isUser =false
         )
         {
-            
-            userId = isUser ? (User.GetUserId() ?? userId) : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
+            //userId = isUser ? (User.GetUserId() ?? userId) : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
+            userId = User.GetUserId() ?? userId;
             
             
 

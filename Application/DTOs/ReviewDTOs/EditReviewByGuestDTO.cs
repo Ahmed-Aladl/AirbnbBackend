@@ -9,9 +9,11 @@ namespace Application.DTOs.ReviewDTOs
     public class EditReviewByGuestDTO :AddReviewByGuestDTO
     {
 
-        public int Id { get; set; }
-        public string UserId { get; set; }
-        public int PropertyId { get; set; }
-        public int BookingId { get; set; }
+        //public int Id { get; set; }
+        //public string UserId { get; set; }
+        //public int PropertyId { get; set; }
+        //public int BookingId { get; set; }
+
+
     }
 }

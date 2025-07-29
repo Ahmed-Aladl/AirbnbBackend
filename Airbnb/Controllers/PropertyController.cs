@@ -29,7 +29,7 @@ namespace Airbnb.Controllers
 
         private readonly IWebHostEnvironment _env;
         private readonly IFileService _fileService;
-        //private readonly string userId = "1";
+        private readonly string userId = "1";
 
         public PropertyController(
                                     PropertyService _propertyService,
@@ -137,6 +137,7 @@ namespace Airbnb.Controllers
         }
         [EndpointSummary("Search Properties Paginated 'Date Range, Location, etc...'")]
         [HttpGet("search")]
+        //[Authorize]
         public async Task<IActionResult> GetNearestPagintedAsync([FromQuery]PropertyFilterDto filterDto)
         {
             var userId = User.GetUserId();
@@ -195,10 +196,10 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Update existing Property")]
         [HttpPut]
-        [Authorize(Roles =("Host"))]
+        //[Authorize(Roles =("Host"))]
         public IActionResult Put(PropertyDisplayDTO propertyDTO)
         {
-            var hostId = User.GetUserId();
+            var hostId = User.GetUserId() ?? userId;
             if (hostId == null || hostId != propertyDTO.HostId)
                 return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
 
@@ -208,9 +209,24 @@ namespace Airbnb.Controllers
         }
 
 
+
+        [HttpPut("accept/{propertyId}")]
+        public async Task<IActionResult> Accept(int propertyId)
+        {
+            var result = await PropertyService.Accept(propertyId);
+            return ToActionResult(result); ;
+        }
+
+        [HttpPut("reject/{propertyId}")]
+        public async Task<IActionResult> Reject(int propertyId)
+        {
+            var result = await PropertyService.Reject(propertyId);
+            return ToActionResult(result); ;
+        }
+
         [EndpointSummary("Deletes existing Property")]
         [HttpDelete("{id}")]
-        [Authorize(Roles ="Host")]
+        //[Authorize(Roles ="Host")]
         public IActionResult Delete(int id)
         {
             var hostId= User.GetUserId();
@@ -287,7 +303,7 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Deletes images for a Property")]
         [HttpDelete("property-images/delete/{propertyId}")]
-        [Authorize(Roles ="Host")]
+        //[Authorize(Roles ="Host")]
         public async Task<IActionResult> DeletePropertyImages([FromForm] int[] imgIds,int propertyId)
         {
             var hostId = User.GetUserId();

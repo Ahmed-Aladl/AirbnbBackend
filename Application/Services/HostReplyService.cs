@@ -58,6 +58,26 @@ namespace Application.Services
             }
         }
 
+
+        public async Task<Result<List<HostReviewReplyDto>>> GetByPropertyId(int propertyId)
+        {
+            try
+            {
+                var replies = await UnitOfWork.HostReviewRepo.GetByPropertyIdAsync(propertyId);
+                if (replies == null || !replies.Any())
+                    return Result<List<HostReviewReplyDto>>.Fail("No host replies found for this property.", 404);
+
+                var replyDTOs = Mapper.Map<List<HostReviewReplyDto>>(replies);
+                return Result<List<HostReviewReplyDto>>.Success(replyDTOs);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetByPropertyId: {ex.Message}");
+                return Result<List<HostReviewReplyDto>>.Fail("An error occurred while retrieving the host replies.", 500);
+            }
+        }
+
+
         public async Task<Result<HostReviewReplyDto>> GetByReviewId(int reviewId)
         {
             try
@@ -126,7 +146,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<HostReviewReplyDto>> Edit(int id, HostReviewReplyDto dto)
+        public async Task<Result<HostReviewReplyDto>> Edit(int id, HostReviewEditReplyDTO dto)
         {
             try
             {
@@ -140,7 +160,7 @@ namespace Application.Services
                 if (existingReply == null)
                     return Result<HostReviewReplyDto>.Fail("Host reply not found.", 404);
 
-                if (existingReply.UserId != dto.HostId)
+                if (existingReply.UserId != dto.UserId)
                     return Result<HostReviewReplyDto>.Fail("You can only edit your own replies.", 403);
 
                 existingReply.Comment = dto.Comment;
@@ -150,6 +170,7 @@ namespace Application.Services
 
                 var replyDTO = Mapper.Map<HostReviewReplyDto>(existingReply);
                 return Result<HostReviewReplyDto>.Success(replyDTO);
+
             }
             catch (Exception ex)
             {
