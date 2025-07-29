@@ -57,14 +57,13 @@ namespace Application.Services
                 var blockedDates = new List<DateTime>();
                 foreach (var update in updates)
                 {
-                    // Only update the single date provided in CalendarUpdateDto
-                    var date = update.Date.Date;
-                    var existing = (await _unitOfWork.CalendarAvailabilities.GetAvailabilityRangeAsync(propertyId, date, date)).FirstOrDefault();
+                    var existing = (await _unitOfWork.CalendarAvailabilities.GetAvailabilityRangeAsync(propertyId, update.Date, update.Date)).FirstOrDefault();
                     if (existing != null)
                     {
                         if (existing.IsBooked)
                         {
-                            blockedDates.Add(date);
+                            // Prevent any update if booked
+                            blockedDates.Add(update.Date);
                             continue;
                         }
                         existing.IsAvailable = update.IsAvailable;
@@ -76,9 +75,9 @@ namespace Application.Services
                         var ca = new CalendarAvailability
                         {
                             PropertyId = propertyId,
-                            Date = date,
+                            Date = update.Date,
                             IsAvailable = update.IsAvailable,
-                            IsBooked = false,
+                            IsBooked = false, // default to not booked
                             Price = update.Price
                         };
                         _unitOfWork.CalendarAvailabilities.Add(ca);
