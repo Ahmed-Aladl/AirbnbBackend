@@ -27,7 +27,7 @@ public class UserController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IHubContext<NotificationHub> _hub;
-    private readonly int accessTokenExpiresAfterMins = 1; 
+    private readonly int accessTokenExpiresAfterMins = 30; 
     public UserController(
         UserManager<User> userManager,
         AirbnbContext context,
