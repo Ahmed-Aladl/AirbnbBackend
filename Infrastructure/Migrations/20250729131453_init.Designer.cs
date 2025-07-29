@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AirbnbContext))]
-    [Migration("20250724012828_NewChatSchema")]
-    partial class NewChatSchema
+    [Migration("20250729131453_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,6 +101,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsBooked")
                         .HasColumnType("bit");
 
                     b.Property<decimal>("Price")
@@ -300,13 +303,20 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChatSessionId");
 
-                    b.HasIndex("MessageId");
+                    b.HasIndex("MessageId")
+                        .IsUnique()
+                        .HasFilter("[MessageId] IS NOT NULL");
 
                     b.HasIndex("RequestStatus");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ReservationRequests");
                 });
@@ -340,7 +350,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("HOST");
+                    b.ToTable("HostReply");
                 });
 
             modelBuilder.Entity("Domain.Models.Notification", b =>
@@ -380,8 +390,8 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
@@ -390,15 +400,23 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FailureReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("HostAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<decimal>("PlatformFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("StripeCustomerId")
                         .HasColumnType("nvarchar(max)");
@@ -408,6 +426,15 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("StripeSessionId")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StripeTransferId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("TransferDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TransferStatus")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
@@ -487,6 +514,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("State")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -576,33 +606,31 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Accuracy")
+                    b.Property<int?>("Accuracy")
                         .HasColumnType("int");
 
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CheckIn")
+                    b.Property<int?>("CheckIn")
                         .HasColumnType("int");
 
-                    b.Property<int>("Cleanliness")
+                    b.Property<int?>("Cleanliness")
                         .HasColumnType("int");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Communication")
+                    b.Property<int?>("Communication")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Location")
+                    b.Property<int?>("Location")
                         .HasColumnType("int");
 
                     b.Property<string>("PrivateComment")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PropertyId")
@@ -615,7 +643,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Value")
+                    b.Property<int?>("Value")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -664,6 +692,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("IsConfirmed")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -705,6 +736,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("StripeAccountId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -716,6 +750,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -980,19 +1018,19 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Models.User", "Host")
                         .WithMany()
                         .HasForeignKey("HostId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Models.Property", "Property")
                         .WithMany("ChatSessions")
                         .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Host");
@@ -1016,7 +1054,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Chat.MessageReaction", b =>
                 {
                     b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithMany()
+                        .WithMany("Reactions")
                         .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1035,7 +1073,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Chat.MessageReadStatus", b =>
                 {
                     b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithMany()
+                        .WithMany("ReadStatuses")
                         .HasForeignKey("MessageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1052,13 +1090,19 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Models.Chat.Message", "Message")
-                        .WithMany()
-                        .HasForeignKey("MessageId")
+                        .WithOne("ReservationRequest")
+                        .HasForeignKey("Domain.Models.Chat.ReservationRequest", "MessageId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
 
                     b.Navigation("ChatSession");
 
                     b.Navigation("Message");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Models.HostReply", b =>
@@ -1293,6 +1337,16 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Models.Chat.ChatSession", b =>
                 {
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("Domain.Models.Chat.Message", b =>
+                {
+                    b.Navigation("Reactions");
+
+                    b.Navigation("ReadStatuses");
+
+                    b.Navigation("ReservationRequest")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Models.Property", b =>

@@ -347,7 +347,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("HOST");
+                    b.ToTable("HostReply");
                 });
 
             modelBuilder.Entity("Domain.Models.Notification", b =>
@@ -603,33 +603,31 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Accuracy")
+                    b.Property<int?>("Accuracy")
                         .HasColumnType("int");
 
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CheckIn")
+                    b.Property<int?>("CheckIn")
                         .HasColumnType("int");
 
-                    b.Property<int>("Cleanliness")
+                    b.Property<int?>("Cleanliness")
                         .HasColumnType("int");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Communication")
+                    b.Property<int?>("Communication")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Location")
+                    b.Property<int?>("Location")
                         .HasColumnType("int");
 
                     b.Property<string>("PrivateComment")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PropertyId")
@@ -642,7 +640,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Value")
+                    b.Property<int?>("Value")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
