@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AirbnbContext))]
-    [Migration("20250729131643_init")]
+    [Migration("20250729131803_init")]
     partial class init
     {
         /// <inheritdoc />
