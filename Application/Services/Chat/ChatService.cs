@@ -5,21 +5,20 @@ using System.Net;
 using Application.DTOs.Chat.ChatSessionDtos;
 using Application.DTOs.Chat.MessageDtos;
 using Application.DTOs.Chat.MessageReactionDtos;
+using Application.DTOs.Chat.Requests;
 using Application.DTOs.Chat.ReservationRequestDtos;
+using Application.DTOs.PropertyDTOS;
 using Application.Interfaces;
+using Application.Interfaces.Hubs;
 using Application.Interfaces.Services;
 using Application.Result;
 using AutoMapper;
+using Azure;
 using Domain.Enums.Chat;
-using Domain.Models.Chat;
-using Microsoft.Extensions.Logging;
-
-
-using Application.Interfaces.Hubs;
-using Application.DTOs.Chat.Requests;
 using Domain.Models;
+using Domain.Models.Chat;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Application.DTOs.PropertyDTOS;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services.Chat
 {
@@ -27,6 +26,7 @@ namespace Application.Services.Chat
     {
         private readonly PropertyService _propertyService;
         private readonly IChatNotifier chatNotifier;
+        private readonly CalendarService calendarService;
         private readonly IMapper _mapper;
         private readonly ILogger<ChatService> _logger;
 
@@ -35,11 +35,14 @@ namespace Application.Services.Chat
                     IMapper mapper,
                     ILogger<ChatService> logger,
                     PropertyService propertyService,
-                    IChatNotifier chatNotifier
+                    IChatNotifier chatNotifier,
+                    CalendarService _calendarService
+                    
             )
         {
             _propertyService = propertyService;
             this.chatNotifier = chatNotifier;
+            calendarService = _calendarService;
             UnitOfWork = _unitOfWork;
             _mapper = mapper;
             _logger = logger;
@@ -47,6 +50,30 @@ namespace Application.Services.Chat
 
         public IUnitOfWork UnitOfWork { get; }
 
+        public async Task<Result<RespondToReservationRequestDto>> GetChatSessionForHostAsync(string hostId, string chatSessionId)
+        {
+            var chatSession = await UnitOfWork.ChatSessionRepo.GetByIdAsync( chatSessionId );
+            if (chatSession == null)
+                return Result<RespondToReservationRequestDto>.Fail("Not found", (int)HttpStatusCode.NotFound);
+
+            if(chatSession.HostId != hostId)
+                return Result<RespondToReservationRequestDto>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
+
+            var property = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(chatSession.PropertyId);
+            var latestRequest = await UnitOfWork.ReservationRepo.GetLatestByChatSessionIdAsync(chatSessionId);
+            var response = new RespondToReservationRequestDto
+            {
+                ChatSession = await MapChatSessionToDto(chatSession, hostId),
+                Proeprty = _mapper.Map<PropertyDisplayDTO>(property),
+                Messages = await GetChatMessagesAsync(chatSession.Id, hostId),
+                LatestReservationRequest = _mapper.Map<ReservationRequestDto>(latestRequest)
+
+            };
+
+            return Result<RespondToReservationRequestDto>.Success(response);
+
+
+        }
         public async Task<Result<ChatSessionDto>> GetChatSessionAsync(int propertyId, string userId)
         {
             var existingSession = await UnitOfWork.ChatSessionRepo.GetByPropertyAndUserAsync(propertyId, userId);
@@ -239,10 +266,12 @@ namespace Application.Services.Chat
         {
             var property = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(propertyId);
 
-            if (property == null || property.HostId== userId)
-            {
-                return Result<RespondToReservationRequestDto>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
-            }
+            if (property == null)
+                return Result<RespondToReservationRequestDto>.Fail("Not found", (int)HttpStatusCode.NotFound);
+            
+            if (property.HostId== userId)
+                return Result<RespondToReservationRequestDto>.Fail("Host can't make a request on thier own property", (int)HttpStatusCode.Unauthorized);
+            
             var chatSession = (await UnitOfWork.ChatSessionRepo.GetByPropertyAndUserAsync(propertyId,userId));
 
 
@@ -288,6 +317,94 @@ namespace Application.Services.Chat
             return Result<RespondToReservationRequestDto>.Success(reservationRespond);
 
         }
+
+
+        public async Task<Result<bool>> AcceptReservationAsync(string hostId, string reservationId)
+        {
+            var request = await UnitOfWork.ReservationRepo.GetByIdWithDataAsync(reservationId);
+            if(request == null)
+                return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
+            if(request.ChatSession.HostId != hostId)
+                return Result<bool>.Fail("Unauthorized",(int)HttpStatusCode.Unauthorized);
+
+            var isAvailable = (await calendarService
+                                    .IsPropertyBookableAsync(
+                                                request.ChatSession.PropertyId,
+                                                request.CheckInDate,
+                                                request.CheckOutDate
+                                    )).Data;
+
+
+            var message = new SendMessageRequest
+            {
+                ChatSessionId = request.ChatSessionId,
+                MessageType = MessageType.ReservationResponse
+            };
+            
+            
+            var response = CloneReservation(request);
+
+            if (!isAvailable)
+            {
+                message.MessageText = $"The host can't afford your request.";
+                await UnitOfWork.ReservationRepo.UpdateAsync(request);
+
+                var declineMessageDto = await SendMessageAsync(message, request.ChatSession.HostId);
+                response.RequestStatus = ReservationRequestStatus.Declined.ToString();
+                response.MessageId = declineMessageDto.Id;
+                await UnitOfWork.ReservationRepo.CreateAsync(response);
+
+                await UnitOfWork.SaveChangesAsync();
+                return Result<bool>.Fail("Not Available in this period",(int)HttpStatusCode.Conflict);
+            }
+            
+            message.MessageText = $"The host Accepted your request.";
+            request.RequestStatus = ReservationRequestStatus.Accepted.ToString();
+            await UnitOfWork.ReservationRepo.UpdateAsync(request);
+
+            var acceptessageDto = await SendMessageAsync(message, request.ChatSession.HostId);
+            response.MessageId = acceptessageDto.Id;
+            await UnitOfWork.ReservationRepo.CreateAsync(response);
+
+            await UnitOfWork.SaveChangesAsync();
+
+            return Result<bool>.Success(true,(int)HttpStatusCode.NoContent, "The host accepted you request.");
+        }
+
+
+        public async Task<Result<bool>> DeclineReservationAsync(string hostId, string requestId)
+        {
+            var request = await UnitOfWork.ReservationRepo.GetByIdWithDataAsync(requestId);
+            if (request == null)
+                return Result<bool>.Fail("Not found",(int) HttpStatusCode.NotFound);
+            if (request.ChatSession.HostId != hostId)
+                return Result<bool>.Fail("Unauthorized",(int) HttpStatusCode.Unauthorized);
+
+            if(request.RequestStatus != ReservationRequestStatus.Pending.ToString())
+                return Result<bool>.Fail("Request already has been closed.",(int) HttpStatusCode.BadRequest);
+
+
+            var message = new SendMessageRequest
+            {
+                ChatSessionId = request.ChatSessionId,
+                MessageType = MessageType.ReservationResponse,
+                MessageText = $"The host Declined your request."
+            };
+
+            request.RequestStatus = ReservationRequestStatus.Declined.ToString();
+            await UnitOfWork.ReservationRepo.UpdateAsync(request);
+
+            var response = CloneReservation(request);
+            var messageDto = await SendMessageAsync(message, request.ChatSession.HostId);
+            response.MessageId = messageDto.Id;
+            await UnitOfWork.ReservationRepo.CreateAsync(response);
+
+            await UnitOfWork.SaveChangesAsync();
+            return Result<bool>.Success(true,(int)HttpStatusCode.NoContent, "Request has been rejected");
+
+        }
+
+        // Private helper methods
         private async Task<ReservationRequest> CreateReservationRequest(ChatSession chatSession, string userId, CreateReservationRequestDto createRequest)
         {
             var messageRequest = new SendMessageRequest
@@ -311,9 +428,22 @@ namespace Application.Services.Chat
             return await UnitOfWork.ReservationRepo.CreateAsync(reserveRequest);
 
         }
-
-
-        // Private helper methods
+        private ReservationRequest CloneReservation(ReservationRequest request)
+        {
+            return new()
+            {
+                GuestCount = request.GuestCount,
+                CheckInDate = request.CheckInDate,
+                CheckOutDate = request.CheckOutDate,
+                RequestStatus = request.RequestStatus,
+                RequestedAt = request.RequestedAt,
+                RespondedAt = request.RespondedAt,
+                TotalAmount = request.TotalAmount,
+                UserId = request.UserId,
+                ResponseMessage = request.ResponseMessage,
+                ChatSessionId = request.ChatSessionId,
+            };
+        }
         private async Task<ChatSessionDto> MapChatSessionToDto(ChatSession session, string currentUserId)
         {
             var property = (await _propertyService.GetByIdWithCoverAsync(session.PropertyId)).Data;
