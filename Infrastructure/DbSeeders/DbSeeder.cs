@@ -203,8 +203,8 @@ namespace Infrastructure.Data
             };
 
             var createdUsers = new List<User>();
-            string[] passwords = { "Admin@123", "Host@123", "Host@123", "Guest@123", "Guest@123" };
-            string[] roles = { "Admin", "Host", "Host", "Guest", "Guest" };
+            string[] passwords = { "Admin@123", "Host@123", "Host@123", "Guest@123", "Guest@123", "Guest@123" };
+            string[] roles = { "Admin", "Host", "Host", "Guest", "Guest", "Guest" };
 
             for (int i = 0; i < users.Count; i++)
             {

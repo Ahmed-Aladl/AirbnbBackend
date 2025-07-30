@@ -27,7 +27,7 @@ public class UserController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IHubContext<NotificationHub> _hub;
-    private readonly int accessTokenExpiresAfterMins = 1; 
+    private readonly int accessTokenExpiresAfterMins = 30; 
     public UserController(
         UserManager<User> userManager,
         AirbnbContext context,
@@ -96,21 +96,21 @@ public class UserController : ControllerBase
         var accessToken = _tokenService.GenerateAccessToken(user, roles);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
 
-        var notification = new Notification
-        {
-            UserId = user.Id,
-            Message = "Welcome",
-            CreatedAt = DateTime.UtcNow,
-            isRead = false,
-        };
+        //var notification = new Notification
+        //{
+        //    UserId = user.Id,
+        //    Message = "Welcome",
+        //    CreatedAt = DateTime.UtcNow,
+        //    isRead = false,
+        //};
 
-        _context.Notifications.Add(notification);
+        //_context.Notifications.Add(notification);
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
         _context.Update(user);
         await _context.SaveChangesAsync();
 
-        await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", $"Welcome {user.FirstName}");
+        //await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", $"Welcome {user.FirstName}");
 
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
         Response.Cookies.Append(
@@ -301,7 +301,7 @@ public class UserController : ControllerBase
 
     private string GenerateOtp() => new Random().Next(100000, 999999).ToString();
 
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
     [HttpGet("get-all-users")]
     public async Task<IActionResult> GetAllUsers()
     {

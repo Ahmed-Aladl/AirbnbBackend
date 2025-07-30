@@ -21,12 +21,14 @@ namespace Infrastructure.Common
         private IMessageReactionRepository _messageReactionRepo;
         private IMessageReadStatusRepository _messageReadStatusRepo;
         private IReservationRequestRepository _reservationRepo ;
+        
 
         private IPropertyRepository _propertyRepo;
         private IPropertyImageRepository _propertyImageRepo;
         private INotificationRepository _notificationRepo;
         private IUserRepository _userRepo;
         private IBookingRepo _bookingRepo;
+        private IPropertyViolationRepo _propertyViolationRepo;
         private IUserOtpRepository _userOtps;
         private IReviewRepo _reviewRepo;
         private IHostReviewRepo _hostReviewRepo;
@@ -47,7 +49,10 @@ namespace Infrastructure.Common
                 return _bookingRepo;
             }
         }
+
         public IChatSessionRepository ChatSessionRepo => _chatSessionRepo ?? new ChatSessionRepository(Context);
+        public IPropertyViolationRepo PropertyViolationRepo => _propertyViolationRepo?? new PropertyViolationRepo(Context);
+
         public IMessageRepository MessageRepo => _messageRepo ?? new MessageRepository(Context);
         public IMessageReadStatusRepository MessageReadRepo => _messageReadStatusRepo ?? new MessageReadStatusRepository(Context);
         public IReservationRequestRepository ReservationRepo => _reservationRepo ?? new ReservationRequestRepository(Context);

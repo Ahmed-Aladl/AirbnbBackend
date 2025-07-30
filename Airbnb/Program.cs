@@ -5,6 +5,7 @@ using Airbnb.DependencyInjection.InfrastructureDI;
 using Airbnb.DependencyInjection.PresentationDI;
 using Airbnb.Hubs;
 using Airbnb.Middleware;
+using Application.DTOs.GroqRequestDto;
 using Application.Interfaces.IRepositories;
 using Application.Mappings;
 using Application.Services;
@@ -39,6 +40,8 @@ namespace Airbnb
                 //options.Filters.Add<ErrorHandlingFilter>();
             });
 
+            builder.Services.Configure<GroqSettings>(builder.Configuration.GetSection("Groq"));
+            builder.Services.AddHttpClient();
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             //builder.Services.AddOpenApi();

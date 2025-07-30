@@ -119,6 +119,13 @@ namespace Application.Services
                     checkOutDate <= b.CheckInDate || checkInDate >= b.CheckOutDate
                 );
 
+            
+                    isAvailable = isAvailable && ( 
+                                    await _unitOfWork.CalendarAvailabilities
+                                    .GetAvailabilityRangeAsync(propertyId, checkInDate, checkOutDate)
+                                ).All(c=> c.IsAvailable);
+                                ;
+
                 string message = isAvailable
                     ? "Property is available for booking."
                     : "Property is not available for the selected dates due to existing bookings.";
