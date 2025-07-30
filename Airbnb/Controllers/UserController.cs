@@ -301,7 +301,7 @@ public class UserController : ControllerBase
 
     private string GenerateOtp() => new Random().Next(100000, 999999).ToString();
 
-    [Authorize(Roles = "admin")]
+    //[Authorize(Roles = "admin")]
     [HttpGet("get-all-users")]
     public async Task<IActionResult> GetAllUsers()
     {

@@ -24,7 +24,7 @@ namespace Infrastructure.DbConfigs.Chat
                 .HasOne(r => r.Message)
                 .WithOne(m=> m.ReservationRequest)
                 .HasForeignKey<ReservationRequest>(r => r.MessageId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder
                 .HasIndex(r => r.ChatSessionId);

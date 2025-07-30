@@ -595,6 +595,46 @@ namespace Infrastructure.Migrations
                     b.ToTable("propertyTypes");
                 });
 
+            modelBuilder.Entity("Domain.Models.PropertyViolations", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PropertyViolations");
+                });
+
             modelBuilder.Entity("Domain.Models.Review", b =>
                 {
                     b.Property<int>("Id")
@@ -1089,7 +1129,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Models.Chat.Message", "Message")
                         .WithOne("ReservationRequest")
                         .HasForeignKey("Domain.Models.Chat.ReservationRequest", "MessageId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Domain.Models.User", "User")
                         .WithMany()
@@ -1194,6 +1234,25 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Property");
+                });
+
+            modelBuilder.Entity("Domain.Models.PropertyViolations", b =>
+                {
+                    b.HasOne("Domain.Models.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Property");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Models.Review", b =>
