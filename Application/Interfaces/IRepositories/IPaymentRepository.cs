@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Domain.Models;
+using Application.DTOs.PaymentDTOs;
+using Application.Shared;
 using Domain.Enums.Payment;
+using Domain.Models;
 
 namespace Application.Interfaces.IRepositories
 {
@@ -22,5 +24,8 @@ namespace Application.Interfaces.IRepositories
         Task<List<Payment>> GetFailedTransferPayments();
         Task<decimal> GetTotalPlatformRevenue(DateTime? startDate = null, DateTime? endDate = null);
         Task<List<Payment>> GetHostPayments(string hostId, PaymentStatus? status = null);
+
+        Task<PaginatedResult<AdminPaymentDTO>> GetAllPaymentsForAdminAsync(int page, int pageSize);
+
     }
 }

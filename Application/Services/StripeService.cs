@@ -18,12 +18,12 @@ namespace Application.Services
 {
     public interface IStripeService
     {
-        Task<string> CreateCheckoutSessionAsync(int bookingId, int amount);
+        Task<string> CreateCheckoutSessionAsync(int bookingId);
         Task HandleWebhookAsync(HttpRequest request);
         Task<string> CreateExpressAccountAsync(string email, string hostId);
         Task<bool> TransferToHostAsync(int paymentId);
         Task<bool> EnableTransfersCapabilityAsync(string hostId);
-        Task ProcessPendingTransfersForHostAsync(string hostId); 
+        Task ProcessPendingTransfersForHostAsync(string hostId);
     }
 
     public class StripeService : IStripeService
@@ -46,53 +46,52 @@ namespace Application.Services
             StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
         }
 
-        public async Task<string> CreateCheckoutSessionAsync(int bookingId, int amount)
+        public async Task<string> CreateCheckoutSessionAsync(int bookingId)
         {
             try
             {
-                _logger.LogInformation($"Creating Stripe session for booking {bookingId}, amount {amount}");
-
                 var booking = await _unitOfWork.Bookings.GetByIdAsync(bookingId);
                 if (booking == null)
                     throw new Exception($"Booking {bookingId} not found");
 
-                // Calculate platform fee and host amount
+                var amount = (int)(booking.TotalPrice * 100);
                 var platformFee = (int)(amount * PLATFORM_FEE_PERCENTAGE);
                 var hostAmount = amount - platformFee;
+
+                _logger.LogInformation($"Creating Stripe session for booking {bookingId}, amount {amount}");
 
                 var sessionService = new SessionService();
                 var options = new SessionCreateOptions
                 {
                     PaymentMethodTypes = new List<string> { "card" },
                     LineItems = new List<SessionLineItemOptions>
+            {
+                new()
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
                     {
-                        new()
+                        Currency = "usd",
+                        UnitAmount = amount,
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
-                            PriceData = new SessionLineItemPriceDataOptions
-                            {
-                                Currency = "usd",
-                                UnitAmount = amount,
-                                ProductData = new SessionLineItemPriceDataProductDataOptions
-                                {
-                                    Name = $"Booking #{bookingId}"
-                                }
-                            },
-                            Quantity = 1
+                            Name = $"Booking #{bookingId}"
                         }
                     },
+                    Quantity = 1
+                }
+            },
                     Mode = "payment",
                     SuccessUrl = "http://localhost:4200/",
                     CancelUrl = "http://localhost:4200/",
                     Metadata = new Dictionary<string, string>
-                    {
-                        { "booking_id", bookingId.ToString() }
-                    }
+            {
+                { "booking_id", bookingId.ToString() }
+            }
                 };
 
                 var session = await sessionService.CreateAsync(options);
                 _logger.LogInformation($"Stripe session created successfully: {session.Id}");
 
-                // Save payment in database with calculated amounts
                 var payment = new Payment
                 {
                     Amount = amount,
@@ -111,6 +110,7 @@ namespace Application.Services
 
                 _unitOfWork.paymentRepository.Add(payment);
                 await _unitOfWork.SaveChangesAsync();
+
                 _logger.LogInformation($"Payment saved successfully with ID: {payment.Id}");
 
                 return session.Url;
@@ -217,6 +217,8 @@ namespace Application.Services
                 {
                     payment.StripePaymentIntentId = session.PaymentIntentId;
                     payment.Status = PaymentStatus.Succeeded;
+                    // Set payment as pending transfer - Admin will handle transfers manually
+                    payment.TransferStatus = TransferStatus.PendingTransfer;
 
                     var booking = await _unitOfWork.Bookings.GetBookingWithPropertyAsync(payment.BookingId);
                     if (booking != null)
@@ -227,31 +229,35 @@ namespace Application.Services
                         // Send notifications
                         await SendPaymentNotifications(booking, payment);
 
-                        // Try to transfer to host if they have a complete Stripe account
-                        if (booking.Property?.HostId != null)
-                        {
-                            var hostId = booking.Property.HostId.ToString();
-                            var host = await _userManager.FindByIdAsync(hostId);
+                        // ============= COMMENTED OUT - NO AUTO TRANSFER =============
+                        // // Try to transfer to host if they have a complete Stripe account
+                        // if (booking.Property?.HostId != null)
+                        // {
+                        //     var hostId = booking.Property.HostId.ToString();
+                        //     var host = await _userManager.FindByIdAsync(hostId);
 
-                            if (host != null && !string.IsNullOrEmpty(host.StripeAccountId))
-                            {
-                                // Check if account is complete and can receive transfers
-                                if (await IsAccountReadyForTransfers(host.StripeAccountId))
-                                {
-                                    await TransferToHostAsync(payment.Id);
-                                }
-                                else
-                                {
-                                    payment.TransferStatus = TransferStatus.PendingTransfer;
-                                    _logger.LogInformation($"Host account {host.StripeAccountId} not ready for transfers. Payment marked as pending transfer.");
-                                }
-                            }
-                            else
-                            {
-                                payment.TransferStatus = TransferStatus.PendingTransfer;
-                                _logger.LogInformation($"Host doesn't have Stripe account. Payment marked as pending transfer.");
-                            }
-                        }
+                        //     if (host != null && !string.IsNullOrEmpty(host.StripeAccountId))
+                        //     {
+                        //         // Check if account is complete and can receive transfers
+                        //         if (await IsAccountReadyForTransfers(host.StripeAccountId))
+                        //         {
+                        //             await TransferToHostAsync(payment.Id);
+                        //         }
+                        //         else
+                        //         {
+                        //             payment.TransferStatus = TransferStatus.PendingTransfer;
+                        //             _logger.LogInformation($"Host account {host.StripeAccountId} not ready for transfers. Payment marked as pending transfer.");
+                        //         }
+                        //     }
+                        //     else
+                        //     {
+                        //         payment.TransferStatus = TransferStatus.PendingTransfer;
+                        //         _logger.LogInformation($"Host doesn't have Stripe account. Payment marked as pending transfer.");
+                        //     }
+                        // }
+                        // ============= END COMMENTED SECTION =============
+
+                        _logger.LogInformation($"Payment marked as pending transfer. Admin will handle transfers manually.");
                     }
 
                     await _unitOfWork.SaveChangesAsync();
@@ -318,7 +324,7 @@ namespace Application.Services
             }
         }
 
-        // New method to handle account updates and auto-transfer pending payments
+        // Account updated handler - NO AUTO TRANSFER
         private async Task HandleAccountUpdated(Event stripeEvent)
         {
             try
@@ -328,15 +334,19 @@ namespace Application.Services
 
                 _logger.LogInformation($"Processing account.updated for account: {account.Id}");
 
-                // Find the host with this Stripe account
-                var host = await _userManager.Users
-                    .FirstOrDefaultAsync(u => u.StripeAccountId == account.Id);
+                // ============= COMMENTED OUT - NO AUTO TRANSFER =============
+                // // Find the host with this Stripe account
+                // var host = await _userManager.Users
+                //     .FirstOrDefaultAsync(u => u.StripeAccountId == account.Id);
 
-                if (host != null && await IsAccountReadyForTransfers(account.Id))
-                {
-                    _logger.LogInformation($"Account {account.Id} is now ready for transfers. Processing pending transfers for host {host.Id}");
-                    await ProcessPendingTransfersForHostAsync(host.Id);
-                }
+                // if (host != null && await IsAccountReadyForTransfers(account.Id))
+                // {
+                //     _logger.LogInformation($"Account {account.Id} is now ready for transfers. Processing pending transfers for host {host.Id}");
+                //     await ProcessPendingTransfersForHostAsync(host.Id);
+                // }
+                // ============= END COMMENTED SECTION =============
+
+                _logger.LogInformation($"Account {account.Id} updated. Auto-transfer is disabled - Admin will handle transfers manually.");
             }
             catch (Exception ex)
             {
@@ -528,12 +538,12 @@ namespace Application.Services
                     UserId = booking.UserId
                 });
 
-                // Host notification
+                // Host notification - Updated message to indicate manual transfer
                 if (booking.Property?.HostId != null)
                 {
                     var host = await _userManager.FindByIdAsync(booking.Property.HostId.ToString());
                     string hostMessage = !string.IsNullOrEmpty(host?.StripeAccountId)
-                        ? $"You have received a new payment of ${payment.HostAmount / 100:F2} for booking #{booking.Id}."
+                        ? $"You have received a new payment of ${payment.HostAmount / 100:F2} for booking #{booking.Id}. The transfer will be processed by admin."
                         : $"You have a new payment of ${payment.HostAmount / 100:F2} for booking #{booking.Id}. Please complete your Stripe account setup to receive it.";
 
                     await _notificationService.SendNotification(new Domain.Models.Notification

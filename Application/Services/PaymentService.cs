@@ -1,12 +1,14 @@
-﻿using Application.Interfaces;
-using Application.Interfaces.IRepositories;
+﻿using System.Threading.Tasks;
 using Application.DTOs.PaymentDTOs;
+using Application.Interfaces;
+using Application.Interfaces.IRepositories;
+using Application.Shared;
 using AutoMapper;
-using Domain.Models;
 using Domain.Enums.Payment;
+using Domain.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -114,6 +116,20 @@ namespace Application.Services
                 TotalBookings = allPayments.Count
             };
         }
+
+
+
+        public async Task<PaginatedResult<AdminPaymentDTO>> GetAllPaymentsForAdminAsync(int page, int pageSize)
+        {
+            return await _unitOfWork.paymentRepository.GetAllPaymentsForAdminAsync(page, pageSize);
+        }
+
+        public async Task<bool> IsStripeAccountCompletedAsync(string userId)
+        {
+            var user =  _unitOfWork.UserRepo.GetById(userId);
+            return user != null && !string.IsNullOrEmpty(user.StripeAccountId);
+        }
+
 
     }
 }

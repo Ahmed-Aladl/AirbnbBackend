@@ -9,7 +9,7 @@ namespace Application.DTOs.PaymentDTOs
     public class CreatePaymentDTO
     {
         public int BookingId { get; set; }
-        public int Amount { get; set; }
-        public string Currency { get; set; } = "usd";
+        //public int Amount { get; set; }
+        //public string Currency { get; set; } = "usd";
     }
 }
