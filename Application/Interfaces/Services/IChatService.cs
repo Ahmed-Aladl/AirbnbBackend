@@ -14,6 +14,7 @@ namespace Application.Interfaces.Services
 {
     public interface IChatService
     {
+        Task<Result<RespondToReservationRequestDto>> GetChatSessionForHostAsync(string hostId, string chatSessionId);
         Task<ChatSession> CreateChatSessionAsync(Property property, string userId);
         //Task<ChatSessionDto> GetChatSessionAsync(string chatSessionId, string currentUserId);
         Task<List<ChatSessionDto>> GetUserChatSessionsAsync(string userId, int page = 1, int pageSize = 20);
@@ -24,5 +25,7 @@ namespace Application.Interfaces.Services
         Task MarkMessagesAsReadAsync(string chatSessionId, string userId);
         Task<bool> ValidateChatAccessAsync(string chatSessionId, string userId);
         Task<Result<RespondToReservationRequestDto>> Reserve(int propertyId, string userId, CreateReservationRequestDto createReqeust);
+        Task<Result<bool>> AcceptReservationAsync(string hostId, string requestId);
+        Task<Result<bool>> DeclineReservationAsync(string hostId, string requestId);
     }
 }

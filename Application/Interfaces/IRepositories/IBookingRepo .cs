@@ -9,12 +9,12 @@ namespace Application.Interfaces.IRepositories
 {
     public interface IBookingRepo : IRepository<Booking, int>
     {
+
         Task<List<Booking>> GetAllAsync();
         Task<Booking?> GetByIdAsync(int id);
         Task AddAsync(Booking entity);
         void Delete(Booking entity);
         void Update(Booking entity);
-
         Task<List<Booking>> GetBookingByUserIdAsync(string userId);
         Task<List<Booking>> GetBookingByPropertyIdAsync(int propertyId);
 
