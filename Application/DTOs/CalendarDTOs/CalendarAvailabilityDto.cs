@@ -11,5 +11,6 @@ namespace Application.DTOs.Calendar
         public DateTime Date { get; set; }
         public bool IsAvailable { get; set; }
         public decimal Price { get; set; }
+        public bool IsBooked { get; set; } = false;
     }
 }
