@@ -33,7 +33,7 @@ namespace Airbnb.Controllers
             {
                 _logger.LogInformation($"Creating checkout session for booking {dto.BookingId}");
 
-                var url = await _stripeService.CreateCheckoutSessionAsync(dto.BookingId, dto.Amount);
+                var url = await _stripeService.CreateCheckoutSessionAsync(dto.BookingId);
 
                 return Ok(new { url, success = true });
             }
@@ -85,7 +85,7 @@ namespace Airbnb.Controllers
         }
 
         [HttpPost("transfer/{paymentId}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> TransferToHost(int paymentId)
         {
             try
@@ -152,7 +152,7 @@ namespace Airbnb.Controllers
         }
 
         [HttpPost("process-pending-transfers")]
-        [Authorize(Roles = "Admin")] // Only admin can trigger this
+        [Authorize(Roles = "Admin")] 
         public async Task<IActionResult> ProcessPendingTransfers()
         {
             try
@@ -214,5 +214,21 @@ namespace Airbnb.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        [HttpGet("payments")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllPayments([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var result = await _paymentService.GetAllPaymentsForAdminAsync(page, pageSize);
+            return Ok(result);
+        }
+
+        [HttpGet("stripe-account-completed")]
+        public async Task<IActionResult> IsStripeAccountCompleted([FromQuery] string userId)
+        {
+            var result = await _paymentService.IsStripeAccountCompletedAsync(userId);
+            return Ok(new { accountCompleted = result });
+        }
+
     }
 }

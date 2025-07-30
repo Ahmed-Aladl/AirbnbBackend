@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.DTOs.PaymentDTOs;
 using Application.Interfaces.IRepositories;
-using Domain.Models;
+using Application.Shared;
 using Domain.Enums.Payment;
+using Domain.Models;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -137,7 +139,7 @@ namespace Infrastructure.Common.Repositories
              .ThenInclude(b => b.Property)
              .Where(p => p.Booking.Property.HostId == hostId);
 
-
+             
             if (status.HasValue)
                 query = query.Where(p => p.Status == status.Value);
 
@@ -145,5 +147,51 @@ namespace Infrastructure.Common.Repositories
                 .OrderByDescending(p => p.PaymentDate)
                 .ToListAsync();
         }
+
+
+
+
+        public async Task<PaginatedResult<AdminPaymentDTO>> GetAllPaymentsForAdminAsync(int page, int pageSize)
+        {
+            var query = Db.Payments
+                .Include(p => p.Booking)
+                    .ThenInclude(b => b.User) // Guest
+                .Include(p => p.Booking)
+                    .ThenInclude(b => b.Property)
+                        .ThenInclude(prop => prop.Host); // Host
+
+            var total = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(p => p.PaymentDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new AdminPaymentDTO
+                {
+                    PaymentId = p.Id,
+                    GuestName = p.Booking != null && p.Booking.User != null ? p.Booking.User.UserName : "N/A",
+                    HostName = p.Booking != null && p.Booking.Property != null && p.Booking.Property.Host != null ? p.Booking.Property.Host.UserName : "N/A",
+                    Amount = p.Amount,
+                    PlatformFee = p.PlatformFee,
+                    PaymentStatus = p.Status.ToString(),
+                    TransferStatus = p.TransferStatus.ToString(),
+                    PaymentDate = p.PaymentDate,
+                    HostAccountCompleted = !string.IsNullOrEmpty(p.Booking.Property.Host.StripeAccountId)
+
+                })
+                .ToListAsync();
+
+            return new PaginatedResult<AdminPaymentDTO>
+            {
+                Items = items,
+                MetaData = new PaginationMetaData
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    Total = total
+                }
+            };
+        }
+
     }
 }
