@@ -23,7 +23,7 @@ namespace Infrastructure.Contexts
         //public DbSet<Message> Messages { get; set; }
         public DbSet<PropertyImage> PropertyImages { get; set; }
         public DbSet<Booking> Bookings { get; set; }
-        public DbSet<PropertyViolations> PropertyViolations { get; set; }
+        public DbSet<PropertyViolation> PropertyViolations { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<CalendarAvailability> calendarAvailabilities { get; set; }
         public DbSet<Wishlist> Wishlists { get; set; }

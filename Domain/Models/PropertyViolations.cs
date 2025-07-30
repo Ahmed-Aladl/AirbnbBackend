@@ -9,7 +9,7 @@ using Domain.Enums.PropertyViolations;
 namespace Domain.Models
 {
 
-    public class PropertyViolations
+    public class PropertyViolation
     {
 
         public int Id { get; set; }
