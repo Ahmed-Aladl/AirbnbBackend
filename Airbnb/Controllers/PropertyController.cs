@@ -177,7 +177,7 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Add a new Property")]
         [HttpPost]
-        //[Authorize(Roles =("Host"))]
+        [Authorize(Roles =("Host"))]
         public IActionResult Add(PropertyDisplayDTO propertyDTO)
         {
 
@@ -196,7 +196,7 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Update existing Property")]
         [HttpPut]
-        //[Authorize(Roles =("Host"))]
+        [Authorize(Roles =("Host"))]
         public IActionResult Put(PropertyDisplayDTO propertyDTO)
         {
             var hostId = User.GetUserId() ?? userId;
@@ -226,7 +226,7 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Deletes existing Property")]
         [HttpDelete("{id}")]
-        //[Authorize(Roles ="Host")]
+        [Authorize(Roles ="Host")]
         public IActionResult Delete(int id)
         {
             var hostId= User.GetUserId();
@@ -310,7 +310,7 @@ namespace Airbnb.Controllers
 
         [EndpointSummary("Deletes images for a Property")]
         [HttpDelete("property-images/delete/{propertyId}")]
-        //[Authorize(Roles ="Host")]
+        [Authorize(Roles ="Host")]
         public async Task<IActionResult> DeletePropertyImages([FromForm] int[] imgIds,int propertyId)
         {
             var hostId = User.GetUserId();
