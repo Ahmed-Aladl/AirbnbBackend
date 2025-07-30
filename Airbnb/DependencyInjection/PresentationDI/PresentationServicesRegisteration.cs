@@ -70,6 +70,8 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<IStripeService, StripeService>();
             services.AddScoped<NotificationService>();
             services.AddScoped<PaymentService>();
+            services.AddScoped<PropertyViolationService>();
+
 
 
             services.AddScoped<WishlistService>();
