@@ -139,6 +139,12 @@ namespace Application.Services
                 if (user == null)
                     return Result<string>.Fail("User not found.", 404);
 
+                var userBookings = await _uow.Bookings.GetBookingByUserIdAsync(dto.UserId);
+                bool hasBookedProperty = userBookings.Any(b => b.PropertyId == dto.PropertyId);
+
+                if (!hasBookedProperty)
+                    return Result<string>.Fail("You can only report properties you have booked.", 403);
+
                 var existingViolations = await _uow.PropertyViolationRepo.GetViolationsByUserIdAsync(dto.UserId);
                 bool hasDuplicatePending = existingViolations.Any(v =>
                     v.PropertyId == dto.PropertyId &&
