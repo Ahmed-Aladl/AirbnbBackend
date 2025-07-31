@@ -119,7 +119,7 @@ namespace Airbnb.Controllers
             if (userId == null)
                 return Unauthorized("you must login first");
 
-            var result = await _chatService.AcceptReservationAsync(requestId, userId);
+            var result = await _chatService.AcceptReservationAsync(userId, requestId);
             return ToActionResult(result);
 
         }
@@ -130,7 +130,7 @@ namespace Airbnb.Controllers
             if (userId == null)
                 return Unauthorized("you must login first");
 
-            var result = await _chatService.DeclineReservationAsync(requestId, userId);
+            var result = await _chatService.DeclineReservationAsync(userId, requestId);
             return ToActionResult(result);
 
         }

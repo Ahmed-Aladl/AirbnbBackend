@@ -1,5 +1,6 @@
 ﻿using Airbnb.Extensions;
 using Application.DTOs.PropertyViolationDTOs;
+using Application.Result;
 using Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ namespace Airbnb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ViolationController : ControllerBase
+    public class ViolationController : BaseController
     {
         private readonly PropertyViolationService _violationService;
 
@@ -75,6 +76,18 @@ namespace Airbnb.Controllers
 
             var result = await _violationService.UpdateViolationAsync(updateDto);
             return result.ToActionResult();
+        }
+
+        [HttpGet("can-submit/{propertyId}")]
+        public async Task<IActionResult> CanAddViolationAsync(int propertyId)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+                return ToActionResult(Result<bool>.Success(false,204,"Must login first"));
+
+            var result = await _violationService.CanAddViolationAsync(userId, propertyId);
+
+            return ToActionResult(result);
         }
     }
 }

@@ -174,6 +174,44 @@ namespace Application.Services
             }
         }
 
+
+        public async Task<Result<bool>> CanAddViolationAsync(string userId, int propertyId)
+        {
+            try
+            {
+                var property = await _uow.PropertyRepo.GetByIdAsync(propertyId);
+                if (property == null)
+                    return Result<bool>.Fail("Property not found.", 404);
+
+                var user = _uow.UserRepo.GetById(userId);
+                if (user == null)
+                    return Result<bool>.Fail("User not found.", 404);
+
+                var userBookings = await _uow.Bookings.GetBookingByUserIdAsync(userId);
+                bool hasBookedProperty = userBookings.Any(b => b.PropertyId == propertyId);
+                //return Result<bool>.Fail("User not found.", 404);
+
+                if (!hasBookedProperty)
+                    return Result<bool>.Success(false,204, "You can only report properties you have booked.");
+
+                var existingViolations = await _uow.PropertyViolationRepo.GetViolationsByUserIdAsync(userId);
+                bool hasDuplicatePending = existingViolations.Any(v =>
+                    v.PropertyId == propertyId &&
+                    v.Status == PropertyViolationsStatus.Pending);
+
+                if (hasDuplicatePending)
+                    return Result<bool>.Success(false,204,"You already have a pending violation for this property.");
+
+                return Result<bool>.Success(true,200);
+
+            }
+            catch
+            {
+                return Result<bool>.Fail("You already have a pending violation for this property.",500);
+
+            }
+        }
+
         private List<PropertyViolationDetailsDTO> MapToDetailsDTOs(List<PropertyViolation> violations)
         {
             return violations.Select(MapToDetailsDTO).ToList();

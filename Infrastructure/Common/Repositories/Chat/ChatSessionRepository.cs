@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.Chat.ChatSessionDtos;
 using Application.Interfaces.IRepositories.Chat;
 using AutoMapper;
 using Domain.Models.Chat;
@@ -11,9 +12,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Common.Repositories.Chat
 {
-    public class ChatSessionRepository : Repository<ChatSession,string>,IChatSessionRepository
+    public class ChatSessionRepository : Repository<ChatSession, string>, IChatSessionRepository
     {
-        public ChatSessionRepository(AirbnbContext _db):base(_db) 
+        public ChatSessionRepository(AirbnbContext _db) : base(_db)
         {
         }
 
@@ -21,6 +22,7 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .Include(cs => cs.User)
                 .FirstOrDefaultAsync(cs => cs.Id == chatSessionId);
         }
 
@@ -28,6 +30,7 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .Include(cs => cs.User)
                 .FirstOrDefaultAsync(cs => cs.PropertyId == propertyId && cs.UserId == userId);
         }
 
@@ -35,6 +38,7 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .Include(cs => cs.User)
                 .Where(cs => cs.UserId == userId && cs.IsActive)
                 .OrderByDescending(cs => cs.LastActivityAt)
                 .Skip((page - 1) * pageSize)
@@ -46,6 +50,7 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .Include(cs => cs.User)
                 .Where(cs => cs.HostId == hostId && cs.IsActive)
                 .OrderByDescending(cs => cs.LastActivityAt)
                 .Skip((page - 1) * pageSize)
@@ -65,7 +70,7 @@ namespace Infrastructure.Common.Repositories.Chat
 
         public async Task<ChatSession> CreateAsync(ChatSession chatSession)
         {
-            chatSession.Id = chatSession.Id != null ? chatSession.Id: Guid.NewGuid().ToString();
+            chatSession.Id = chatSession.Id != null ? chatSession.Id : Guid.NewGuid().ToString();
             chatSession.CreatedAt = DateTime.UtcNow;
             chatSession.LastActivityAt = DateTime.UtcNow;
 
@@ -102,6 +107,23 @@ namespace Infrastructure.Common.Repositories.Chat
             if (chatSession == null)
                 return 0;
             return chatSession?.UserId == userId ? chatSession.UnreadCountForUser : chatSession.UnreadCountForHost;
+        }
+
+
+        public async Task<List<ChatSessionWithDataDTO>> GetSessionsWithDataAsync(string userId, int page, int pageSize)
+        {
+            return await Db.ChatSessions
+                    .Include(cs => cs.Property)
+                    .Where(cs => (cs.UserId == userId || cs.HostId == userId) && cs.IsActive)
+                    .OrderByDescending(cs => cs.LastActivityAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(c=> new ChatSessionWithDataDTO
+                    {
+                        ChatSession = c,
+                        ProfilePictureURL = c.User.ProfilePictureURL
+                    })
+                    .ToListAsync();
         }
     }
 
