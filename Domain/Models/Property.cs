@@ -29,6 +29,8 @@ namespace Domain.Models
         [Precision(18, 2)]
         public decimal PricePerNight { get; set; }
 
+        public decimal WeekendPrice { get; set; }
+
         public int MaxGuests { get; set; }
         public int Bedrooms { get; set; }
         public int Beds { get; set; }
