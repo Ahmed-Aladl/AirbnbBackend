@@ -292,9 +292,10 @@ namespace Application.Services.Chat
 
                 var latestRequst = await UnitOfWork.ReservationRepo.GetLatestByChatSessionIdAsync(chatSession.Id);
 
-                if (latestRequst == null || latestRequst.RequestStatus != ReservationRequestStatus.Pending.ToString())
+                if (latestRequst == null || latestRequst.RequestStatus != ReservationRequestStatus.Pending.ToString()) { 
                     latestRequst = await CreateReservationRequest(chatSession, userId, createReqeust);
-
+                    await UnitOfWork.SaveChangesAsync();
+                }
 
                 response.LatestReservationRequest = _mapper.Map<ReservationRequestDto>(latestRequst);
                 Console.WriteLine("******************************\n\n\n\n\n\n\n\n\n\n\n\n return from ChatSession!=null\n\n\n");
