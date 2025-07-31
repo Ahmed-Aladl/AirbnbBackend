@@ -85,7 +85,7 @@ namespace Airbnb.Controllers
         }
 
         [HttpPost("transfer/{paymentId}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> TransferToHost(int paymentId)
         {
             try

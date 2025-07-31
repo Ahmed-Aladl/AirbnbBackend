@@ -177,7 +177,12 @@ namespace Infrastructure.Common.Repositories
                     PaymentStatus = p.Status.ToString(),
                     TransferStatus = p.TransferStatus.ToString(),
                     PaymentDate = p.PaymentDate,
-                    HostAccountCompleted = !string.IsNullOrEmpty(p.Booking.Property.Host.StripeAccountId)
+                    HostAccountCompleted = !string.IsNullOrEmpty(p.Booking.Property.Host.StripeAccountId),
+
+                    BookingId = p.BookingId,
+                    HostId = p.Booking != null && p.Booking.Property != null && p.Booking.Property.Host != null
+                    ? p.Booking.Property.Host.Id
+                    : null,
 
                 })
                 .ToListAsync();

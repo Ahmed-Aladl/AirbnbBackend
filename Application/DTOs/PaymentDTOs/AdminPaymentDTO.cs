@@ -18,6 +18,9 @@ namespace Application.DTOs.PaymentDTOs
         public string PaymentStatus { get; set; }
         public string TransferStatus { get; set; }
         public DateTime PaymentDate { get; set; }
+        public int BookingId { get; set; }
+        public string HostId { get; set; }
+
 
 
     }
