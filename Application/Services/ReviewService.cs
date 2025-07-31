@@ -486,7 +486,31 @@ namespace Application.Services
         //    }
         //}
 
+        //check
 
+
+
+        public async Task<Result<bool>> IsUserAHostAsync(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                    return Result<bool>.Fail("User ID is required.", 400);
+
+                var properties = await UOW.PropertyRepo.GetByHostIdAsync(userId);
+                bool isHost = properties != null && properties.Any();
+
+                return Result<bool>.Success(isHost);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking host status for user {userId}: {ex.Message}");
+                return Result<bool>.Fail("Failed to determine if user is a host.", 500);
+            }
+        }
+
+
+        //temp
 
 
         //Host Reviews
