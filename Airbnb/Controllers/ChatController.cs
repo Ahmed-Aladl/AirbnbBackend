@@ -3,7 +3,9 @@ using Application.DTOs.Chat.ChatSessionDtos;
 using Application.DTOs.Chat.MessageDtos;
 using Application.DTOs.Chat.Requests;
 using Application.Interfaces.Services;
+using Application.Services;
 using Application.Shared;
+using Domain.Models;
 using Domain.Models.Chat;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,15 +21,19 @@ namespace Airbnb.Controllers
 
         private readonly IChatService _chatService;
         private readonly ILogger<ChatController> _logger;
+        private readonly NotificationService notificationService;
+
         //string userId = "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";// host of property "1" 
         string userId = "1";
         public ChatController(
                             IChatService chatService,
-                            ILogger<ChatController> logger
+                            ILogger<ChatController> logger,
+                            NotificationService notificationService
                         )
         {
             _chatService = chatService;
             _logger = logger;
+            this.notificationService = notificationService;
         }
 
         [HttpGet("sessions")]
@@ -53,6 +59,17 @@ namespace Airbnb.Controllers
         }
 
 
+        [HttpGet("session/host/{sessionId}")]
+        public async Task<IActionResult> GetChatSessionForHostAsync(string sessionId)
+        {
+            var hostId = User.GetUserId() ;
+            if(hostId == null)
+                return Unauthorized("you must login first");
+
+            var result = await _chatService.GetChatSessionForHostAsync(hostId, sessionId);
+
+            return ToActionResult(result);
+        }
 
         [HttpPost("reserve")]
         [Authorize(Roles ="Guest")]
@@ -75,7 +92,7 @@ namespace Airbnb.Controllers
 
                 _logger.LogInformation("Chat session {ChatSessionId} {Action} for property {PropertyId} and user {UserId}",
                     responseResult?.Data?.ChatSession?.Id, isNew ? "created" : "retrieved", responseResult?.Data?.ChatSession?.PropertyId, currentUserId);
-
+                
                 return Ok(responseResult);
             }
             catch (NotFoundException ex)
@@ -95,7 +112,28 @@ namespace Airbnb.Controllers
             }
         }
 
+        [HttpPost("accept/{requestId}")]
+        public async Task<IActionResult> AcceptReservation(string requestId)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+                return Unauthorized("you must login first");
 
+            var result = await _chatService.AcceptReservationAsync(userId, requestId);
+            return ToActionResult(result);
+
+        }
+        [HttpPost("decline/{requestId}")]
+        public async Task<IActionResult> DeclineReservation(string requestId)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+                return Unauthorized("you must login first");
+
+            var result = await _chatService.DeclineReservationAsync(userId, requestId);
+            return ToActionResult(result);
+
+        }
 
 
         [HttpGet("sessions/{chatSessionId}/messages")]
@@ -137,11 +175,11 @@ namespace Airbnb.Controllers
         public async Task<ActionResult<MessageDto>> SendMessage(
         string chatSessionId,
         [FromBody] SendMessageRequest request,
-        bool isUser =true
+        bool isUser =false
         )
         {
-            
-            userId = isUser ? (User.GetUserId() ?? userId) : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
+            //userId = isUser ? (User.GetUserId() ?? userId) : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
+            userId = User.GetUserId() ?? userId;
             
             
 

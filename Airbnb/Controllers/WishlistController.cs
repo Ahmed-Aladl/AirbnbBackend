@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Airbnb.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class WishlistController : BaseController

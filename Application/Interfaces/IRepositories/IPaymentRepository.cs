@@ -1,24 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.PaymentDTOs;
+using Application.Shared;
+using Domain.Enums.Payment;
 using Domain.Models;
 
 namespace Application.Interfaces.IRepositories
 {
     public interface IPaymentRepository : IRepository<Payment, int>
     {
-        Task<Payment> GetByPaymentIntentIdAsync(string intentId);
-
+        Task<Payment?> GetByPaymentIntentIdAsync(string intentId);
         Task<Payment?> GetBySessionIdAsync(string sessionId);
         Task<Payment?> GetByIdAsync(int id);
         Task<Payment?> GetByBookingIdAsync(int bookingId);
-
-
         Task<List<Payment>> GetAllByBookingIdAsync(int bookingId);
-        Task<List<Payment>> GetByStatusAsync(string status);
+        Task<List<Payment>> GetByStatusAsync(PaymentStatus status);
+        Task<List<Payment>> GetByTransferStatusAsync(TransferStatus status);
         Task<List<Payment>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);
-        Task<bool> UpdatePaymentStatusAsync(string paymentIntentId, string status);
+        Task<bool> UpdatePaymentStatusAsync(string paymentIntentId, PaymentStatus status);
+        Task<List<Payment>> GetPendingPaymentsForHostAsync(string hostId);
+        Task<List<Payment>> GetPendingTransferPayments();
+        Task<List<Payment>> GetFailedTransferPayments();
+        Task<decimal> GetTotalPlatformRevenue(DateTime? startDate = null, DateTime? endDate = null);
+        Task<List<Payment>> GetHostPayments(string hostId, PaymentStatus? status = null);
+
+        Task<PaginatedResult<AdminPaymentDTO>> GetAllPaymentsForAdminAsync(int page, int pageSize);
+
     }
 }

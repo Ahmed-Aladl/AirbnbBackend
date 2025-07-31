@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTOs.Chat.ChatSessionDtos;
 using Domain.Models.Chat;
 
 namespace Application.Interfaces.IRepositories.Chat
@@ -18,6 +19,8 @@ namespace Application.Interfaces.IRepositories.Chat
         Task<bool> ExistsAsync(int propertyId, string userId);
         Task<int> GetUnreadCountAsync(string chatSessionId, string userId);
         Task<int> GetUnreadCountSoftAsync(string chatSessionId, string userId);
+
+        Task<List<ChatSessionWithDataDTO>> GetSessionsWithDataAsync(string userId, int page, int pageSize);
 
     }
 }

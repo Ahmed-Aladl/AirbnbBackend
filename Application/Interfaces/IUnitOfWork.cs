@@ -23,6 +23,8 @@ namespace Application.Interfaces
 
         IUserRepository UserRepo { get; }
         IBookingRepo Bookings { get; }
+        IPropertyViolationRepo PropertyViolationRepo { get; }
+
         IPropertyRepository PropertyRepo { get; }
         IPropertyImageRepository PropertyImageRepo { get; }
         ICalendarAvailabilityRepo CalendarAvailabilities { get; }

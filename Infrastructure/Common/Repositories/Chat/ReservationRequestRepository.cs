@@ -43,6 +43,14 @@ namespace Infrastructure.Common.Repositories.Chat
                         .ToListAsync();
         }
 
+        public async Task<ReservationRequest> GetByIdWithDataAsync(string reservationId)
+        {
+            return await Db.ReservationRequests
+                            .Include(r => r.ChatSession)
+                            .Include(r => r.User)
+                            .FirstOrDefaultAsync(r => r.Id == reservationId);
+        }
+
         public async Task<bool> HasPendingRequestsAsync(string chatSessionId)
         {
             return await Db.ReservationRequests.AnyAsync(req=> req.ChatSessionId == chatSessionId);

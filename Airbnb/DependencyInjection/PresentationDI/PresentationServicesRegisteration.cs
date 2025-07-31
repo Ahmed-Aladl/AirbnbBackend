@@ -68,7 +68,10 @@ namespace Airbnb.DependencyInjection.PresentationDI
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IEmailService, GmailEmailService>();
             services.AddScoped<IStripeService, StripeService>();
+            services.AddScoped<NotificationService>();
             services.AddScoped<PaymentService>();
+            services.AddScoped<PropertyViolationService>();
+
 
 
             services.AddScoped<WishlistService>();
@@ -101,7 +104,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
         public static WebApplication AddPresentationDevelopmentDI(this WebApplication app)
         {
-            
+
             //app.MapOpenApi();
             app.UseSwagger();
             app.UseSwaggerUI(op =>
@@ -118,6 +121,17 @@ namespace Airbnb.DependencyInjection.PresentationDI
         // private methods 
         private static IServiceCollection ConfigureJwt(IServiceCollection services, IConfiguration config)
         {
+            var validationParameter = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = config["Jwt:Issuer"],
+                ValidAudience = config["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]))
+            };
+            services.AddSingleton(validationParameter);
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -125,16 +139,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
             })
             .AddJwtBearer(options =>
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = config["Jwt:Issuer"],
-                    ValidAudience = config["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]))
-                };
+                options.TokenValidationParameters = validationParameter;
             });
 
             services.AddHttpContextAccessor();

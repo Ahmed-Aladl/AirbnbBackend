@@ -15,22 +15,56 @@ public class TokenService : ITokenService
         _config = config;
     }
 
+    //public string GenerateAccessToken(User user, IList<string> roles)
+    //{
+    //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+    //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+    //    var claims = new[]
+    //    {
+    //        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+    //        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+    //        new Claim(ClaimTypes.NameIdentifier, user.Id),
+    //        new Claim(ClaimTypes.Name, user.UserName ?? ""),
+    //        new Claim(ClaimTypes.Role, "User"),
+    //        new Claim(ClaimTypes.Role, "Guest"),
+    //    };
+    //    foreach (var role in roles)
+    //        claims.Append(new Claim(ClaimTypes.Role, role));
+
+    //    var token = new JwtSecurityToken(
+    //        issuer: _config["Jwt:Issuer"],
+    //        audience: _config["Jwt:Audience"],
+    //        claims: claims,
+    //        expires: DateTime.UtcNow.AddHours(1),
+    //        signingCredentials: creds
+    //    );
+
+    //    return new JwtSecurityTokenHandler().WriteToken(token);
+    //}
     public string GenerateAccessToken(User user, IList<string> roles)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName ?? ""),
-            new Claim(ClaimTypes.Role, "User"),
-            new Claim(ClaimTypes.Role, "Guest"),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
+
         foreach (var role in roles)
-            claims.Append(new Claim(ClaimTypes.Role, role));
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        if (!roles.Any())
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Guest"));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],

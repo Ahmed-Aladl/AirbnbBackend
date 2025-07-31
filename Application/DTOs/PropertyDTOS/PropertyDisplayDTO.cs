@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.DTOs.PropertyImageDTOs;
+using Domain.Enums.Property;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +29,8 @@ namespace Application.DTOs.PropertyDTOS
 
         [Precision(18, 2)]
         public decimal PricePerNight { get; set; }
+        public decimal WeekendPrice { get; set; }
+
 
         public int MaxGuests { get; set; }
         public int Bedrooms { get; set; }
@@ -41,7 +44,7 @@ namespace Application.DTOs.PropertyDTOS
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
-
+        public PropertyAcceptStatus Status { get; set; } = PropertyAcceptStatus.Pending;
         public int PropertyTypeId { get; set; }
         public string HostId { get; set; }
         public List<PropertyImageDisplayDTO>? Images { get; set; }

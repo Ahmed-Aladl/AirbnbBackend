@@ -19,6 +19,8 @@ namespace Domain.Models
         public string? Country { get; set; }
         public DateOnly? BirthDate { get; set; }
         public bool? IsDeleted { get; set; }
+        public bool? IsConfirmed { get; set; } = false;
+
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiry { get; set; }
         public ICollection<Wishlist>? Wishlists { get; set; }
@@ -28,5 +30,10 @@ namespace Domain.Models
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<Payment>? Payments { get; set; }
+
+
+
+        public string? StripeAccountId { get; set; }
+
     }
 }

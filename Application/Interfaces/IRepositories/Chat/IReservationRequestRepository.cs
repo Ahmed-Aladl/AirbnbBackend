@@ -14,6 +14,7 @@ namespace Application.Interfaces.IRepositories.Chat
         Task<ReservationRequest> CreateAsync(ReservationRequest request);
         Task UpdateAsync(ReservationRequest request);
         Task<List<ReservationRequest>> GetPendingRequestsAsync(string hostId);
+        Task<ReservationRequest> GetByIdWithDataAsync(string reservationId);
         Task<bool> HasPendingRequestsAsync(string chatSessionId);
         Task<List<ReservationRequest>> GetByChatIdAsync(string chatSessionId);
         Task<ReservationRequest> GetLatestByChatSessionIdAsync(string chatSessionId);

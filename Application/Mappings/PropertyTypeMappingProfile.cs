@@ -16,7 +16,9 @@ namespace Application.Mappings
     {
         public PropertyTypeMappingProfile()
         {
-            CreateMap<PropertyType, PropertyTypeDto>().ReverseMap();
+            CreateMap<PropertyType, PropertyTypeDto>()
+                .ForMember(dest => dest.IconURL, opt => opt.MapFrom(src => src.IconURL))
+                .ReverseMap();
         }
     }
 }

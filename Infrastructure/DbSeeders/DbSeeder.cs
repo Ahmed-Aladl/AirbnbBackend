@@ -203,8 +203,8 @@ namespace Infrastructure.Data
             };
 
             var createdUsers = new List<User>();
-            string[] passwords = { "Admin@123", "Host@123", "Host@123", "Guest@123", "Guest@123" };
-            string[] roles = { "Admin", "Host", "Host", "Guest", "Guest" };
+            string[] passwords = { "Admin@123", "Host@123", "Host@123", "Guest@123", "Guest@123", "Guest@123" };
+            string[] roles = { "Admin", "Host", "Host", "Guest", "Guest", "Guest" };
 
             for (int i = 0; i < users.Count; i++)
             {
@@ -552,7 +552,7 @@ namespace Infrastructure.Data
                         BookingId = booking.Id,
                         Amount = (int)(booking.TotalPrice * 100), // Convert to cents
                         PaymentDate = booking.CheckInDate.AddDays(-1),
-                        Status = "Completed",
+                        Status = Domain.Enums.Payment.PaymentStatus.Succeeded,
                     }
                 );
             }

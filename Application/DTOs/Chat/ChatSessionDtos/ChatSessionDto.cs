@@ -23,5 +23,6 @@ namespace Application.DTOs.Chat.ChatSessionDtos
         public int UnreadCount { get; set; }
         public bool HasPendingRequests { get; set; }
         public bool IsActive { get; set; }
+        public bool IsHost {  get; set; }  
     }
 }

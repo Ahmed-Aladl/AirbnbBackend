@@ -18,6 +18,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using static Application.Result.Result<Application.DTOs.PropertyDTOS.PropertyDisplayDTO>;
+using Domain.Enums.Property;
 
 namespace Application.Services
 {
@@ -75,6 +76,19 @@ namespace Application.Services
 
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
+        public async Task<Result<List<PropertyDisplayWithHostDataDto>>> GetAllForDashboardAsync()
+        {
+            var props = await UnitOfWork.PropertyRepo.GetAllWithHostDataAsync();
+            if (props == null)
+                return Result<List<PropertyDisplayWithHostDataDto>>.Fail(
+                    "No properties found",
+                    (int)HttpStatusCode.NotFound
+                );
+
+            var mapped = Mapper.Map<List<PropertyDisplayWithHostDataDto>>(props);
+
+            return Result<List<PropertyDisplayWithHostDataDto>>.Success(mapped);
+        }
 
         public async Task<Result<PaginatedResult<PropertyDisplayDTO>>> GetPageAsync(int page=1, int pageSize = 7, string userId=null)
         {
@@ -121,16 +135,16 @@ namespace Application.Services
 
             return Success(mapped);
         }
-        public async Task<Result<PropertyDisplayDTO>> GetByIdWithCoverAsync(int id)
+        public async Task<Result<PropertyDisplayWithHostDataDto>> GetByIdWithCoverAsync(int id)
         {
             var property = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(id);
 
             if (property == null)
-                return Fail("Property not found!", (int)HttpStatusCode.NotFound);
+                return Result<PropertyDisplayWithHostDataDto>.Fail("Property not found!", (int)HttpStatusCode.NotFound);
 
-            var mapped = Mapper.Map<PropertyDisplayDTO>(property);
+            var mapped = Mapper.Map<PropertyDisplayWithHostDataDto>(property);
 
-            return Success(mapped);
+            return Result<PropertyDisplayWithHostDataDto>.Success(mapped);
         }
 
 
@@ -142,12 +156,12 @@ namespace Application.Services
             var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
             return Result<List<PropertyDisplayDTO>>.Success(mapped);
         }
-        public async Task<Result<List<PropertyDisplayDTO>>> GetByHostIdWithCoverAsync(string hostId)
+        public async Task<Result<List<PropertyDisplayWithHostDataDto>>> GetByHostIdWithCoverAsync(string hostId)
         {
             var host = UnitOfWork.UserRepo.GetById(hostId);
             var properties = await UnitOfWork.PropertyRepo.GetByHostIdWithCoverAsync(hostId);
-            var mapped = Mapper.Map<List<PropertyDisplayDTO>>(properties);
-            return Result<List<PropertyDisplayDTO>>.Success(mapped);
+            var mapped = Mapper.Map<List<PropertyDisplayWithHostDataDto>>(properties);
+            return Result<List<PropertyDisplayWithHostDataDto>>.Success(mapped);
         }
 
         public Result<PropertyDisplayDTO> Add(PropertyDisplayDTO propertyDTO)
@@ -201,6 +215,38 @@ namespace Application.Services
             {
                 return Fail("Reference confliction", (int)HttpStatusCode.Conflict);
             }
+        }
+
+        public async Task<Result<bool>> Accept(int propertyId)
+        {
+            var property = await UnitOfWork.PropertyRepo.GetByIdAsync(propertyId);
+            if (property == null)
+                return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
+
+            if (property.Status == PropertyAcceptStatus.Rejected)
+                return Result<bool>.Fail("Property has already been rejected",(int)HttpStatusCode.NotFound);
+
+                property.Status = PropertyAcceptStatus.Accepted;
+            UnitOfWork.PropertyRepo.Update(property);
+            await UnitOfWork.SaveChangesAsync();
+            
+            return Result<bool>.Success(true);
+        }
+        public async Task<Result<bool>> Reject(int propertyId)
+        {
+
+            var property = await UnitOfWork.PropertyRepo.GetByIdAsync(propertyId);
+
+            if (property == null)
+                return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
+            if(property.Status == PropertyAcceptStatus.Accepted)
+                return Result<bool>.Fail("Property has already been accepted",(int)HttpStatusCode.NotFound);
+
+            property.Status = PropertyAcceptStatus.Rejected;
+            UnitOfWork.PropertyRepo.Update(property);
+            await UnitOfWork.SaveChangesAsync();
+            
+            return Result<bool>.Success(true);
         }
 
         public Result<PropertyDisplayDTO> Delete(int id, string hostId)
@@ -340,6 +386,8 @@ namespace Application.Services
             await UnitOfWork.SaveChangesAsync();
             return Result<bool>.Success(true, 204);
         }
+
+
 
     }
 }

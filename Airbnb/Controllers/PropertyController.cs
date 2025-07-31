@@ -29,7 +29,7 @@ namespace Airbnb.Controllers
 
         private readonly IWebHostEnvironment _env;
         private readonly IFileService _fileService;
-        //private readonly string userId = "1";
+        private readonly string userId = "1";
 
         public PropertyController(
                                     PropertyService _propertyService,
@@ -61,6 +61,15 @@ namespace Airbnb.Controllers
         public async Task<IActionResult>GetAll()
         {
             var result = PropertyService.GetAll();
+            return ToActionResult(result);
+
+        }
+
+        [EndpointSummary("Get All Properties")]
+        [HttpGet("dashboard")]
+        public async Task<IActionResult>GetAllForDashboard()
+        {
+            var result = await PropertyService.GetAllForDashboardAsync();
             return ToActionResult(result);
 
         }
@@ -128,6 +137,7 @@ namespace Airbnb.Controllers
         }
         [EndpointSummary("Search Properties Paginated 'Date Range, Location, etc...'")]
         [HttpGet("search")]
+        //[Authorize]
         public async Task<IActionResult> GetNearestPagintedAsync([FromQuery]PropertyFilterDto filterDto)
         {
             var userId = User.GetUserId();
@@ -189,7 +199,7 @@ namespace Airbnb.Controllers
         [Authorize(Roles =("Host"))]
         public IActionResult Put(PropertyDisplayDTO propertyDTO)
         {
-            var hostId = User.GetUserId();
+            var hostId = User.GetUserId() ?? userId;
             if (hostId == null || hostId != propertyDTO.HostId)
                 return ToActionResult(Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized));
 
@@ -198,6 +208,21 @@ namespace Airbnb.Controllers
             return ToActionResult(result); ;
         }
 
+
+
+        [HttpPut("accept/{propertyId}")]
+        public async Task<IActionResult> Accept(int propertyId)
+        {
+            var result = await PropertyService.Accept(propertyId);
+            return ToActionResult(result); ;
+        }
+
+        [HttpPut("reject/{propertyId}")]
+        public async Task<IActionResult> Reject(int propertyId)
+        {
+            var result = await PropertyService.Reject(propertyId);
+            return ToActionResult(result); ;
+        }
 
         [EndpointSummary("Deletes existing Property")]
         [HttpDelete("{id}")]
@@ -264,7 +289,14 @@ namespace Airbnb.Controllers
 
                 if (!result.IsSuccess)
                     return ToActionResult(result);
-                return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId }, new {});
+                //return CreatedAtAction(nameof(GetById), new { id = dto.PropertyId }, new {});
+                return Ok(new
+                {
+                    success = true,
+                    message = "Images uploaded successfully",
+                    imageUrls = imageDtos.Select(img => img.ImageUrl).ToList()
+                });
+
             }
             catch
             {
