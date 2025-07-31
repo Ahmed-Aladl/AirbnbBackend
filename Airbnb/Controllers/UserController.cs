@@ -85,7 +85,7 @@ public class UserController : ControllerBase
         return Ok(new { message = "OTP sent successfully" });
     }
 
-    [HttpPost("`")]
+    [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
