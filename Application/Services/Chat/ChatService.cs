@@ -275,6 +275,7 @@ namespace Application.Services.Chat
             var chatSession = (await UnitOfWork.ChatSessionRepo.GetByPropertyAndUserAsync(propertyId,userId));
 
 
+
             // // // // // // // // 
             // Check availability
             // // // // // // // //
@@ -303,6 +304,7 @@ namespace Application.Services.Chat
             
             chatSession = await CreateChatSessionAsync(property, userId);
             var latestRequest = await CreateReservationRequest(chatSession,userId,createReqeust);
+            
 
             var reservationRespond = new RespondToReservationRequestDto
             {
@@ -322,6 +324,7 @@ namespace Application.Services.Chat
         public async Task<Result<bool>> AcceptReservationAsync(string hostId, string reservationId)
         {
             var request = await UnitOfWork.ReservationRepo.GetByIdWithDataAsync(reservationId);
+            Console.WriteLine($"***\n\n\n\n\n\n\nrequest == null{request == null}\n\n\n");
             if(request == null)
                 return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
             if(request.ChatSession.HostId != hostId)
@@ -461,7 +464,7 @@ namespace Application.Services.Chat
                 PropertyImageUrl = property?.Images[0]?.ImageUrl,
                 UserId = session.UserId,
                 UserName = user?.UserName,
-                UserAvatarUrl = "",
+                UserAvatarUrl = session?.User?.ProfilePictureURL,
                 HostId = session.HostId,
                 HostName = host?.UserName,
                 HostAvatarUrl = "",
@@ -469,7 +472,8 @@ namespace Application.Services.Chat
                 LastMessageText = lastMessage,// != null ? await MapMessageToDto(lastMessage, currentUserId) : null,
                 UnreadCount = unreadCount,
                 HasPendingRequests = hasPendingRequests,
-                IsActive = session.IsActive
+                IsActive = session.IsActive,
+                IsHost = session.HostId == currentUserId,
             };
         }
 
