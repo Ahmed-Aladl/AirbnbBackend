@@ -56,7 +56,7 @@ namespace Application.Services.Chat
             if (chatSession == null)
                 return Result<RespondToReservationRequestDto>.Fail("Not found", (int)HttpStatusCode.NotFound);
 
-            if(chatSession.HostId != hostId)
+            if(chatSession.HostId != hostId && chatSession.UserId != hostId)
                 return Result<RespondToReservationRequestDto>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
 
             var property = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(chatSession.PropertyId);
