@@ -216,7 +216,7 @@ namespace Airbnb.Controllers
         }
 
         [HttpGet("payments")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllPayments([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _paymentService.GetAllPaymentsForAdminAsync(page, pageSize);
