@@ -29,6 +29,7 @@ namespace Application.DTOs.PropertyDTOS
 
         [Precision(18, 2)]
         public decimal PricePerNight { get; set; }
+        public decimal WeekendPrice { get; set; }
 
         public int MaxGuests { get; set; }
         public int Bedrooms { get; set; }
