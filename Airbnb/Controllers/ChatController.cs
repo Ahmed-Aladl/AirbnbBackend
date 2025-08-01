@@ -60,20 +60,20 @@ namespace Airbnb.Controllers
 
 
         [HttpGet("session/host/{sessionId}")]
-        public async Task<IActionResult> GetChatSessionForHostAsync(string sessionId)
+        public async Task<IActionResult> GetChatSessionForHostAsync(string sessionId, string? targetLang = null)
         {
             var hostId = User.GetUserId() ;
             if(hostId == null)
                 return Unauthorized("you must login first");
 
-            var result = await _chatService.GetChatSessionForHostAsync(hostId, sessionId);
+            var result = await _chatService.GetChatSessionForHostAsync(hostId, sessionId, targetLang:targetLang);
 
             return ToActionResult(result);
         }
 
         [HttpPost("reserve")]
         [Authorize(Roles ="Guest")]
-        public async Task<ActionResult<ChatSessionDto>> CreateOrGetChatSession([FromBody] CreateReservationRequestDto createRequest)
+        public async Task<ActionResult<ChatSessionDto>> CreateOrGetChatSession([FromBody] CreateReservationRequestDto createRequest,string? targetLang = null)
         {
             try
             {
@@ -85,7 +85,7 @@ namespace Airbnb.Controllers
                 
 
 
-                var responseResult = await _chatService.Reserve(createRequest.propertyId, currentUserId,createRequest);
+                var responseResult = await _chatService.Reserve(createRequest.propertyId, currentUserId,createRequest, targetLang: targetLang);
 
                 // Check if this is a new session or existing one
                 var isNew = responseResult?.Data?.ChatSession?.LastMessageText == null;
@@ -141,14 +141,15 @@ namespace Airbnb.Controllers
         public async Task<ActionResult<List<MessageDto>>> GetChatMessages(
                                                                     string chatSessionId,
                                                                     [FromQuery] int page = 1,
-                                                                    [FromQuery] int pageSize = 50)
+                                                                    [FromQuery] int pageSize = 50,
+                                                                    string? targetLang = null)
         {
             try
             {
 
                 var currentUserId = User.GetUserId() ?? userId;
                 
-                var messages = await _chatService.GetChatMessagesAsync(chatSessionId, currentUserId, page, pageSize);
+                var messages = await _chatService.GetChatMessagesAsync(chatSessionId, currentUserId, page, pageSize, targetLang: targetLang);
 
                 _logger.LogInformation("Retrieved {Count} messages for chat session {ChatSessionId}, page {Page}",
                     messages.Count, chatSessionId, page);
@@ -175,7 +176,7 @@ namespace Airbnb.Controllers
         public async Task<ActionResult<MessageDto>> SendMessage(
         string chatSessionId,
         [FromBody] SendMessageRequest request,
-        bool isUser =false
+        string? targetLang = null
         )
         {
             //userId = isUser ? (User.GetUserId() ?? userId) : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
@@ -195,7 +196,7 @@ namespace Airbnb.Controllers
                     return BadRequest(new { message = "Chat session ID mismatch" });
                 }
 
-                var message = await _chatService.SendMessageAsync(request, userId);
+                var message = await _chatService.SendMessageAsync(request, userId, targetLang:targetLang);
 
 
                 return CreatedAtAction(nameof(GetChatMessages),
