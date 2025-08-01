@@ -176,7 +176,7 @@ namespace Airbnb.Controllers
         public async Task<ActionResult<MessageDto>> SendMessage(
         string chatSessionId,
         [FromBody] SendMessageRequest request,
-        bool isUser =false
+        string? targetLang = null
         )
         {
             //userId = isUser ? (User.GetUserId() ?? userId) : "5a6c3d4f-9ca1-4b58-bdf6-a6e19b62218f";
@@ -196,7 +196,7 @@ namespace Airbnb.Controllers
                     return BadRequest(new { message = "Chat session ID mismatch" });
                 }
 
-                var message = await _chatService.SendMessageAsync(request, userId);
+                var message = await _chatService.SendMessageAsync(request, userId, targetLang:targetLang);
 
 
                 return CreatedAtAction(nameof(GetChatMessages),

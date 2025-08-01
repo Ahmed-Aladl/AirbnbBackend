@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace Domain.Models.Chat
         public string ChatSessionId { get; set; }
 
         [Required]
+        [ForeignKey(nameof(Sender))]
         public string SenderId { get; set; }
         public bool IsHost { get; set; }
 
@@ -39,6 +41,8 @@ namespace Domain.Models.Chat
         public ICollection<MessageReadStatus> ReadStatuses { get; set; }
 
         public ReservationRequest ReservationRequest { get; set; }
+
+        public User Sender { get; set; }
     }
 
 }

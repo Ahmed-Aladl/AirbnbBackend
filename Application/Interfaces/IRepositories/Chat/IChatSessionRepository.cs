@@ -21,6 +21,7 @@ namespace Application.Interfaces.IRepositories.Chat
         Task<int> GetUnreadCountSoftAsync(string chatSessionId, string userId);
 
         Task<List<ChatSessionWithDataDTO>> GetSessionsWithDataAsync(string userId, int page, int pageSize);
+        Task<List<ChatSession>> GetAllUserChatSessionsAsync(string userId, int page, int pageSize);
 
     }
 }

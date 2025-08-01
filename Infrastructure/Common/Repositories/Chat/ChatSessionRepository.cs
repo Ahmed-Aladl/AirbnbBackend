@@ -22,7 +22,9 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .ThenInclude(p => p.Images.Where(i => i.IsCover))
                 .Include(cs => cs.User)
+                .Include(cs => cs.Host)
                 .FirstOrDefaultAsync(cs => cs.Id == chatSessionId);
         }
 
@@ -30,6 +32,7 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .ThenInclude(p => p.Images.Where(i => i.IsCover))
                 .Include(cs => cs.User)
                 .FirstOrDefaultAsync(cs => cs.PropertyId == propertyId && cs.UserId == userId);
         }
@@ -38,7 +41,9 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .ThenInclude(p=> p.Images.Where(i=> i.IsCover))
                 .Include(cs => cs.User)
+                .Include(cs => cs.Host)
                 .Where(cs => cs.UserId == userId && cs.IsActive)
                 .OrderByDescending(cs => cs.LastActivityAt)
                 .Skip((page - 1) * pageSize)
@@ -50,7 +55,9 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
+                .ThenInclude(p => p.Images.Where(i => i.IsCover))
                 .Include(cs => cs.User)
+                .Include(cs => cs.Host)
                 .Where(cs => cs.HostId == hostId && cs.IsActive)
                 .OrderByDescending(cs => cs.LastActivityAt)
                 .Skip((page - 1) * pageSize)
@@ -61,7 +68,10 @@ namespace Infrastructure.Common.Repositories.Chat
         {
             return await Db.ChatSessions
                 .Include(cs => cs.Property)
-                .Where(cs => (cs.HostId == userId || cs.UserId == userId) && cs.IsActive)
+                .ThenInclude(p => p.Images.Where(i => i.IsCover))
+                .Include(cs => cs.User)
+                .Include(cs => cs.Host)
+                .Where(cs => (cs.UserId == userId || cs.HostId == userId) && cs.IsActive)
                 .OrderByDescending(cs => cs.LastActivityAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
