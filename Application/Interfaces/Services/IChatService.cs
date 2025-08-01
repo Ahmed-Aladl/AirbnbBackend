@@ -19,7 +19,7 @@ namespace Application.Interfaces.Services
         //Task<ChatSessionDto> GetChatSessionAsync(string chatSessionId, string currentUserId);
         Task<List<ChatSessionDto>> GetUserChatSessionsAsync(string userId, int page = 1, int pageSize = 20);
         Task<List<MessageDto>> GetChatMessagesAsync(string chatSessionId, string currentUserId, int page = 1, int pageSize = 50, string? targetLang = null);
-        Task<MessageDto> SendMessageAsync(SendMessageRequest messageRequest, string senderId);
+        Task<MessageDto> SendMessageAsync(SendMessageRequest messageRequest, string senderId, string? targetLang= null);
         //Task<MessageDto> EditMessageAsync(string messageId, string userId, string newText);
         //Task<bool> DeleteMessageAsync(string messageId, string userId);
         Task MarkMessagesAsReadAsync(string chatSessionId, string userId);

@@ -62,16 +62,16 @@ namespace Application.Services.Chat
             if(chatSession.HostId != hostId && chatSession.UserId != hostId)
                 return Result<RespondToReservationRequestDto>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
 
-            var property = await UnitOfWork.PropertyRepo.GetByIdWithCoverAsync(chatSession.PropertyId);
             var latestRequest = await UnitOfWork.ReservationRepo.GetLatestByChatSessionIdAsync(chatSessionId);
             var response = new RespondToReservationRequestDto
             {
                 ChatSession = await MapChatSessionToDto(chatSession, hostId),
-                Proeprty = _mapper.Map<PropertyDisplayDTO>(property),
-                Messages = await GetChatMessagesAsync(chatSession.Id, hostId, targetLang: targetLang),
+                Proeprty = chatSession.Property != null? _mapper.Map<PropertyDisplayDTO>(chatSession.Property) : null,
                 LatestReservationRequest = _mapper.Map<ReservationRequestDto>(latestRequest)
 
             };
+
+            response.Messages = await GetChatMessagesAsync(chatSession.Id, hostId, targetLang: targetLang);
 
             return Result<RespondToReservationRequestDto>.Success(response);
 
@@ -122,15 +122,15 @@ namespace Application.Services.Chat
             try
             {
                 // Get chat sessions where user is either guest or host
-                var guestSessions = await UnitOfWork.ChatSessionRepo.GetUserChatSessionsAsync(userId, page, pageSize);
-                var hostSessions = await UnitOfWork.ChatSessionRepo.GetHostChatSessionsAsync(userId, page, pageSize);
+                //var guestSessions = await UnitOfWork.ChatSessionRepo.GetUserChatSessionsAsync(userId, page, pageSize);
+                //var hostSessions = await UnitOfWork.ChatSessionRepo.GetHostChatSessionsAsync(userId, page, pageSize);
 
-                var allSessions = guestSessions.Concat(hostSessions)
-                    .GroupBy(cs => cs.Id)
-                    .Select(g => g.First())
-                    .OrderByDescending(cs => cs.LastActivityAt)
-                    .Take(pageSize)
-                    .ToList();
+                var allSessions = await UnitOfWork.ChatSessionRepo.GetAllUserChatSessionsAsync(userId, page, pageSize);
+
+                allSessions = allSessions
+                                .OrderByDescending(cs => cs.LastActivityAt)
+                                .Take(pageSize)
+                                .ToList();
 
                 var sessionDtos = new List<ChatSessionDto>();
                 foreach (var session in allSessions)
@@ -158,23 +158,25 @@ namespace Application.Services.Chat
                 }
 
                 var messages = await UnitOfWork.MessageRepo.GetChatMessagesAsync(chatSessionId, page, pageSize);
-                var messageDtos = new List<MessageDto>();
+                var messageTasks = messages
+                .OrderBy(m => m.CreatedAt)
+                .Select(m => MapMessageToDto(m, currentUserId))
+                .ToList();
+
+                var messageDtos = (await Task.WhenAll(messageTasks)).ToList();
+
                 var textsToTranslate = new List<string>();
                 var indicesToReplace = new List<int>();
 
-                int index = 0;
-                foreach (var message in messages.OrderBy(m => m.CreatedAt))
+                for (int i = 0; i < messageDtos.Count; i++)
                 {
-                    var dto = await MapMessageToDto(message, currentUserId);
+                    var dto = messageDtos[i];
 
                     if (!string.IsNullOrWhiteSpace(targetLang) && !string.IsNullOrWhiteSpace(dto.MessageText))
                     {
                         textsToTranslate.Add(dto.MessageText);
-                        indicesToReplace.Add(index);
+                        indicesToReplace.Add(i);
                     }
-
-                    messageDtos.Add(dto);
-                    index++;
                 }
 
                 // Translate messages in bulk
@@ -198,10 +200,14 @@ namespace Application.Services.Chat
             }
         }
 
-        public async Task<MessageDto> SendMessageAsync(SendMessageRequest messageRequest, string senderId)
+        public async Task<MessageDto> SendMessageAsync(SendMessageRequest messageRequest, string senderId, string? targetLang = null)
         {
             try
             {
+                Task<List<string>> translationTask = null;
+                if( targetLang != null)
+                    translationTask = TranslateTextsAsync(new() { messageRequest.MessageText }, targetLang);
+
                 // Validate access
                 if (!await ValidateChatAccessAsync(messageRequest.ChatSessionId, senderId))
                 {
@@ -239,6 +245,7 @@ namespace Application.Services.Chat
                 await UnitOfWork.ChatSessionRepo.UpdateAsync(chatSession);
                 await UnitOfWork.SaveChangesAsync();
 
+
                 _logger.LogInformation("Message {MessageId} sent in chat session {ChatSessionId} by user {SenderId}",
                     createdMessage.Id, messageRequest?.ChatSessionId, senderId);
 
@@ -247,8 +254,11 @@ namespace Application.Services.Chat
                 var receiverId = chatSession.UserId == senderId ? chatSession.HostId : chatSession.UserId;
                 Console.WriteLine($"****\n\n\n\nReceiver Id {receiverId} {chatSession?.Id}");
                 if(receiverId !=null)
-                    await chatNotifier.NotifyMessageSentAsync(receiverId, messageDto);
+                    chatNotifier.NotifyMessageSentAsync(receiverId, messageDto);
 
+
+                if (translationTask != null)
+                    messageDto.MessageText = (await translationTask)[0];
                 return messageDto; 
             }
             catch (Exception ex)
@@ -477,9 +487,6 @@ namespace Application.Services.Chat
         }
         private async Task<ChatSessionDto> MapChatSessionToDto(ChatSession session, string currentUserId)
         {
-            var property = (await _propertyService.GetByIdWithCoverAsync(session.PropertyId)).Data;
-            var user = UnitOfWork.UserRepo.GetById(session.UserId);
-            var host = UnitOfWork.UserRepo.GetById(session.HostId);
             var lastMessage = session.LastMessageText;
             var unreadCount = session.UserId == currentUserId ? session.UnreadCountForUser : session.UnreadCountForHost;
             var hasPendingRequests = await UnitOfWork.ReservationRepo.HasPendingRequestsAsync(session.Id);
@@ -488,13 +495,13 @@ namespace Application.Services.Chat
             {
                 Id = session.Id,
                 PropertyId = session.PropertyId,
-                PropertyTitle = property?.Title,
-                PropertyImageUrl = property?.Images[0]?.ImageUrl,
+                PropertyTitle = session?.Property?.Title,
+                PropertyImageUrl = session.Property?.Images.FirstOrDefault()?.ImageUrl,
                 UserId = session.UserId,
-                UserName = user?.UserName,
+                UserName = session?.User?.UserName,
                 UserAvatarUrl = session?.User?.ProfilePictureURL,
                 HostId = session.HostId,
-                HostName = host?.UserName,
+                HostName = session?.Host?.UserName,
                 HostAvatarUrl = "",
                 LastActivityAt = session.LastActivityAt,
                 LastMessageText = lastMessage,// != null ? await MapMessageToDto(lastMessage, currentUserId) : null,
@@ -507,7 +514,6 @@ namespace Application.Services.Chat
 
         private async Task<MessageDto> MapMessageToDto(Message message, string currentUserId)
         {
-            var sender = UnitOfWork.UserRepo.GetById(message.SenderId);
             var isRead = message.ReadStatuses?.Any(rs => rs.UserId != currentUserId) ?? false;
             
             return new MessageDto
@@ -515,7 +521,7 @@ namespace Application.Services.Chat
                 Id = message.Id,
                 ChatSessionId = message.ChatSessionId,
                 SenderId = message.SenderId,
-                SenderName = sender?.UserName,
+                SenderName = message?.Sender?.UserName,
                 SenderAvatarUrl = "",
                 MessageText = message.MessageText,
                 MessageType = message.MessageType,
