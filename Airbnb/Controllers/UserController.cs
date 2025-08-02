@@ -27,7 +27,7 @@ public class UserController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IHubContext<NotificationHub> _hub;
-    private readonly int accessTokenExpiresAfterMins = 30; 
+    private readonly int accessTokenExpiresAfterMins = 30;
     public UserController(
         UserManager<User> userManager,
         AirbnbContext context,
@@ -89,9 +89,10 @@ public class UserController : ControllerBase
     public async Task<IActionResult> Login(LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-            return BadRequest(new { error = "Invalid credentials" });
-
+        if (user == null)
+            return BadRequest(new { error = "Invalid Email" });
+        if (!await _userManager.CheckPasswordAsync(user, dto.Password))
+            return BadRequest(new { error = "Password incorrect" });
         var roles = await _userManager.GetRolesAsync(user);
         var accessToken = _tokenService.GenerateAccessToken(user, roles);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
@@ -296,7 +297,7 @@ public class UserController : ControllerBase
             }
         );
 
-        return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken, UserId = user.Id, Roles = roles.Select(r=> new IdentityRole { Name = r}).ToList() });
+        return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken, UserId = user.Id, Roles = roles.Select(r => new IdentityRole { Name = r }).ToList() });
     }
 
     private string GenerateOtp() => new Random().Next(100000, 999999).ToString();
