@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -22,6 +23,7 @@ using Domain.Models.Chat;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.Extensions.Logging;
 //using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace Application.Services.Chat
 {
@@ -33,6 +35,9 @@ namespace Application.Services.Chat
         private readonly IMapper _mapper;
         private readonly ILogger<ChatService> _logger;
 
+        // In-memory cache for translations: (messageText, targetLang) -> translatedText
+        private static readonly ConcurrentDictionary<string, string> _translationCache = new();
+
         public ChatService(
                     IUnitOfWork _unitOfWork,
                     IMapper mapper,
@@ -40,7 +45,7 @@ namespace Application.Services.Chat
                     PropertyService propertyService,
                     IChatNotifier chatNotifier,
                     CalendarService _calendarService
-                    
+
             )
         {
             _propertyService = propertyService;
@@ -53,26 +58,33 @@ namespace Application.Services.Chat
 
         public IUnitOfWork UnitOfWork { get; }
 
-        public async Task<Result<RespondToReservationRequestDto>> GetChatSessionForHostAsync(string hostId, string chatSessionId, string? targetLang= null)
+        public async Task<Result<RespondToReservationRequestDto>> GetChatSessionForHostAsync(string hostId, string chatSessionId, string? targetLang = null)
         {
+            var stopwatch = Stopwatch.StartNew();
             var chatSession = await UnitOfWork.ChatSessionRepo.GetByIdAsync( chatSessionId );
+
             if (chatSession == null)
                 return Result<RespondToReservationRequestDto>.Fail("Not found", (int)HttpStatusCode.NotFound);
 
-            if(chatSession.HostId != hostId && chatSession.UserId != hostId)
+            if (chatSession.HostId != hostId && chatSession.UserId != hostId)
                 return Result<RespondToReservationRequestDto>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
 
             var latestRequest = await UnitOfWork.ReservationRepo.GetLatestByChatSessionIdAsync(chatSessionId);
             var response = new RespondToReservationRequestDto
             {
                 ChatSession = await MapChatSessionToDto(chatSession, hostId),
-                Proeprty = chatSession.Property != null? _mapper.Map<PropertyDisplayDTO>(chatSession.Property) : null,
+                Proeprty = chatSession.Property != null ? _mapper.Map<PropertyDisplayDTO>(chatSession.Property) : null,
                 LatestReservationRequest = _mapper.Map<ReservationRequestDto>(latestRequest)
 
             };
+            stopwatch.Stop();
+            Console.WriteLine($"\n\n\n\nExecution Time for Get sessions for host: {stopwatch.ElapsedMilliseconds} ms\n\n\n\n");
+            var ChatSessionDtoTask = MapChatSessionToDto(chatSession, hostId);
 
-            response.Messages = await GetChatMessagesAsync(chatSession.Id, hostId, targetLang: targetLang);
+            var MessageDtosTask = GetChatMessagesAsync(chatSession.Id, hostId, targetLang: targetLang);
 
+            response.ChatSession = await ChatSessionDtoTask;
+            response.Messages = await MessageDtosTask;
             return Result<RespondToReservationRequestDto>.Success(response);
 
 
@@ -171,23 +183,32 @@ namespace Application.Services.Chat
                 for (int i = 0; i < messageDtos.Count; i++)
                 {
                     var dto = messageDtos[i];
-
                     if (!string.IsNullOrWhiteSpace(targetLang) && !string.IsNullOrWhiteSpace(dto.MessageText))
                     {
-                        textsToTranslate.Add(dto.MessageText);
-                        indicesToReplace.Add(i);
+                        string cacheKey = $"{dto.MessageText}|{targetLang}";
+                        if (_translationCache.TryGetValue(cacheKey, out var cachedTranslation))
+                        {
+                            dto.MessageText = cachedTranslation;
+                        }
+                        else
+                        {
+                            textsToTranslate.Add(dto.MessageText);
+                            indicesToReplace.Add(i);
+                        }
                     }
                 }
 
-                // Translate messages in bulk
+                // Translate only uncached messages in bulk
                 if (textsToTranslate.Count > 0)
                 {
                     var translatedTexts = await TranslateTextsAsync(textsToTranslate, targetLang);
-
                     for (int i = 0; i < indicesToReplace.Count; i++)
                     {
                         int targetIndex = indicesToReplace[i];
                         messageDtos[targetIndex].MessageText = translatedTexts[i];
+                        // Cache the translation
+                        string cacheKey = $"{textsToTranslate[i]}|{targetLang}";
+                        _translationCache[cacheKey] = translatedTexts[i];
                     }
                 }
 
@@ -205,7 +226,7 @@ namespace Application.Services.Chat
             try
             {
                 Task<List<string>> translationTask = null;
-                if( targetLang != null)
+                if (targetLang != null)
                     translationTask = TranslateTextsAsync(new() { messageRequest.MessageText }, targetLang);
 
                 // Validate access
@@ -225,7 +246,7 @@ namespace Application.Services.Chat
                     SenderId = senderId,
                     MessageText = messageRequest.MessageText,
                     MessageType = messageRequest?.MessageType.ToString(),
-                    IsHost = chatSession.HostId==senderId,
+                    IsHost = chatSession.HostId == senderId,
                     CreatedAt = DateTime.UtcNow,
                     IsDeleted = false,
                     IsEdited = false,
@@ -236,10 +257,10 @@ namespace Application.Services.Chat
                 // Update chat session last activity
                 chatSession.LastMessageText = messageRequest?.MessageText;
                 chatSession.LastActivityAt = DateTime.UtcNow;
-                if(chatSession.UserId == senderId)
-                    chatSession.UnreadCountForHost+=1;
+                if (chatSession.UserId == senderId)
+                    chatSession.UnreadCountForHost += 1;
                 else
-                    chatSession.UnreadCountForUser+=1;
+                    chatSession.UnreadCountForUser += 1;
 
 
                 await UnitOfWork.ChatSessionRepo.UpdateAsync(chatSession);
@@ -253,13 +274,13 @@ namespace Application.Services.Chat
 
                 var receiverId = chatSession.UserId == senderId ? chatSession.HostId : chatSession.UserId;
                 Console.WriteLine($"****\n\n\n\nReceiver Id {receiverId} {chatSession?.Id}");
-                if(receiverId !=null)
+                if (receiverId != null)
                     chatNotifier.NotifyMessageSentAsync(receiverId, messageDto);
 
 
                 if (translationTask != null)
                     messageDto.MessageText = (await translationTask)[0];
-                return messageDto; 
+                return messageDto;
             }
             catch (Exception ex)
             {
@@ -305,18 +326,18 @@ namespace Application.Services.Chat
 
             if (property == null)
                 return Result<RespondToReservationRequestDto>.Fail("Not found", (int)HttpStatusCode.NotFound);
-            
-            if (property.HostId== userId)
+
+            if (property.HostId == userId)
                 return Result<RespondToReservationRequestDto>.Fail("Host can't make a request on thier own property", (int)HttpStatusCode.Unauthorized);
-            
-            var chatSession = (await UnitOfWork.ChatSessionRepo.GetByPropertyAndUserAsync(propertyId,userId));
+
+            var chatSession = (await UnitOfWork.ChatSessionRepo.GetByPropertyAndUserAsync(propertyId, userId));
 
 
 
             // // // // // // // // 
             // Check availability
             // // // // // // // //
-            if (chatSession != null) 
+            if (chatSession != null)
             {
                 Console.WriteLine("******************************\n\n\n\n\n\n\n\n\n\n\n\n ChatSession!=null\n\n\n");
                 var response = new RespondToReservationRequestDto
@@ -329,7 +350,8 @@ namespace Application.Services.Chat
 
                 var latestRequst = await UnitOfWork.ReservationRepo.GetLatestByChatSessionIdAsync(chatSession.Id);
 
-                if (latestRequst == null || latestRequst.RequestStatus != ReservationRequestStatus.Pending.ToString()) { 
+                if (latestRequst == null || latestRequst.RequestStatus != ReservationRequestStatus.Pending.ToString())
+                {
                     latestRequst = await CreateReservationRequest(chatSession, userId, createReqeust);
                     await UnitOfWork.SaveChangesAsync();
                 }
@@ -339,10 +361,10 @@ namespace Application.Services.Chat
                 return Result<RespondToReservationRequestDto>.Success(response);
             }
 
-            
+
             chatSession = await CreateChatSessionAsync(property, userId);
-            var latestRequest = await CreateReservationRequest(chatSession,userId,createReqeust);
-            
+            var latestRequest = await CreateReservationRequest(chatSession, userId, createReqeust);
+
 
             var reservationRespond = new RespondToReservationRequestDto
             {
@@ -352,7 +374,7 @@ namespace Application.Services.Chat
                 Proeprty = _mapper.Map<PropertyDisplayDTO>(property)
             };
 
-            
+
             await UnitOfWork.SaveChangesAsync();
             return Result<RespondToReservationRequestDto>.Success(reservationRespond);
 
@@ -363,10 +385,10 @@ namespace Application.Services.Chat
         {
             var request = await UnitOfWork.ReservationRepo.GetByIdWithDataAsync(reservationId);
             Console.WriteLine($"***\n\n\n\n\n\n\nrequest == null{request == null}\n\n\n");
-            if(request == null)
-                return Result<bool>.Fail("not found",(int)HttpStatusCode.NotFound);
-            if(request.ChatSession.HostId != hostId)
-                return Result<bool>.Fail("Unauthorized",(int)HttpStatusCode.Unauthorized);
+            if (request == null)
+                return Result<bool>.Fail("not found", (int)HttpStatusCode.NotFound);
+            if (request.ChatSession.HostId != hostId)
+                return Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
 
             var isAvailable = (await calendarService
                                     .IsPropertyBookableAsync(
@@ -381,8 +403,8 @@ namespace Application.Services.Chat
                 ChatSessionId = request.ChatSessionId,
                 MessageType = MessageType.ReservationResponse
             };
-            
-            
+
+
             var response = CloneReservation(request);
 
             if (!isAvailable)
@@ -396,9 +418,9 @@ namespace Application.Services.Chat
                 await UnitOfWork.ReservationRepo.CreateAsync(response);
 
                 await UnitOfWork.SaveChangesAsync();
-                return Result<bool>.Fail("Not Available in this period",(int)HttpStatusCode.Conflict);
+                return Result<bool>.Fail("Not Available in this period", (int)HttpStatusCode.Conflict);
             }
-            
+
             message.MessageText = $"The host Accepted your request.";
             request.RequestStatus = ReservationRequestStatus.Accepted.ToString();
             await UnitOfWork.ReservationRepo.UpdateAsync(request);
@@ -409,7 +431,7 @@ namespace Application.Services.Chat
 
             await UnitOfWork.SaveChangesAsync();
 
-            return Result<bool>.Success(true,(int)HttpStatusCode.NoContent, "The host accepted you request.");
+            return Result<bool>.Success(true, (int)HttpStatusCode.NoContent, "The host accepted you request.");
         }
 
 
@@ -417,12 +439,12 @@ namespace Application.Services.Chat
         {
             var request = await UnitOfWork.ReservationRepo.GetByIdWithDataAsync(requestId);
             if (request == null)
-                return Result<bool>.Fail("Not found",(int) HttpStatusCode.NotFound);
+                return Result<bool>.Fail("Not found", (int)HttpStatusCode.NotFound);
             if (request.ChatSession.HostId != hostId)
-                return Result<bool>.Fail("Unauthorized",(int) HttpStatusCode.Unauthorized);
+                return Result<bool>.Fail("Unauthorized", (int)HttpStatusCode.Unauthorized);
 
-            if(request.RequestStatus != ReservationRequestStatus.Pending.ToString())
-                return Result<bool>.Fail("Request already has been closed.",(int) HttpStatusCode.BadRequest);
+            if (request.RequestStatus != ReservationRequestStatus.Pending.ToString())
+                return Result<bool>.Fail("Request already has been closed.", (int)HttpStatusCode.BadRequest);
 
 
             var message = new SendMessageRequest
@@ -441,7 +463,7 @@ namespace Application.Services.Chat
             await UnitOfWork.ReservationRepo.CreateAsync(response);
 
             await UnitOfWork.SaveChangesAsync();
-            return Result<bool>.Success(true,(int)HttpStatusCode.NoContent, "Request has been rejected");
+            return Result<bool>.Success(true, (int)HttpStatusCode.NoContent, "Request has been rejected");
 
         }
 
@@ -489,7 +511,7 @@ namespace Application.Services.Chat
         {
             var lastMessage = session.LastMessageText;
             var unreadCount = session.UserId == currentUserId ? session.UnreadCountForUser : session.UnreadCountForHost;
-            var hasPendingRequests = await UnitOfWork.ReservationRepo.HasPendingRequestsAsync(session.Id);
+            //var hasPendingRequests = await UnitOfWork.ReservationRepo.HasPendingRequestsAsync(session.Id);
 
             return new ChatSessionDto
             {
@@ -506,7 +528,7 @@ namespace Application.Services.Chat
                 LastActivityAt = session.LastActivityAt,
                 LastMessageText = lastMessage,// != null ? await MapMessageToDto(lastMessage, currentUserId) : null,
                 UnreadCount = unreadCount,
-                HasPendingRequests = hasPendingRequests,
+                //HasPendingRequests = hasPendingRequests,
                 IsActive = session.IsActive,
                 IsHost = session.HostId == currentUserId,
             };
@@ -515,7 +537,7 @@ namespace Application.Services.Chat
         private async Task<MessageDto> MapMessageToDto(Message message, string currentUserId)
         {
             var isRead = message.ReadStatuses?.Any(rs => rs.UserId != currentUserId) ?? false;
-            
+
             return new MessageDto
             {
                 Id = message.Id,
@@ -531,7 +553,7 @@ namespace Application.Services.Chat
                 IsHost = message.IsHost,
                 IsOwnMessage = message.SenderId == currentUserId,
                 IsRead = isRead,
-                Reactions = message.Reactions!=null? await MapReactionsToDto(message.Reactions, currentUserId) :null,
+                Reactions = message.Reactions != null ? await MapReactionsToDto(message.Reactions, currentUserId) : null,
                 ReservationRequest = message.ReservationRequest != null ?
                     _mapper.Map<ReservationRequestDto>(message.ReservationRequest) : null
             };
@@ -566,12 +588,15 @@ namespace Application.Services.Chat
             //            // UserName and AvatarUrl would be populated from UserService
             //        }).ToList()
             //    }).ToList();
-        
+
         }
 
 
         private async Task<List<string>> TranslateTextsAsync(List<string> texts, string targetLang)
         {
+
+            var stopWatch = Stopwatch.StartNew();
+
             if (texts == null || texts.Count == 0)
                 return texts;
 
@@ -585,9 +610,13 @@ namespace Application.Services.Chat
 
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var innerStopwatch = Stopwatch.StartNew();
 
                 using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.ExpectContinue = false;
                 var response = await httpClient.PostAsync("https://ahmedaladl-transliation.hf.space/translate", content);
+                innerStopwatch.Stop();
+                Console.WriteLine($"\n\n\n\nExecution Time Translation Request: {innerStopwatch.ElapsedMilliseconds} ms\n\n\n\n");
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -597,6 +626,8 @@ namespace Application.Services.Chat
 
                 var responseBody = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(responseBody);
+                stopWatch.Stop();
+                Console.WriteLine($"******\n\n\nExecution Time For translation method: {stopWatch.ElapsedMilliseconds} ms\n\n\n****");
 
                 return result?["translated_texts"] ?? texts;
             }
@@ -705,7 +736,7 @@ namespace Application.Services.Chat
         //    {
         //        _logger.LogError(ex, "Error getting chat session {ChatSessionId} for user {UserId}", chatSessionId, currentUserId);
         //        throw;
-        //    }
+        //    }B
         //}
 
 
