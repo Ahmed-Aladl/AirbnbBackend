@@ -9,6 +9,7 @@ using Domain.Enums.Payment;
 using Domain.Models;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Stripe.V2;
 
 namespace Infrastructure.Common.Repositories
 {
@@ -171,9 +172,11 @@ namespace Infrastructure.Common.Repositories
                     PaymentId = p.Id,
                     GuestName = p.Booking != null && p.Booking.User != null ? p.Booking.User.UserName : "N/A",
                     HostName = p.Booking != null && p.Booking.Property != null && p.Booking.Property.Host != null ? p.Booking.Property.Host.UserName : "N/A",
-                    Amount = p.Amount/10,
-                    PlatformFee = p.PlatformFee/10,
-                    HostAmount = (p.Amount - p.PlatformFee) / 10,
+                   
+                    Amount = p.Amount / 100,
+                    PlatformFee = (p.Amount / 100) * 0.10m,
+                    HostAmount = (p.Amount / 100) * 0.90m,
+
                     PaymentStatus = p.Status.ToString(),
                     TransferStatus = p.TransferStatus.ToString(),
                     PaymentDate = p.PaymentDate,
