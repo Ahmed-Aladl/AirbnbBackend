@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -59,7 +60,9 @@ namespace Application.Services.Chat
 
         public async Task<Result<RespondToReservationRequestDto>> GetChatSessionForHostAsync(string hostId, string chatSessionId, string? targetLang = null)
         {
-            var chatSession = await UnitOfWork.ChatSessionRepo.GetByIdAsync(chatSessionId);
+            var stopwatch = Stopwatch.StartNew();
+            var chatSession = await UnitOfWork.ChatSessionRepo.GetByIdAsync( chatSessionId );
+
             if (chatSession == null)
                 return Result<RespondToReservationRequestDto>.Fail("Not found", (int)HttpStatusCode.NotFound);
 
@@ -74,9 +77,14 @@ namespace Application.Services.Chat
                 LatestReservationRequest = _mapper.Map<ReservationRequestDto>(latestRequest)
 
             };
+            stopwatch.Stop();
+            Console.WriteLine($"\n\n\n\nExecution Time for Get sessions for host: {stopwatch.ElapsedMilliseconds} ms\n\n\n\n");
+            var ChatSessionDtoTask = MapChatSessionToDto(chatSession, hostId);
 
-            response.Messages = await GetChatMessagesAsync(chatSession.Id, hostId, targetLang: targetLang);
+            var MessageDtosTask = GetChatMessagesAsync(chatSession.Id, hostId, targetLang: targetLang);
 
+            response.ChatSession = await ChatSessionDtoTask;
+            response.Messages = await MessageDtosTask;
             return Result<RespondToReservationRequestDto>.Success(response);
 
 
@@ -503,7 +511,7 @@ namespace Application.Services.Chat
         {
             var lastMessage = session.LastMessageText;
             var unreadCount = session.UserId == currentUserId ? session.UnreadCountForUser : session.UnreadCountForHost;
-            var hasPendingRequests = await UnitOfWork.ReservationRepo.HasPendingRequestsAsync(session.Id);
+            //var hasPendingRequests = await UnitOfWork.ReservationRepo.HasPendingRequestsAsync(session.Id);
 
             return new ChatSessionDto
             {
@@ -520,7 +528,7 @@ namespace Application.Services.Chat
                 LastActivityAt = session.LastActivityAt,
                 LastMessageText = lastMessage,// != null ? await MapMessageToDto(lastMessage, currentUserId) : null,
                 UnreadCount = unreadCount,
-                HasPendingRequests = hasPendingRequests,
+                //HasPendingRequests = hasPendingRequests,
                 IsActive = session.IsActive,
                 IsHost = session.HostId == currentUserId,
             };
@@ -586,6 +594,9 @@ namespace Application.Services.Chat
 
         private async Task<List<string>> TranslateTextsAsync(List<string> texts, string targetLang)
         {
+
+            var stopWatch = Stopwatch.StartNew();
+
             if (texts == null || texts.Count == 0)
                 return texts;
 
@@ -599,9 +610,13 @@ namespace Application.Services.Chat
 
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var innerStopwatch = Stopwatch.StartNew();
 
                 using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.ExpectContinue = false;
                 var response = await httpClient.PostAsync("https://ahmedaladl-transliation.hf.space/translate", content);
+                innerStopwatch.Stop();
+                Console.WriteLine($"\n\n\n\nExecution Time Translation Request: {innerStopwatch.ElapsedMilliseconds} ms\n\n\n\n");
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -611,6 +626,8 @@ namespace Application.Services.Chat
 
                 var responseBody = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(responseBody);
+                stopWatch.Stop();
+                Console.WriteLine($"******\n\n\nExecution Time For translation method: {stopWatch.ElapsedMilliseconds} ms\n\n\n****");
 
                 return result?["translated_texts"] ?? texts;
             }
