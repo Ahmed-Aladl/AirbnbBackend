@@ -22,6 +22,7 @@ namespace Infrastructure.Common.Repositories.Chat
                 .Include(m => m.Reactions)
                 .Include(m => m.ReadStatuses)
                 .Include(m => m.ReservationRequest)
+                .Include(m => m.Sender)
                 .FirstOrDefaultAsync(m => m.Id == messageId && !m.IsDeleted);
         }
 

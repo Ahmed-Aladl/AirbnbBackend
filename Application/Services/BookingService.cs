@@ -271,7 +271,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<bool>> CreateBookingAsync(BookingDTO dto)
+        public async Task<Result<int>> CreateBookingAsync(BookingDTO dto)
         {
             try
             {
@@ -283,18 +283,18 @@ namespace Application.Services
                     {
                         if (!existing.IsAvailable || existing.IsBooked)
                         {
-                            return Result<bool>.Fail($"The property is not available for {date:yyyy-MM-dd}.", 400);
+                            return Result<int>.Fail($"The property is not available for {date:yyyy-MM-dd}.", 400);
                         }
                     }
                 }
 
                 var property = await uow.PropertyRepo.GetByIdAsync(dto.PropertyId);
                 if (property == null)
-                    return Result<bool>.Fail("Property not found.", 404);
+                    return Result<int>.Fail("Property not found.", 404);
 
                 var totalDays = (dto.CheckOutDate - dto.CheckInDate).Days;
                 if (totalDays <= 0)
-                    return Result<bool>.Fail("Invalid check-in and check-out dates.", 400);
+                    return Result<int>.Fail("Invalid check-in and check-out dates.", 400);
 
                 var totalPrice = property.PricePerNight * totalDays;
 
@@ -339,11 +339,11 @@ namespace Application.Services
                 }
                 await uow.SaveChangesAsync();
 
-                return Result<bool>.Success(true, 201, "Booking created successfully.");
+                return Result<int>.Success(booking.Id, 201, "Booking created successfully.");
             }
             catch (Exception ex)
             {
-                return Result<bool>.Fail(
+                return Result<int>.Fail(
                     $"An unexpected error occurred while creating the booking: {ex.Message}",
                     500
                 );
