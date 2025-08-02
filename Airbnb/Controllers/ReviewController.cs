@@ -106,11 +106,11 @@ namespace Airbnb.Controllers
 
         //For public use
         [HttpGet("user/show/{userId}")]
-        public async Task<IActionResult> GetPublicReviewsByUserId()
+        public async Task<IActionResult> GetPublicReviewsByUserId(string userId)
         {
-            string UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+           // string UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByUserId(UserId);
+            Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByUserId(userId);
 
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode ?? 500, result.Message);

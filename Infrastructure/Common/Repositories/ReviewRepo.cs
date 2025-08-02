@@ -101,6 +101,7 @@ namespace Infrastructure.Common.Repositories
             {
                 return await Db.Reviews
                     .Where(r => r.UserId == userId)
+                    .Include(r => r.User)
                     .Include(r => r.Property) 
                     .Include(r => r.Booking) 
                     .OrderByDescending(r => r.CreatedAt) 
