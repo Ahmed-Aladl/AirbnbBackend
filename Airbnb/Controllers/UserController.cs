@@ -296,7 +296,7 @@ public class UserController : ControllerBase
             }
         );
 
-        return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
+        return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken, UserId = user.Id, Roles = roles.Select(r=> new IdentityRole { Name = r}).ToList() });
     }
 
     private string GenerateOtp() => new Random().Next(100000, 999999).ToString();
