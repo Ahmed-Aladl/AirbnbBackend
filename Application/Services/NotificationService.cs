@@ -32,7 +32,7 @@ namespace Application.Services
         {
 
             await _unitOfWork.NotificationRepo.AddAsync(notification);
-            await _unitOfWork.SaveChangesAsync(); // تأكد من حفظ التغييرات
+            await _unitOfWork.SaveChangesAsync();
 
             var notificationDto = _mapper.Map<NotificationDto>(notification);
             return Result<NotificationDto>.Success(notificationDto);
