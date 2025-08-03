@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Application.Interfaces.IRepositories;
 using Domain.Models;
@@ -12,14 +11,14 @@ namespace Infrastructure.Common.Repositories
 {
     public class NotificationRepository : Repository<Notification, int>, INotificationRepository
     {
-        public NotificationRepository(AirbnbContext context)
-            : base(context) { }
+        public NotificationRepository(AirbnbContext context) : base(context) { }
 
         public async Task<IEnumerable<Notification>> GetAllByUserIdAsync(string userId)
         {
-            return await Db
-                .Notifications.Where(n => n.UserId == userId)
+            return await Db.Notifications
+                .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -31,7 +30,7 @@ namespace Infrastructure.Common.Repositories
         public async Task AddAsync(Notification notification)
         {
             await Db.Notifications.AddAsync(notification);
-            await Db.SaveChangesAsync();
+            // لا تستدعي SaveChanges هنا - دع الـ UnitOfWork يتولى ذلك
         }
 
         public async Task MarkAsReadAsync(int id)
@@ -40,7 +39,7 @@ namespace Infrastructure.Common.Repositories
             if (notification != null)
             {
                 notification.isRead = true;
-                await Db.SaveChangesAsync();
+                // لا تستدعي SaveChanges هنا
             }
         }
 
@@ -50,7 +49,7 @@ namespace Infrastructure.Common.Repositories
             if (notification != null)
             {
                 Db.Notifications.Remove(notification);
-                await Db.SaveChangesAsync();
+                // لا تستدعي SaveChanges هنا
             }
         }
     }

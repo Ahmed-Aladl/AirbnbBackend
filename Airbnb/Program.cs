@@ -63,6 +63,8 @@ namespace Airbnb
 
             await DbSeeder.SeedAsync(app);
 
+            app.UseRouting();
+
 
 
             if (app.Environment.IsDevelopment())
