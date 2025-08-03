@@ -2,6 +2,7 @@
 using Application.DTOs.PropertyViolationDTOs;
 using Application.Result;
 using Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -79,11 +80,12 @@ namespace Airbnb.Controllers
         }
 
         [HttpGet("can-submit/{propertyId}")]
+        [Authorize(Roles ="Host,host")]
         public async Task<IActionResult> CanAddViolationAsync(int propertyId)
         {
             var userId = User.GetUserId();
             if (userId == null)
-                return ToActionResult(Result<bool>.Success(false,204,"Must login first"));
+                return ToActionResult(Result<bool>.Success(false,401,"Must login first"));
 
             var result = await _violationService.CanAddViolationAsync(userId, propertyId);
 
