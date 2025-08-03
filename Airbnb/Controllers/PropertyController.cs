@@ -174,6 +174,13 @@ namespace Airbnb.Controllers
         {
             return ToActionResult(await PropertyService.GetByHostIdWithCoverAsync(hostId));
         }
+        [EndpointSummary("Get by host Id with cover")]
+        [HttpGet("host/listings/{hostId}")]
+        public async Task<IActionResult> GetHostListingWithCoverAsync(string hostId)
+        {
+
+            return ToActionResult(await PropertyService.GetHostListingsWithCoverAsync(hostId));
+        }
 
         [EndpointSummary("Add a new Property")]
         [HttpPost]
@@ -338,6 +345,20 @@ namespace Airbnb.Controllers
         }
 
 
+
+        [HttpPut("activate/{propertyId}")]
+        public async Task<IActionResult> Activate(int propertyId)
+        {
+            var result = await PropertyService.Activate(propertyId);
+            return ToActionResult(result);
+        }
+
+        [HttpPut("deactivate/{propertyId}")]
+        public async Task<IActionResult> Deactivate(int propertyId)
+        {
+            var result = await PropertyService.Deactivate(propertyId);
+            return ToActionResult(result);
+        }
 
     }
 }
