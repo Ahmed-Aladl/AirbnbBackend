@@ -5,6 +5,7 @@ using Application.Services;
 using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Airbnb.Controllers
 {
@@ -15,11 +16,10 @@ namespace Airbnb.Controllers
         private readonly IHubContext<NotificationHub> _hubContext;
         public NotificationService Notification { get; }
 
-        public NotificationController(NotificationService _notification, IHubContext<NotificationHub> hubContext)
-
+        public NotificationController(NotificationService notification, IHubContext<NotificationHub> hubContext)
         {
             _hubContext = hubContext;
-            Notification = _notification;
+            Notification = notification;
         }
 
         [HttpGet("{userId}")]
@@ -42,8 +42,15 @@ namespace Airbnb.Controllers
 
             var result = await Notification.SendNotification(notification);
 
+            // إرسال Real-time notification
             await _hubContext.Clients.User(dto.UserId)
-                .SendAsync("ReceiveNotification", dto.Message);
+                .SendAsync("ReceiveNotification", new
+                {
+                    message = dto.Message,
+                    createdAt = DateTime.UtcNow,
+                    id = notification.Id
+                });
+
             return ToActionResult(result);
         }
 
@@ -51,13 +58,14 @@ namespace Airbnb.Controllers
         public async Task<IActionResult> MarkAsRead(int id)
         {
             var result = await Notification.MarkAsRead(id);
-            return result.ToActionResult();
+            return ToActionResult(result);
         }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteNotification(int id)
         {
             var result = await Notification.DeleteNotification(id);
-            return result.ToActionResult();
+            return ToActionResult(result);
         }
     }
 }

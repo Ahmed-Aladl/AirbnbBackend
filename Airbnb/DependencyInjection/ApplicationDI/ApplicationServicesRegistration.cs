@@ -23,7 +23,11 @@ namespace Airbnb.DependencyInjection.ApplicationDI
 
             services.AddScoped<IUnitOfWork, UnitOfWork>(); // <-- Register UnitOfWork in DI
             services.AddScoped<IAmenityRepo, AmenityRepo>();
+            services.AddSignalR();
 
+            // ÊÃßÏ ãä ÅÖÇÝÉ Authentication
+            //services.AddAuthentication(/* your auth config */);
+            //services.AddAuthorization();
             // Add AutoMapper
             services.AddAutoMapper(
                 config =>
