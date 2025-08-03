@@ -41,7 +41,7 @@ namespace Application.DTOs.PropertyDTOS
         public int ReviewCount { get; set; }
 
         public bool isFavourite { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; }
 
         public PropertyAcceptStatus Status { get; set; } = PropertyAcceptStatus.Pending;

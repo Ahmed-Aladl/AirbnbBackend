@@ -22,5 +22,7 @@ namespace Application.Interfaces.IRepositories
         Task<List<Property>> GetByHostIdWithCoverAsync(string hostId);
         Task<List<Property>> GetAllWithHostDataAsync();
 
+        Task<List<Property>> GetHostListingsWithCoverAsync(string hostId);
+
     }
 }
