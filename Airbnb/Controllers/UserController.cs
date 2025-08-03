@@ -152,7 +152,7 @@ public class UserController : ControllerBase
 
         var rolesJson= JsonSerializer.Serialize(roles);
         //var encodedRoles= Uri.EscapeDataString(rolesJson);
-        Response.Cookies.Append("roles", rolesJson, new CookieOptions
+        Response.Cookies.Append("role", rolesJson, new CookieOptions
         {
             Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
             SameSite = SameSiteMode.None,
@@ -227,7 +227,7 @@ public class UserController : ControllerBase
             SameSite = SameSiteMode.None,
             Secure = true,
         });
-        Response.Cookies.Append("roles", "", new CookieOptions
+        Response.Cookies.Append("role", "", new CookieOptions
         {
             Expires = DateTimeOffset.UnixEpoch, // or DateTime.UtcNow.AddDays(-1)
             SameSite = SameSiteMode.None,
@@ -304,6 +304,7 @@ public class UserController : ControllerBase
 
         var oldAccessToken = Request.Cookies["accessToken"];
         var oldRefreshToken = Request.Cookies["refreshToken"];
+
         if (User?.Identity?.IsAuthenticated ?? false)
             return Ok(new TokenDto { AccessToken = oldAccessToken, RefreshToken = oldRefreshToken, UserId = User.GetUserId() });
 
@@ -362,7 +363,7 @@ public class UserController : ControllerBase
 
         var rolesJson = JsonSerializer.Serialize(roles);
         //var encodedRoles = Uri.EscapeDataString(rolesJson);
-        Response.Cookies.Append("roles", rolesJson, new CookieOptions
+        Response.Cookies.Append("role", rolesJson, new CookieOptions
         {
             Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
             SameSite = SameSiteMode.None,
