@@ -1,4 +1,6 @@
 ﻿using System.Net.Mail;
+using System.Text.Json;
+using Airbnb.Extensions;
 using Airbnb.Middleware;
 using Airbnb.Services;
 using Application.DTOs.UserDto;
@@ -27,7 +29,8 @@ public class UserController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IHubContext<NotificationHub> _hub;
-    private readonly int accessTokenExpiresAfterMins = 30;
+    private readonly double accessTokenExpiresAfterMins = 30;
+    private readonly int refreshTokenExpiresAfterDays = 9;
     public UserController(
         UserManager<User> userManager,
         AirbnbContext context,
@@ -114,18 +117,19 @@ public class UserController : ControllerBase
         //await _hub.Clients.User(user.Id).SendAsync("ReceiveNotification", $"Welcome {user.FirstName}");
 
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
-        Response.Cookies.Append(
-            "refreshToken",
+        // refreshToken
+        Response.Cookies.Append("refreshToken",
             refreshToken,
             new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Expires = DateTimeOffset.UtcNow.AddDays(refreshTokenExpiresAfterDays),
                 Path = "/api/user",
             }
         );
+        // accessToken
         Response.Cookies.Append(
             "accessToken",
             accessToken,
@@ -138,7 +142,23 @@ public class UserController : ControllerBase
                 Path = "/",
             }
         );
+        Response.Cookies.Append("userId", user.Id, new CookieOptions
+        {
+            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+            SameSite = SameSiteMode.None,
+            Secure = true,
+            Path = "/",
+        });
 
+        var rolesJson= JsonSerializer.Serialize(roles);
+        //var encodedRoles= Uri.EscapeDataString(rolesJson);
+        Response.Cookies.Append("roles", rolesJson, new CookieOptions
+        {
+            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+            SameSite = SameSiteMode.None,
+            Secure = true,
+            Path = "/",
+        });
         if (user.IsConfirmed == true)
         {
             return Ok(
@@ -184,7 +204,35 @@ public class UserController : ControllerBase
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        Response.Cookies.Delete("access_token");
+        
+        Response.Cookies.Append("refreshToken", "", new CookieOptions
+        {
+            Expires = DateTimeOffset.UnixEpoch, // or DateTime.UtcNow.AddDays(-1)
+            Path = "/api/user",
+            HttpOnly = true,
+            Secure = true, // only if you're using HTTPS
+            SameSite = SameSiteMode.None
+        });
+        Response.Cookies.Append("accessToken", "", new CookieOptions
+        {
+            Expires = DateTimeOffset.UnixEpoch, // or DateTime.UtcNow.AddDays(-1)
+            Path = "/",
+            HttpOnly = true,
+            Secure = true, // only if you're using HTTPS
+            SameSite = SameSiteMode.None
+        });
+        Response.Cookies.Append("userId", "", new CookieOptions
+        {
+            Expires = DateTimeOffset.UnixEpoch,
+            SameSite = SameSiteMode.None,
+            Secure = true,
+        });
+        Response.Cookies.Append("roles", "", new CookieOptions
+        {
+            Expires = DateTimeOffset.UnixEpoch, // or DateTime.UtcNow.AddDays(-1)
+            SameSite = SameSiteMode.None,
+            Secure = true,
+        });
         return Ok(new { message = "Logged out successfully" });
     }
 
@@ -250,8 +298,16 @@ public class UserController : ControllerBase
         if (refreshToken == null)
         {
             Console.WriteLine("****\n\n\n\nCoundn't find refresh token\n\n\n\n");
-            throw new BadHttpRequestException("no refresh token found");
+            //throw new BadHttpRequestException("no refresh token found");
+            return RedirectToAction(nameof(Logout));
         }
+
+        var oldAccessToken = Request.Cookies["accessToken"];
+        var oldRefreshToken = Request.Cookies["refreshToken"];
+        if (User?.Identity?.IsAuthenticated ?? false)
+            return Ok(new TokenDto { AccessToken = oldAccessToken, RefreshToken = oldRefreshToken, UserId = User.GetUserId() });
+
+
         var user = await _context.Users.FirstOrDefaultAsync(u =>
             u.RefreshToken == refreshToken
         );
@@ -280,7 +336,7 @@ public class UserController : ControllerBase
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Expires = DateTimeOffset.UtcNow.AddDays(refreshTokenExpiresAfterDays),
                 Path = "/api/user",
             }
         );
@@ -296,7 +352,23 @@ public class UserController : ControllerBase
                 Path = "/",
             }
         );
+        Response.Cookies.Append("userId", user.Id, new CookieOptions
+        {
+            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+            SameSite = SameSiteMode.None,
+            Secure = true,
+            Path = "/",
+        });
 
+        var rolesJson = JsonSerializer.Serialize(roles);
+        //var encodedRoles = Uri.EscapeDataString(rolesJson);
+        Response.Cookies.Append("roles", rolesJson, new CookieOptions
+        {
+            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+            SameSite = SameSiteMode.None,
+            Secure = true,
+            Path = "/",
+        });
         return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken, UserId = user.Id, Roles = roles.Select(r => new IdentityRole { Name = r }).ToList() });
     }
 
