@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Application.DTOs.PropertyDTOS;
 using Application.Interfaces.IRepositories;
 using Application.Shared;
+using Domain.Enums.Property;
 using Domain.Models;
 using Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,7 @@ namespace Infrastructure.Common.Repositories
         public async Task<Property> GetByIdWithCoverAsync(int id)
         {
             return await Db.Set<Property>()
+                .Include(p=> p.Host)
                 .Include(p => p.Images.Where(i=> i.IsCover))
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
@@ -69,13 +71,28 @@ namespace Infrastructure.Common.Repositories
 
         public async Task<List<Property>> GetByHostIdAsync(string hostId)
         {
-            return await Db.Properties.Where(p => p.HostId == hostId).ToListAsync();
+            return await Db.Properties
+                                .Where(p => p.HostId == hostId && p.IsActive)
+                                .ToListAsync();
+        }
+        public async Task<List<Property>> GetHostListingsWithCoverAsync(string hostId)
+        {
+            return await Db.Properties
+                                    .AsNoTracking()
+                                    .Where(p=> p.HostId == hostId )
+                                    .Include(p=> p.Images.Where(i=> i.IsCover))
+                                    .Include(p=> p.Host)
+                                    .ToListAsync();
         }
         public async Task<List<Property>> GetByHostIdWithCoverAsync(string hostId)
         {
             return await Db.Properties
                                     .AsNoTracking()
-                                    .Where(p=> p.HostId == hostId && !p.IsDeleted )
+                                    .Where(p=> 
+                                                p.HostId == hostId &&
+                                                p.IsActive && 
+                                                p.Status == PropertyAcceptStatus.Accepted 
+                                        )
                                     .Include(p=> p.Images.Where(i=> i.IsCover))
                                     .Include(p=> p.Host)
                                     .ToListAsync();
@@ -109,13 +126,15 @@ namespace Infrastructure.Common.Repositories
         {
             var propertiesNearby = Db.Properties
                             .Where(p =>
-                                6371 * Math.Acos(
-                                    Math.Cos(Math.PI * ipLocation.Lat / 180) *
-                                    Math.Cos(Math.PI * (double)p.Latitude / 180) *
-                                    Math.Cos(Math.PI * ((double)p.Longitude - ipLocation.Lon) / 180) +
-                                    Math.Sin(Math.PI * ipLocation.Lat / 180) *
-                                    Math.Sin(Math.PI * (double)p.Latitude / 180)
-                                ) < maxDistanceKm
+                                    p.IsActive &&
+                                    p.Status == PropertyAcceptStatus.Accepted &&
+                                    6371 * Math.Acos(
+                                        Math.Cos(Math.PI * ipLocation.Lat / 180) *
+                                        Math.Cos(Math.PI * (double)p.Latitude / 180) *
+                                        Math.Cos(Math.PI * ((double)p.Longitude - ipLocation.Lon) / 180) +
+                                        Math.Sin(Math.PI * ipLocation.Lat / 180) *
+                                        Math.Sin(Math.PI * (double)p.Latitude / 180)
+                                    ) < maxDistanceKm
                             );
             var totalCount = propertiesNearby.Count();
 
@@ -148,6 +167,10 @@ namespace Infrastructure.Common.Repositories
         public async Task<PaginatedResult<Property>> GetFilteredPageAsync(PropertyFilterDto filterDto, string userId )
         {
             var query = Db.Properties
+                            .Where(p=>
+                                        p.IsActive &&
+                                        p.Status == PropertyAcceptStatus.Accepted
+                                )
                 //.Include(p => p.Reservations)
                 .AsQueryable();
 

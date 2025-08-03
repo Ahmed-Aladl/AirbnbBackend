@@ -183,7 +183,7 @@ namespace Application.Services.Chat
                 for (int i = 0; i < messageDtos.Count; i++)
                 {
                     var dto = messageDtos[i];
-                    if (!string.IsNullOrWhiteSpace(targetLang) && !string.IsNullOrWhiteSpace(dto.MessageText))
+                    if (!string.IsNullOrWhiteSpace(targetLang) && !string.IsNullOrWhiteSpace(dto.MessageText) && !dto.IsOwnMessage)
                     {
                         string cacheKey = $"{dto.MessageText}|{targetLang}";
                         if (_translationCache.TryGetValue(cacheKey, out var cachedTranslation))
@@ -274,12 +274,12 @@ namespace Application.Services.Chat
 
                 var receiverId = chatSession.UserId == senderId ? chatSession.HostId : chatSession.UserId;
                 Console.WriteLine($"****\n\n\n\nReceiver Id {receiverId} {chatSession?.Id}");
+
+                //if (translationTask != null)
+                //    messageDto.MessageText = (await translationTask)[0];
                 if (receiverId != null)
                     chatNotifier.NotifyMessageSentAsync(receiverId, messageDto);
 
-
-                if (translationTask != null)
-                    messageDto.MessageText = (await translationTask)[0];
                 return messageDto;
             }
             catch (Exception ex)

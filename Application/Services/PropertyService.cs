@@ -163,6 +163,21 @@ namespace Application.Services
             var mapped = Mapper.Map<List<PropertyDisplayWithHostDataDto>>(properties);
             return Result<List<PropertyDisplayWithHostDataDto>>.Success(mapped);
         }
+        public async Task<Result<List<PropertyDisplayWithHostDataDto>>> GetHostListingsWithCoverAsync(string hostId)
+        {
+            var host = UnitOfWork
+                            .UserRepo
+                            .GetById(hostId);
+
+            var properties = await UnitOfWork
+                                        .PropertyRepo
+                                        .GetHostListingsWithCoverAsync(hostId);
+
+            var mapped = Mapper
+                            .Map<List<PropertyDisplayWithHostDataDto>>(properties);
+
+            return Result<List<PropertyDisplayWithHostDataDto>>.Success(mapped);
+        }
 
         public Result<PropertyDisplayDTO> Add(PropertyDisplayDTO propertyDTO)
         {
@@ -387,7 +402,44 @@ namespace Application.Services
             return Result<bool>.Success(true, 204);
         }
 
+        public async Task<Result<string>> Deactivate(int propertyId)
+        {
+            var property = UnitOfWork.PropertyRepo.GetById( propertyId );
 
+            if (property == null)
+                return Result<string>.Fail("Property not found", (int) HttpStatusCode.NotFound);
+
+            if (!property.IsActive)
+                return Result<string>.Success("Property alrady inactive ", (int) HttpStatusCode.NoContent);
+
+            property.IsActive = false;
+
+            UnitOfWork.PropertyRepo.Update(property);
+
+            await UnitOfWork.SaveChangesAsync();
+
+            return Result<string>.Success("Proeprty deactivated",(int)HttpStatusCode.NoContent);
+
+        }
+        public async Task<Result<string>> Activate(int propertyId)
+        {
+            var property = UnitOfWork.PropertyRepo.GetById( propertyId );
+
+            if (property == null)
+                return Result<string>.Fail("Property not found", (int) HttpStatusCode.NotFound);
+
+            if(property.IsActive)
+                return Result<string>.Success("Property already active", (int) HttpStatusCode.NoContent);
+
+            property.IsActive = true;
+
+            UnitOfWork.PropertyRepo.Update(property);
+
+            await UnitOfWork.SaveChangesAsync();
+
+            return Result<string>.Success("Proeprty deactivated",(int)HttpStatusCode.NoContent);
+
+        }
 
     }
 }

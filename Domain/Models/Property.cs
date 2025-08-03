@@ -37,7 +37,7 @@ namespace Domain.Models
         public int Bathrooms { get; set; }
         public float AverageRating { get; set; }
         public int ReviewCount { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; }
 
         [ForeignKey(nameof(PropertyType))]
