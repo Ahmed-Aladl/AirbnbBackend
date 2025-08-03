@@ -376,7 +376,7 @@ namespace Application.Services.Chat
 
 
             await UnitOfWork.SaveChangesAsync();
-            return Result<RespondToReservationRequestDto>.Success(reservationRespond);
+            return Result<RespondToReservationRequestDto>.Success(reservationRespond,204,"Your request has been sent to the host");
 
         }
 
@@ -463,7 +463,7 @@ namespace Application.Services.Chat
             await UnitOfWork.ReservationRepo.CreateAsync(response);
 
             await UnitOfWork.SaveChangesAsync();
-            return Result<bool>.Success(true, (int)HttpStatusCode.NoContent, "Request has been rejected");
+            return Result<bool>.Success(true, (int)HttpStatusCode.NoContent, "Request has been declined");
 
         }
 
