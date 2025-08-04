@@ -89,13 +89,26 @@ namespace Airbnb.Controllers
         }
 
 
-       
+       //For private use 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetReviewsByUserId(string userId)
+        [Authorize]
+        public async Task<IActionResult> GetReviewsByUserId()
         {
-
-
             string UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByUserId(UserId);
+
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode ?? 500, result.Message);
+            else
+                return ToActionResult(result);
+        }
+
+        //For public use
+        [HttpGet("user/show/{userId}")]
+        public async Task<IActionResult> GetPublicReviewsByUserId(string userId)
+        {
+           // string UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             Result<List<GuestReviewDTO>> result = await reviewservice.GetReviewsByUserId(userId);
 
@@ -103,10 +116,12 @@ namespace Airbnb.Controllers
                 return StatusCode(result.StatusCode ?? 500, result.Message);
             else
                 return ToActionResult(result);
-
         }
-        
-        
+
+
+
+
+
         [HttpGet("property/{propertyId}")]
         public async Task<IActionResult> GetReviewsByPropertyId(int propertyId)
         {
@@ -135,12 +150,25 @@ namespace Airbnb.Controllers
                 return ToActionResult(result);
         }
 
+        //check
+
+        [HttpGet("is-host/{userId}")]
+        public async Task<IActionResult> IsUserHost(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("User ID is required.");
+            }
+
+            var result = await reviewservice.IsUserAHostAsync(userId);
+            return ToActionResult(result);
+        }
+
 
         //host
 
-
         [HttpGet("host/my-reviews")]
-         [Authorize]
+    // [Authorize]
         public async Task<IActionResult> GetReviewsForHostProperties()
         {
             string hostId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -152,12 +180,12 @@ namespace Airbnb.Controllers
             var result = await reviewservice.GetReviewsForHostProperties(hostId);
             return ToActionResult(result);
         }
-
-        [HttpGet("host/my-reviews-with-properties")]
-         [Authorize]
+        //For pivate use
+        [HttpGet("host/{hostId}/reviews-with-properties")]
+        [Authorize]
         public async Task<IActionResult> GetReviewsForHostPropertiesWithPropertyData()
         {
-            string hostId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+           string hostId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(hostId))
             {
                 return Unauthorized("User not authenticated");
@@ -166,6 +194,24 @@ namespace Airbnb.Controllers
             var result = await reviewservice.GetReviewsForHostPropertiesWithPropertyData(hostId);
             return ToActionResult(result);
         }
+
+
+        //For public use
+        [HttpGet("host/{hostId}/reviews-with-properties/public")]
+        public async Task<IActionResult> GetPublicHostReviewsWithProperties(string hostId)
+        {
+            if (string.IsNullOrEmpty(hostId))
+            {
+                return BadRequest("User not authenticated");
+            }
+
+            var result = await reviewservice.GetReviewsForHostPropertiesWithPropertyData(hostId);
+            return ToActionResult(result);
+        }
+
+
+
+
 
         [HttpGet("host/property/{propertyId}/reviews")]
          [Authorize]
