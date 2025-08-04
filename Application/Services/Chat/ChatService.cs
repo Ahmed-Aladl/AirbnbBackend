@@ -526,7 +526,7 @@ namespace Application.Services.Chat
                 UserAvatarUrl = session?.User?.ProfilePictureURL,
                 HostId = session.HostId,
                 HostName = session?.Host?.UserName,
-                HostAvatarUrl = "",
+                HostAvatarUrl = session?.Host?.ProfilePictureURL,
                 LastActivityAt = session.LastActivityAt,
                 LastMessageText = lastMessage,// != null ? await MapMessageToDto(lastMessage, currentUserId) : null,
                 UnreadCount = unreadCount,
