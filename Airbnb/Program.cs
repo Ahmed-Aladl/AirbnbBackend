@@ -12,6 +12,7 @@ using Application.Services;
 using AspNetCoreRateLimit;
 using AutoMapper;
 using Domain.Models;
+using DotNetEnv;
 using Infrastructure.Common.Repositories;
 using Infrastructure.Contexts;
 using Infrastructure.Data;
@@ -20,13 +21,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Stripe;
 
+
 namespace Airbnb
 {
     public class Program
     {
         public static async Task Main(string[] args)
         {
+            DotNetEnv.Env.Load();
+
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Configuration.AddEnvironmentVariables();
 
             // Add services to the container.
             builder.Services.ConfigureRateLimiting(builder.Configuration);
@@ -48,7 +54,6 @@ namespace Airbnb
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-
             builder.Services.AddDomain();
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddApplication();
@@ -56,16 +61,14 @@ namespace Airbnb
 
             StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
-
             var app = builder.Build();
+
             app.UseStaticFiles();
             app.UseIpRateLimiting();
 
             await DbSeeder.SeedAsync(app);
 
             app.UseRouting();
-
-
 
             if (app.Environment.IsDevelopment())
             {
@@ -80,37 +83,41 @@ namespace Airbnb
             app.MapHub<ChatHub>("/chatHub");
             app.MapHub<NotificationHub>("/notificationHub");
             app.MapControllers();
-            app.Use(async (context, next) =>
-            {
-                Console.WriteLine($"\n\nRequest Path: {context.Request.Path}");
-                var user = context.User;
-                if (user?.Identity?.IsAuthenticated == true)
+            app.Use(
+                async (context, next) =>
                 {
-                    Console.WriteLine($"User: {user.Identity.Name}");
-
-                    foreach (var claim in user.Claims)
+                    Console.WriteLine($"\n\nRequest Path: {context.Request.Path}");
+                    var user = context.User;
+                    if (user?.Identity?.IsAuthenticated == true)
                     {
-                        Console.WriteLine($"\nClaim: {claim.Type} = {claim.Value}");
+                        Console.WriteLine($"User: {user.Identity.Name}");
+
+                        foreach (var claim in user.Claims)
+                        {
+                            Console.WriteLine($"\nClaim: {claim.Type} = {claim.Value}");
+                        }
                     }
-                }
-                else
-                    Console.WriteLine("******\n\n8\n8\n8\n8\n8\n8\n no data found\n8\n8\n8\n8\n8\n8\n8\n\n\n");
-                Console.WriteLine("==== Request Headers ====");
-                foreach (var header in context.Request.Headers)
-                {
-                    Console.WriteLine($"\n{header.Key}: {header.Value}");
-                }
-                Console.WriteLine("\n\n");
+                    else
+                        Console.WriteLine(
+                            "******\n\n8\n8\n8\n8\n8\n8\n no data found\n8\n8\n8\n8\n8\n8\n8\n\n\n"
+                        );
+                    Console.WriteLine("==== Request Headers ====");
+                    foreach (var header in context.Request.Headers)
+                    {
+                        Console.WriteLine($"\n{header.Key}: {header.Value}");
+                    }
+                    Console.WriteLine("\n\n");
 
-                Console.WriteLine("==== Request Cookies ====");
-                foreach (var cookie in context.Request.Cookies)
-                {
-                    Console.WriteLine($"\n{cookie.Key}: {cookie.Value}");
-                }
-                Console.WriteLine("\n\n");
+                    Console.WriteLine("==== Request Cookies ====");
+                    foreach (var cookie in context.Request.Cookies)
+                    {
+                        Console.WriteLine($"\n{cookie.Key}: {cookie.Value}");
+                    }
+                    Console.WriteLine("\n\n");
 
-                await next(context);
-            });
+                    await next(context);
+                }
+            );
 
             app.Run();
         }

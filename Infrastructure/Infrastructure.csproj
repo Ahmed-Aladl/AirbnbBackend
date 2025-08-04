@@ -11,6 +11,7 @@
     <Folder Include="DbSeeders\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="MailKit" Version="4.13.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
