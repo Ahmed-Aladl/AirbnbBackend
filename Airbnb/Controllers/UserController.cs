@@ -495,6 +495,15 @@ public class UserController : ControllerBase
         var identityRoles = roles.Select(role => new IdentityRole { Name = role }).ToList();
         await _userManager.UpdateAsync(user);
         await _context.SaveChangesAsync();
+        var rolesJson = JsonSerializer.Serialize(roles);
+        //var encodedRoles= Uri.EscapeDataString(rolesJson);
+        Response.Cookies.Append("role", rolesJson, new CookieOptions
+        {
+            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+            SameSite = SameSiteMode.None,
+            Secure = true,
+            Path = "/",
+        });
 
         return Ok(
             new
