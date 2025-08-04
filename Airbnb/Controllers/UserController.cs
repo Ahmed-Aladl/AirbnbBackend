@@ -69,6 +69,7 @@ public class UserController : ControllerBase
             return BadRequest(result.Errors.Select(e => e.Description));
 
         await _userManager.AddToRoleAsync(user, "Guest");
+        await _userManager.AddToRoleAsync(user, "Host");
 
         var otp = GenerateOtp();
 
