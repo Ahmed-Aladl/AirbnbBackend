@@ -39,16 +39,25 @@ namespace Airbnb.DependencyInjection.PresentationDI
                         policy.WithOrigins(allowedOrigins)
                               .AllowAnyMethod()
                               .AllowAnyHeader()
-                              .AllowCredentials()
-                              .WithHeaders("Authorization", "Content-Type", "X-Requested-With");
+                              .AllowCredentials();
+                              //.WithHeaders("Authorization", "Content-Type", "X-Requested-With");
                     }
                 });
 
+                options.AddPolicy("Prod", policy =>
+                {
+                    policy.WithOrigins("https://ahmed-aladl.github.io")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                              //.WithHeaders("Authorization", "Content-Type", "X-Requested-With");
+                });
                 options.AddPolicy("AllowAngularApp", policy =>
                 {
                     policy.WithOrigins("http://localhost:4200")
                           .AllowAnyHeader()
-                          .AllowAnyMethod().AllowCredentials();
+                          .AllowAnyMethod()
+                          .AllowCredentials();
                 });
             });
         }
@@ -113,7 +122,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
                 op.RoutePrefix = "swagger";
             });
 
-            app.UseCors("AllowAngularApp");
+            //app.UseCors("AllowAngularApp");
 
             return app;
         }
