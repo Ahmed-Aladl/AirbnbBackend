@@ -25,9 +25,10 @@ namespace Airbnb.DependencyInjection.PresentationDI
                 options.AddPolicy("AllowAll", policy =>
                 {
                     policy
-                        .AllowAnyOrigin()
+                        .SetIsOriginAllowed(_=> true)
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
 
                 options.AddPolicy("AllowTrusted", policy =>

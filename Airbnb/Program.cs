@@ -65,9 +65,10 @@ namespace Airbnb
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseCors("Prod");
-            app.UseCors("AllowAngularApp");
-            app.UseCors("AllowTrusted");
+            //app.UseCors("Prod");
+            //app.UseCors("AllowAngularApp");
+            //app.UseCors("AllowTrusted");
+            app.UseCors("AllowAll");
 
             //await DbSeeder.SeedAsync(app);
             app.UseIpRateLimiting();
