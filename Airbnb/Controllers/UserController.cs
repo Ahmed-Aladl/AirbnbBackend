@@ -143,23 +143,23 @@ public class UserController : ControllerBase
                 Path = "/",
             }
         );
-        Response.Cookies.Append("userId", user.Id, new CookieOptions
-        {
-            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
-            SameSite = SameSiteMode.None,
-            Secure = true,
-            Path = "/",
-        });
+        //Response.Cookies.Append("userId", user.Id, new CookieOptions
+        //{
+        //    Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+        //    SameSite = SameSiteMode.None,
+        //    Secure = true,
+        //    Path = "/",
+        //});
 
         var rolesJson= JsonSerializer.Serialize(roles);
         //var encodedRoles= Uri.EscapeDataString(rolesJson);
-        Response.Cookies.Append("role", rolesJson, new CookieOptions
-        {
-            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
-            SameSite = SameSiteMode.None,
-            Secure = true,
-            Path = "/",
-        });
+        //Response.Cookies.Append("role", rolesJson, new CookieOptions
+        //{
+        //    Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+        //    SameSite = SameSiteMode.None,
+        //    Secure = true,
+        //    Path = "/",
+        //});
         if (user.IsConfirmed == true)
         {
             return Ok(
@@ -168,6 +168,7 @@ public class UserController : ControllerBase
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
                     UserId = user.Id,
+                    ExpireAt = DateTime.UtcNow.AddMinutes(accessTokenExpiresAfterMins-3),
                     Roles = identityRoles,
                 }
             );
@@ -354,24 +355,31 @@ public class UserController : ControllerBase
                 Path = "/",
             }
         );
-        Response.Cookies.Append("userId", user.Id, new CookieOptions
-        {
-            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
-            SameSite = SameSiteMode.None,
-            Secure = true,
-            Path = "/",
-        });
+        //Response.Cookies.Append("userId", user.Id, new CookieOptions
+        //{
+        //    Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+        //    SameSite = SameSiteMode.None,
+        //    Secure = true,
+        //    Path = "/",
+        //});
 
         var rolesJson = JsonSerializer.Serialize(roles);
         //var encodedRoles = Uri.EscapeDataString(rolesJson);
-        Response.Cookies.Append("role", rolesJson, new CookieOptions
+        //Response.Cookies.Append("role", rolesJson, new CookieOptions
+        //{
+        //    Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
+        //    SameSite = SameSiteMode.None,
+        //    Secure = true,
+        //    Path = "/",
+        //});
+        return Ok(new TokenDto
         {
-            Expires = DateTime.UtcNow.AddDays(refreshTokenExpiresAfterDays),
-            SameSite = SameSiteMode.None,
-            Secure = true,
-            Path = "/",
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken,
+            UserId = user.Id,
+            ExpireAt = DateTime.UtcNow.AddMinutes(accessTokenExpiresAfterMins - 3),
+            Roles = roles.Select(r => new IdentityRole { Name = r }).ToList()
         });
-        return Ok(new TokenDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken, UserId = user.Id, Roles = roles.Select(r => new IdentityRole { Name = r }).ToList() });
     }
 
     private string GenerateOtp() => new Random().Next(100000, 999999).ToString();
