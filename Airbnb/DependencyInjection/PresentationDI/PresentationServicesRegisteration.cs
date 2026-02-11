@@ -25,9 +25,10 @@ namespace Airbnb.DependencyInjection.PresentationDI
                 options.AddPolicy("AllowAll", policy =>
                 {
                     policy
-                        .AllowAnyOrigin()
+                        .SetIsOriginAllowed(_=> true)
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
 
                 options.AddPolicy("AllowTrusted", policy =>
@@ -45,11 +46,20 @@ namespace Airbnb.DependencyInjection.PresentationDI
                     }
                 });
 
+                options.AddPolicy("Prod", policy =>
+                {
+                    policy.WithOrigins("https://ahmed-aladl.github.io")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                              //.WithHeaders("Authorization", "Content-Type", "X-Requested-With");
+                });
                 options.AddPolicy("AllowAngularApp", policy =>
                 {
                     policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
                           .AllowAnyHeader()
-                          .AllowAnyMethod().AllowCredentials();
+                          .AllowAnyMethod()
+                          .AllowCredentials();
                 });
             });
         }

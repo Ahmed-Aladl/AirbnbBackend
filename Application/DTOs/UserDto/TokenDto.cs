@@ -12,6 +12,7 @@ namespace Application.DTOs.UserDto
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
         public string? UserId { get; set; }
+        public  DateTime ExpireAt { get; set; } = DateTime.UtcNow;
         public IList<IdentityRole>? Roles { get; set; }
     }
 }
