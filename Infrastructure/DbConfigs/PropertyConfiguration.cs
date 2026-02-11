@@ -23,13 +23,17 @@ namespace Infrastructure.DbConfigs
                    .WithOne(i => i.Property)
                    .HasForeignKey(i => i.PropertyId);
 
-            builder.HasMany(p=> p.Bookings)
-                   .WithOne(p=> p.Property)
-                   .HasForeignKey(b => b.PropertyId);
+            builder.HasMany(p => p.Bookings)
+                   .WithOne(p => p.Property)
+                   .HasForeignKey(b => b.PropertyId)
+                   .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasMany(p => p.CalendarAvailabilities)
                    .WithOne(c => c.Property)
                    .HasForeignKey(c => c.PropertyId);
+
+            builder.Property(p => p.WeekendPrice)
+                   .HasColumnType("decimal(18,2)");
         }
     }
 }

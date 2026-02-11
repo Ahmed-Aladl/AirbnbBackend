@@ -14,11 +14,14 @@ namespace Infrastructure.DbConfigs
     public class ReviewConfiguration : IEntityTypeConfiguration<Domain.Models.Review>
     {
 
-        
+
         public void Configure(EntityTypeBuilder<Review> builder)
         {
 
-            builder.HasOne(r => r.Booking).WithOne().HasForeignKey<Review>(r => r.BookingId);
+            builder.HasOne(r => r.Booking)
+                   .WithOne()
+                   .HasForeignKey<Review>(r => r.BookingId)
+                   .OnDelete(DeleteBehavior.NoAction);
 
 
 

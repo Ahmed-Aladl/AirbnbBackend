@@ -28,11 +28,19 @@ namespace Airbnb
     {
         public static async Task Main(string[] args)
         {
+            // Load .env file at the very beginning
             DotNetEnv.Env.Load();
 
             var builder = WebApplication.CreateBuilder(args);
 
+            // Ensure environment variables override appsettings.json
             builder.Configuration.AddEnvironmentVariables();
+
+            // Log the connection string (masked) for debugging
+            var connectionString = builder.Configuration.GetConnectionString(
+                builder.Configuration["AirbnbConnectionString"] ?? "default"
+            );
+            Console.WriteLine($"Database Connection: {(!string.IsNullOrEmpty(connectionString) ? "Loaded" : "MISSING")}");
 
             // Add services to the container.
             builder.Services.ConfigureRateLimiting(builder.Configuration);

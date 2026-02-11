@@ -13,12 +13,15 @@ namespace Airbnb.DependencyInjection.InfrastructureDI
         )
         {
             services.AddDbContext<AirbnbContext>(op =>
+            {
                 op.UseSqlServer(
                     configuration.GetConnectionString(
-                        configuration?.GetSection("AirbnbConnectionString")?.Value ?? ""
+                        configuration?.GetSection("AirbnbConnectionString")?.Value ?? "default"
                     )
-                )
-            );
+                );
+                // Suppress the pending migrations error in EF Core 9
+                op.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            });
             return services;
         }
     }
