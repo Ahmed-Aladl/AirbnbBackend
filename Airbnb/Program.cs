@@ -71,10 +71,15 @@ namespace Airbnb
 
             var app = builder.Build();
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseIpRateLimiting();
+            //app.UseCors("Prod");
+            //app.UseCors("AllowAngularApp");
+            //app.UseCors("AllowTrusted");
+            app.UseCors("AllowAll");
 
-            await DbSeeder.SeedAsync(app);
+            //await DbSeeder.SeedAsync(app);
+            app.UseIpRateLimiting();
 
             app.UseRouting();
 
@@ -83,7 +88,6 @@ namespace Airbnb
                 app.AddPresentationDevelopmentDI();
             }
 
-            app.UseHttpsRedirection();
             app.UseMiddleware<JwtFromCookieMiddleware>();
             app.UseMiddleware<TokenValidationMiddleware>();
             app.UseAuthentication();
