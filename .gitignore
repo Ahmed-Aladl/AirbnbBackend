@@ -17,7 +17,7 @@
 mono_crash.*
 .env
 
-appsettings.json
+# appsettings.json removed to allow placeholder versions in repo
 
 # Build results
 [Dd]ebug/
@@ -365,4 +365,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-appsettings.json
+

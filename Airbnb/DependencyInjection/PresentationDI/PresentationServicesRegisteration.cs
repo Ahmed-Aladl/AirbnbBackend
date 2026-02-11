@@ -37,11 +37,13 @@ namespace Airbnb.DependencyInjection.PresentationDI
 
                     if (allowedOrigins != null && allowedOrigins.Length > 0)
                     {
-                        policy.WithOrigins(allowedOrigins)
+                        var origins = allowedOrigins.Select(o => o.TrimEnd('/')).ToArray();
+
+                        policy.WithOrigins(origins)
                               .AllowAnyMethod()
                               .AllowAnyHeader()
                               .AllowCredentials();
-                              //.WithHeaders("Authorization", "Content-Type", "X-Requested-With");
+
                     }
                 });
 
@@ -55,7 +57,7 @@ namespace Airbnb.DependencyInjection.PresentationDI
                 });
                 options.AddPolicy("AllowAngularApp", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200")
+                    policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials();
@@ -123,7 +125,8 @@ namespace Airbnb.DependencyInjection.PresentationDI
                 op.RoutePrefix = "swagger";
             });
 
-            //app.UseCors("AllowAngularApp");
+
+            app.UseCors("AllowTrusted");
 
             return app;
         }

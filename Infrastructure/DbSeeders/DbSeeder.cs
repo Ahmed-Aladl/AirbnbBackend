@@ -17,8 +17,8 @@ namespace Infrastructure.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // Ensure database is created
-            await context.Database.EnsureCreatedAsync();
+            // Apply migrations instead of simple creation to avoid circular reference errors and support existing schema
+            await context.Database.MigrateAsync();
 
             // Check if data already exists
             //if (await context.Users.AnyAsync()||
@@ -37,8 +37,8 @@ namespace Infrastructure.Data
                 await CreateRoles(roleManager);
             else return;
 
-                // Create users
-                List<User> users = new();
+            // Create users
+            List<User> users = new();
             if (!await context.Users.AnyAsync())
                 users = await CreateUsers(userManager);
 
